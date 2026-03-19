@@ -117,6 +117,8 @@ def plot_ieee33_results(
     ramas: list[tuple[int, int]],
 ) -> None:
     """Plot thesis-grade summary figures for one-way sequential coupling."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     nodos = v_base.index + 1
     pcc_bus_num = nodo_pcc
     delta_v = v_mg.to_numpy() - v_base.to_numpy()
@@ -252,4 +254,3 @@ def graficar_resultados_ieee33(
         nodo_pcc=nodo_pcc,
         ramas=ramas,
     )
-

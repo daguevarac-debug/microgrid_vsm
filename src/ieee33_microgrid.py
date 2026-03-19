@@ -3,13 +3,7 @@
 from pathlib import Path
 
 from networks.ieee33_coupling import IEEE33Microgrid, IEEE33MicrogridBaseline
-from plots.ieee33_plots import graficar_topologia_ieee33, ieee33_manual_coordinates
 from simulation.ieee33_reporting import extraer_metrica_lineas
-
-
-def _coordenadas_ieee33_manual() -> dict[int, tuple[float, float]]:
-    """Alias de compatibilidad para nombre previo."""
-    return ieee33_manual_coordinates()
 
 
 def main() -> None:
@@ -49,4 +43,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

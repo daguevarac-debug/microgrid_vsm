@@ -1,5 +1,6 @@
 """One-way sequential coupling: local microgrid dynamics + IEEE 33 postprocessing."""
 
+from numbers import Real
 from pathlib import Path
 
 import numpy as np
@@ -26,6 +27,25 @@ from plots.ieee33_plots import graficar_resultados_ieee33
 from simulation.ieee33_reporting import reportar_ieee33
 
 
+def _finite_float(name: str, value) -> float:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise ValueError(f"{name} must be a finite real number, got {value!r}.")
+    out = float(value)
+    if not np.isfinite(out):
+        raise ValueError(f"{name} must be finite, got {value!r}.")
+    return out
+
+
+def _index_in_range(name: str, index, size: int) -> int:
+    if isinstance(index, bool) or not isinstance(index, int):
+        raise ValueError(f"{name} must be an integer index, got {index!r}.")
+    if size <= 0:
+        raise ValueError(f"{name} validation failed because size must be > 0, got {size!r}.")
+    if index < 0 or index >= size:
+        raise ValueError(f"{name} must be in [0, {size - 1}] for network size {size}, got {index!r}.")
+    return index
+
+
 class IEEE33MicrogridBaseline(Microgrid):
     """PV + DC-link + LCL baseline averaged model with one-way IEEE 33 coupling."""
 
@@ -36,6 +56,7 @@ class IEEE33MicrogridBaseline(Microgrid):
         irradiance_profile=None,
         temperature_profile=None,
         load_profile=None,
+        output_dir: str | Path | None = None,
     ):
         super().__init__(
             irradiance_profile=irradiance_profile,
@@ -43,8 +64,15 @@ class IEEE33MicrogridBaseline(Microgrid):
             load_profile=load_profile,
         )
         self.net = construir_red_ieee33(ruta_txt)
-        self.pcc_bus_idx = pcc_bus_idx
-        self.output_dir = Path(__file__).resolve().parent.parent
+        self.pcc_bus_idx = _index_in_range(
+            "IEEE33MicrogridBaseline.pcc_bus_idx",
+            pcc_bus_idx,
+            size=len(self.net.bus),
+        )
+        if output_dir is None:
+            self.output_dir = Path(__file__).resolve().parents[2] / "outputs"
+        else:
+            self.output_dir = Path(output_dir)
 
     def simular(self) -> tuple[float, dict]:
         """Run dynamic simulation and return steady-state active power and time series."""
@@ -104,6 +132,7 @@ class IEEE33MicrogridBaseline(Microgrid):
 
     def flujo_con_dg(self, p_ss_kw: float) -> tuple[pd.Series, pd.DataFrame]:
         """Inject average active power as static DG in IEEE 33 and run power flow."""
+        p_ss_kw = _finite_float("p_ss_kw", p_ss_kw)
         p_mw = p_ss_kw / 1000.0
         q_mvar = p_mw * np.tan(np.arccos(MICROGRID_PF_DEFAULT))
 
@@ -179,4 +208,3 @@ class IEEE33MicrogridBaseline(Microgrid):
 
 
 IEEE33Microgrid = IEEE33MicrogridBaseline
-

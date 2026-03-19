@@ -1,5 +1,7 @@
 """Baseline grid-following controller for Vdc-regulated operation."""
 
+from numbers import Real
+
 import numpy as np
 
 from config import (
@@ -13,6 +15,22 @@ from controllers.base import InverterControllerBase
 from inverter_source import GridFormingInverter
 from models.plant import HardwarePlant
 from models.types import ControlOutput
+
+
+def _finite_float(name: str, value) -> float:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise ValueError(f"{name} must be a finite real number, got {value!r}.")
+    out = float(value)
+    if not np.isfinite(out):
+        raise ValueError(f"{name} must be finite, got {value!r}.")
+    return out
+
+
+def _positive_float(name: str, value) -> float:
+    out = _finite_float(name, value)
+    if out <= 0.0:
+        raise ValueError(f"{name} must be > 0, got {value!r}.")
+    return out
 
 
 class GridFollowingController(InverterControllerBase):
@@ -29,6 +47,14 @@ class GridFollowingController(InverterControllerBase):
         ki_vdc: float = 30.0,
         m_base: float = INVERTER_MODULATION_INDEX_MAX_DEFAULT,
     ):
+        f_hz = _positive_float("GridFollowingController.f_hz", f_hz)
+        v_ln_rms = _positive_float("GridFollowingController.v_ln_rms", v_ln_rms)
+        theta0 = _finite_float("GridFollowingController.theta0", theta0)
+        vdc_ref = _positive_float("GridFollowingController.vdc_ref", vdc_ref)
+        p_ref = _finite_float("GridFollowingController.p_ref", p_ref)
+        kp_vdc = _finite_float("GridFollowingController.kp_vdc", kp_vdc)
+        ki_vdc = _finite_float("GridFollowingController.ki_vdc", ki_vdc)
+        m_base = _positive_float("GridFollowingController.m_base", m_base)
         self.modulator = GridFormingInverter(f_hz=f_hz, v_ln_rms=v_ln_rms, theta0=theta0)
         self.vdc_ref = vdc_ref
         self.p_ref = p_ref
@@ -90,4 +116,3 @@ class GridFollowingController(InverterControllerBase):
             p_cmd=p_cmd,
             m_ctrl=m_ctrl,
         )
-
