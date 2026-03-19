@@ -1,7 +1,22 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
-.pytest_cache/
-.mypy_cache/
-src/**/*.png
-outputs/
+*.pyd
+
+# Virtual environments
+.venv/
+.venv-1/
+venv/
+env/
+
+# Editors
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated figures/results
+*.png
