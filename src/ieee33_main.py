@@ -1,9 +1,9 @@
-"""Compatibility facade for one-way sequential IEEE 33 + microgrid coupling."""
+"""Entry point for one-way sequential IEEE 33 + microgrid coupling."""
 
 from pathlib import Path
 
-from networks.ieee33_coupling import IEEE33Microgrid, IEEE33MicrogridBaseline
-from simulation.ieee33_reporting import extraer_metrica_lineas
+from ieee33_coupling import IEEE33MicrogridBaseline
+from ieee33_reporting import select_line_metric
 
 
 def main() -> None:
@@ -15,7 +15,7 @@ def main() -> None:
     v_base, res_line_base = sistema.flujo_base()
     v_mg, res_line_mg = sistema.flujo_con_dg(p_ss_kw)
 
-    estado_lineas_base, estado_lineas_mg, etiqueta_estado_lineas, metrica_lineas = extraer_metrica_lineas(
+    estado_lineas_base, estado_lineas_mg, etiqueta_estado_lineas, metrica_lineas = select_line_metric(
         res_line_base,
         res_line_mg,
     )

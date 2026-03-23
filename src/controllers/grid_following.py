@@ -13,8 +13,7 @@ from config import (
 )
 from controllers.base import InverterControllerBase
 from inverter_source import GridFormingInverter
-from models.plant import HardwarePlant
-from models.types import ControlOutput
+from microgrid import ControlOutput, HardwarePlant
 
 
 def _finite_float(name: str, value) -> float:

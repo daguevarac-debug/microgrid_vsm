@@ -22,9 +22,9 @@ from config import (
     SIM_VDC0_V_DEFAULT,
 )
 from ieee33_base import construir_red_ieee33
-from models.microgrid import Microgrid
-from plots.ieee33_plots import graficar_resultados_ieee33
-from simulation.ieee33_reporting import reportar_ieee33
+from microgrid import Microgrid
+from ieee33_plots import plot_ieee33_results
+from ieee33_reporting import print_ieee33_report
 
 
 def _finite_float(name: str, value) -> float:
@@ -70,7 +70,7 @@ class IEEE33MicrogridBaseline(Microgrid):
             size=len(self.net.bus),
         )
         if output_dir is None:
-            self.output_dir = Path(__file__).resolve().parents[2] / "outputs"
+            self.output_dir = Path(__file__).resolve().parents[1] / "outputs"
         else:
             self.output_dir = Path(output_dir)
 
@@ -168,7 +168,7 @@ class IEEE33MicrogridBaseline(Microgrid):
         metrica_lineas: str,
     ) -> None:
         """Imprimir reporte de comparacion sin/con baseline."""
-        reportar_ieee33(
+        print_ieee33_report(
             pcc_bus_num=self.pcc_bus_idx + 1,
             p_ss_kw=p_ss_kw,
             v_base=v_base,
@@ -192,7 +192,7 @@ class IEEE33MicrogridBaseline(Microgrid):
         nodo_pcc: int,
     ) -> None:
         """Graficar resultados sin/con baseline y dinamica local."""
-        graficar_resultados_ieee33(
+        plot_ieee33_results(
             output_dir=self.output_dir,
             v_base=v_base,
             v_mg=v_mg,

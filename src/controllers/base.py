@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from models.types import ControlOutput
+from microgrid import ControlOutput
 
 if TYPE_CHECKING:
-    from models.plant import HardwarePlant
+    from microgrid import HardwarePlant
 
 
 class InverterControllerBase(ABC):

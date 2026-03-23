@@ -28,14 +28,6 @@ def select_line_metric(
     raise ValueError("No se encontro una metrica valida para comparar el estado de lineas.")
 
 
-def extraer_metrica_lineas(
-    res_line_base: pd.DataFrame,
-    res_line_mg: pd.DataFrame,
-) -> tuple[np.ndarray, np.ndarray, str, str]:
-    """Alias publico en espanol para compatibilidad."""
-    return select_line_metric(res_line_base, res_line_mg)
-
-
 def print_ieee33_report(
     pcc_bus_num: int,
     p_ss_kw: float,
@@ -74,27 +66,3 @@ def print_ieee33_report(
         f"{line_metric_mg.max():.3f} (sin->con baseline)"
     )
     print("=" * 55)
-
-
-def reportar_ieee33(
-    pcc_bus_num: int,
-    p_ss_kw: float,
-    v_base: pd.Series,
-    v_mg: pd.Series,
-    line_metric_base: np.ndarray,
-    line_metric_mg: np.ndarray,
-    line_metric_label: str,
-    line_metric_key: str,
-) -> None:
-    """Alias publico en espanol para compatibilidad."""
-    print_ieee33_report(
-        pcc_bus_num,
-        p_ss_kw,
-        v_base,
-        v_mg,
-        line_metric_base,
-        line_metric_mg,
-        line_metric_label,
-        line_metric_key,
-    )
-

@@ -3,8 +3,7 @@
 import numpy as np
 
 from controllers.base import InverterControllerBase
-from models.plant import HardwarePlant
-from models.types import ControlOutput
+from microgrid import ControlOutput, HardwarePlant
 
 
 class GridFormingVSGController(InverterControllerBase):

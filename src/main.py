@@ -15,7 +15,7 @@ from config import (
     SIM_T_START_S_DEFAULT,
     SIM_VDC0_V_DEFAULT,
 )
-from models.microgrid import Microgrid
+from microgrid import Microgrid
 
 
 def main() -> None:

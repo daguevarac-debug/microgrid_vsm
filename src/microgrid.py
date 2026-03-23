@@ -1,5 +1,12 @@
-"""Composed dynamic model for the PV + DC-link + LCL baseline system."""
+"""Composed dynamic model for the PV + DC-link + LCL baseline system.
 
+Contains:
+- ControlOutput: controller output container
+- HardwarePlant: physical plant layer (PV, DC-link, LCL)
+- Microgrid: composed plant + controller for baseline averaged model
+"""
+
+from dataclasses import dataclass
 from numbers import Real
 
 import numpy as np
@@ -35,9 +42,12 @@ from controllers.grid_following import GridFollowingController
 from dclink import DCLinkParams
 from inverter_source import GridFormingInverter, validate_dc_bus_capability
 from lcl_filter import LCLFilter
-from models.plant import HardwarePlant
 from pv_model import PVArrayParams, PVArraySingleDiode, PVModuleParams
 
+
+# ---------------------------------------------------------------------------
+# Validation helpers
+# ---------------------------------------------------------------------------
 
 def _finite_float(name: str, value) -> float:
     if isinstance(value, bool) or not isinstance(value, Real):
@@ -75,6 +85,96 @@ def _evaluate_profile(name: str, profile, t: float) -> float:
         raise ValueError(f"{name} failed at t={t!r}: {exc}") from exc
     return _finite_float(f"{name}(t={t!r})", value)
 
+
+# ---------------------------------------------------------------------------
+# ControlOutput
+# ---------------------------------------------------------------------------
+
+@dataclass
+class ControlOutput:
+    """Controller outputs required by baseline plant integration."""
+
+    v_inv: np.ndarray
+    idc_inv: float
+    d_xi_vdc_dt: float
+    d_theta_dt: float
+    p_bridge: float
+    p_pcc: float
+    p_cmd: float
+    m_ctrl: float
+
+    def __post_init__(self) -> None:
+        self.v_inv = np.asarray(self.v_inv, dtype=float)
+        if self.v_inv.shape != (3,) or not np.isfinite(self.v_inv).all():
+            raise ValueError(
+                f"ControlOutput.v_inv must be a finite 3-element vector, got shape {self.v_inv.shape}."
+            )
+        self.idc_inv = _finite_float("ControlOutput.idc_inv", self.idc_inv)
+        self.d_xi_vdc_dt = _finite_float("ControlOutput.d_xi_vdc_dt", self.d_xi_vdc_dt)
+        self.d_theta_dt = _finite_float("ControlOutput.d_theta_dt", self.d_theta_dt)
+        self.p_bridge = _finite_float("ControlOutput.p_bridge", self.p_bridge)
+        self.p_pcc = _finite_float("ControlOutput.p_pcc", self.p_pcc)
+        self.p_cmd = _finite_float("ControlOutput.p_cmd", self.p_cmd)
+        self.m_ctrl = _finite_float("ControlOutput.m_ctrl", self.m_ctrl)
+
+
+# ---------------------------------------------------------------------------
+# HardwarePlant
+# ---------------------------------------------------------------------------
+
+class HardwarePlant:
+    """Physical layer: PV source, DC-link and LCL filter dynamics."""
+
+    def __init__(
+        self,
+        pv: PVArraySingleDiode,
+        dcp: DCLinkParams,
+        lcl: LCLFilter,
+        eta: float,
+        v_uvlo: float,
+    ):
+        if not isinstance(pv, PVArraySingleDiode):
+            raise ValueError(f"pv must be PVArraySingleDiode, got {type(pv).__name__}.")
+        if not isinstance(dcp, DCLinkParams):
+            raise ValueError(f"dcp must be DCLinkParams, got {type(dcp).__name__}.")
+        if not isinstance(lcl, LCLFilter):
+            raise ValueError(f"lcl must be LCLFilter, got {type(lcl).__name__}.")
+        eta = _eta_float("HardwarePlant.eta", eta)
+        v_uvlo = _positive_float("HardwarePlant.v_uvlo", v_uvlo)
+        self.pv = pv
+        self.dcp = dcp
+        self.lcl = lcl
+        self.eta = eta
+        self.v_uvlo = v_uvlo
+
+    def pv_current(self, vdc_eff: float, irradiance: float, cell_temp_c: float) -> float:
+        """Return PV array current for current operating point."""
+        return self.pv.ipv_from_vpv(vdc_eff, G=irradiance, T_c=cell_temp_c)
+
+    def pcc_voltage(self, i2: np.ndarray, r_load: float) -> np.ndarray:
+        """Baseline local AC closure with equivalent resistive load."""
+        return i2 * r_load
+
+    def dc_link_derivative(self, ipv: float, idc_inv: float, i_bess: float = 0.0) -> float:
+        """Return DC-link voltage derivative from power balance."""
+        # TODO [MODELO_BESS]: agregar i_bess cuando se implemente bateria.
+        return (ipv + i_bess - idc_inv) / self.dcp.Cdc
+
+    def lcl_derivatives(
+        self,
+        v_inv: np.ndarray,
+        v_pcc: np.ndarray,
+        i1: np.ndarray,
+        vc: np.ndarray,
+        i2: np.ndarray,
+    ):
+        """Delegate LCL state derivatives."""
+        return self.lcl.calculate_derivatives(v_inv, v_pcc, i1, vc, i2)
+
+
+# ---------------------------------------------------------------------------
+# Microgrid
+# ---------------------------------------------------------------------------
 
 class Microgrid:
     """Compose plant and baseline controller for the averaged dynamic model."""

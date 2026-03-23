@@ -83,7 +83,7 @@ def plot_ieee33_topology(
             va="bottom",
             fontsize=9,
             color="green",
-            arrowprops={"arrowstyle": "-|>", "color": "green", "lw": 1.7},
+            arrowprops={"arrowstyle": "->", "color": "green", "lw": 1.7},
         )
 
     ax.set_title("Sistema IEEE 33 nodos con punto de acople de la microrred", fontsize=11)
@@ -91,16 +91,6 @@ def plot_ieee33_topology(
     ax.set_xlim(-0.8, 17.8)
     ax.set_ylim(-1.5, 1.6)
     ax.axis("off")
-
-
-def graficar_topologia_ieee33(
-    ax: plt.Axes,
-    ramas: list[tuple[int, int]],
-    nodo_pcc: int = 18,
-    p_ss_kw: float = 0.0,
-) -> None:
-    """Alias publico en espanol para compatibilidad."""
-    plot_ieee33_topology(ax=ax, ramas=ramas, nodo_pcc=nodo_pcc, p_ss_kw=p_ss_kw)
 
 
 def plot_ieee33_results(
@@ -225,32 +215,3 @@ def plot_ieee33_results(
     print("\n  Figura guardada: ieee33_microgrid_resultado.png")
     print("  Figura guardada: ieee33_microgrid_dinamica_lineas.png")
     plt.show()
-
-
-def graficar_resultados_ieee33(
-    output_dir: Path,
-    v_base: pd.Series,
-    v_mg: pd.Series,
-    datos: dict,
-    p_ss_kw: float,
-    estado_lineas_base: np.ndarray,
-    estado_lineas_mg: np.ndarray,
-    etiqueta_estado_lineas: str,
-    metrica_lineas: str,
-    nodo_pcc: int,
-    ramas: list[tuple[int, int]],
-) -> None:
-    """Alias publico en espanol para compatibilidad."""
-    plot_ieee33_results(
-        output_dir=output_dir,
-        v_base=v_base,
-        v_mg=v_mg,
-        datos=datos,
-        p_ss_kw=p_ss_kw,
-        estado_lineas_base=estado_lineas_base,
-        estado_lineas_mg=estado_lineas_mg,
-        etiqueta_estado_lineas=etiqueta_estado_lineas,
-        metrica_lineas=metrica_lineas,
-        nodo_pcc=nodo_pcc,
-        ramas=ramas,
-    )
