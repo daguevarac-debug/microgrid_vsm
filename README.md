@@ -40,7 +40,7 @@ El objetivo del baseline es mantener una base tecnicamente consistente, trazable
 ## Estructura del repositorio (actual)
 - `src/config.py`: constantes y parametros base del modelo.
 - `src/microgrid.py`: modelo compuesto de la microrred (`Microgrid`) y dinamica principal.
-- `src/controllers/`: logica de control (`base.py`, `grid_following.py`, `grid_forming_scaffold.py`).
+- `src/controllers/`: logica de control (`base.py`, `grid_following.py`).
 - `src/pv_model.py`, `src/dclink.py`, `src/lcl_filter.py`, `src/inverter_source.py`: componentes fisicos del baseline.
 - `src/ieee33_base.py`: construccion de la red IEEE 33.
 - `src/ieee33_coupling.py`: acople secuencial one-way y clase `IEEE33MicrogridBaseline`.
