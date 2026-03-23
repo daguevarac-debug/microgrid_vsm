@@ -19,6 +19,24 @@ El objetivo del baseline es mantener una base tecnicamente consistente, trazable
 - Control grid-forming completo.
 - Contribucion final de inercia virtual activa.
 
+## Fase 1 BESS-SLB (base de modelo)
+- Se agrego el modulo `src/bess_second_life.py` para representar solo la base
+  de una bateria second-life de EV, sin integracion aun con la microrred.
+- Estructura definida:
+  - capacidad nominal (`nominal_capacity_ah`)
+  - SoH inicial (`soh_initial`)
+  - capacidad efectiva (`effective_capacity_ah = nominal_capacity_ah * soh_initial`)
+  - resistencia interna (`internal_resistance_ohm`)
+  - limites basicos de operacion (`soc_min`, `soc_max`, limites opcionales de voltaje y temperatura)
+- Preparado para Fase 2:
+  - `to_ecm_seed()` deja lista una semilla para ECM con placeholders de
+    `OCV(SoC)`, rama `RC` y degradacion dinamica.
+- Referencia de caracterizacion:
+  - Braco et al. (2023) como base metodologica para capacidad disponible y
+    resistencia interna en baterias second-life de Nissan Leaf.
+  - Los valores numericos deben cargarse desde caracterizacion propia del caso
+    de estudio; el modulo no inventa parametros faltantes.
+
 ## Estructura del repositorio (actual)
 - `src/config.py`: constantes y parametros base del modelo.
 - `src/microgrid.py`: modelo compuesto de la microrred (`Microgrid`) y dinamica principal.
