@@ -1,9 +1,15 @@
 """Scaffold-only placeholder for future grid-forming VSG control."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 
-from controllers.base import InverterControllerBase
-from microgrid import ControlOutput, HardwarePlant
+from controllers.base import ControlOutput, InverterControllerBase
+
+if TYPE_CHECKING:
+    from microgrid import HardwarePlant
 
 
 class GridFormingVSGController(InverterControllerBase):
@@ -26,4 +32,3 @@ class GridFormingVSGController(InverterControllerBase):
     ) -> ControlOutput:
         del t, theta, xi_vdc, vdc_eff, v_pcc, i1, i2, plant, ipv
         raise NotImplementedError("GridFormingVSGController is scaffold-only in baseline mode.")
-

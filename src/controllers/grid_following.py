@@ -1,6 +1,9 @@
 """Baseline grid-following controller for Vdc-regulated operation."""
 
+from __future__ import annotations
+
 from numbers import Real
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -11,9 +14,11 @@ from config import (
     INVERTER_MODULATION_INDEX_MAX_DEFAULT,
     SIM_VDC0_V_DEFAULT,
 )
-from controllers.base import InverterControllerBase
+from controllers.base import ControlOutput, InverterControllerBase
 from inverter_source import GridFormingInverter
-from microgrid import ControlOutput, HardwarePlant
+
+if TYPE_CHECKING:
+    from microgrid import HardwarePlant
 
 
 def _finite_float(name: str, value) -> float:

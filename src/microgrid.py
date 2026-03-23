@@ -1,12 +1,10 @@
 """Composed dynamic model for the PV + DC-link + LCL baseline system.
 
 Contains:
-- ControlOutput: controller output container
 - HardwarePlant: physical plant layer (PV, DC-link, LCL)
 - Microgrid: composed plant + controller for baseline averaged model
 """
 
-from dataclasses import dataclass
 from numbers import Real
 
 import numpy as np
@@ -37,7 +35,7 @@ from config import (
     MICROGRID_UVLO_V_DEFAULT,
     SIM_VDC0_V_DEFAULT,
 )
-from controllers.base import InverterControllerBase
+from controllers.base import ControlOutput, InverterControllerBase
 from controllers.grid_following import GridFollowingController
 from dclink import DCLinkParams
 from inverter_source import GridFormingInverter, validate_dc_bus_capability
@@ -84,38 +82,6 @@ def _evaluate_profile(name: str, profile, t: float) -> float:
     except Exception as exc:  # pragma: no cover - exception passthrough
         raise ValueError(f"{name} failed at t={t!r}: {exc}") from exc
     return _finite_float(f"{name}(t={t!r})", value)
-
-
-# ---------------------------------------------------------------------------
-# ControlOutput
-# ---------------------------------------------------------------------------
-
-@dataclass
-class ControlOutput:
-    """Controller outputs required by baseline plant integration."""
-
-    v_inv: np.ndarray
-    idc_inv: float
-    d_xi_vdc_dt: float
-    d_theta_dt: float
-    p_bridge: float
-    p_pcc: float
-    p_cmd: float
-    m_ctrl: float
-
-    def __post_init__(self) -> None:
-        self.v_inv = np.asarray(self.v_inv, dtype=float)
-        if self.v_inv.shape != (3,) or not np.isfinite(self.v_inv).all():
-            raise ValueError(
-                f"ControlOutput.v_inv must be a finite 3-element vector, got shape {self.v_inv.shape}."
-            )
-        self.idc_inv = _finite_float("ControlOutput.idc_inv", self.idc_inv)
-        self.d_xi_vdc_dt = _finite_float("ControlOutput.d_xi_vdc_dt", self.d_xi_vdc_dt)
-        self.d_theta_dt = _finite_float("ControlOutput.d_theta_dt", self.d_theta_dt)
-        self.p_bridge = _finite_float("ControlOutput.p_bridge", self.p_bridge)
-        self.p_pcc = _finite_float("ControlOutput.p_pcc", self.p_pcc)
-        self.p_cmd = _finite_float("ControlOutput.p_cmd", self.p_cmd)
-        self.m_ctrl = _finite_float("ControlOutput.m_ctrl", self.m_ctrl)
 
 
 # ---------------------------------------------------------------------------
