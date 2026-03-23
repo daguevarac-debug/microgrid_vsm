@@ -214,4 +214,6 @@ def plot_ieee33_results(
 
     print("\n  Figura guardada: ieee33_microgrid_resultado.png")
     print("  Figura guardada: ieee33_microgrid_dinamica_lineas.png")
-    plt.show()
+    # Flujo por script: se guardan figuras en disco y se evita abrir GUI interactiva.
+    plt.close(fig_a)
+    plt.close(fig_b)

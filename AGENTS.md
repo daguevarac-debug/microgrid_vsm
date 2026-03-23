@@ -26,7 +26,7 @@ The current goal is to maintain a clean, modular, and trustworthy baseline befor
 1. Do not change physical equations unless explicitly requested.
 2. Do not implement BESS unless explicitly requested.
 3. Do not activate, complete, or claim grid-forming functionality unless explicitly requested.
-4. Do not rename public compatibility wrappers without preserving backward-compatible imports.
+4. Do not rename current public entrypoints/imports without preserving backward-compatible imports.
 5. Do not remove TODO comments related to BESS, profiles, grid-forming, or future thesis work.
 6. Do not introduce overengineering or unnecessary abstractions.
 7. Do not silently change the state vector order.
@@ -70,10 +70,10 @@ After any non-trivial edit, verify:
 
 ## Public compatibility expectations
 These public entrypoints should remain stable unless explicitly changed:
-- `from microgrid_model import Microgrid`
-- `from ieee33_microgrid import IEEE33Microgrid`
+- `from microgrid import Microgrid`
+- `from ieee33_coupling import IEEE33Microgrid`
 
-If internal modules are reorganized, preserve these wrappers.
+If internal modules are reorganized, preserve these imports (or provide compatibility aliases).
 
 ## Style guidance
 - Prefer clear, technical names.
@@ -94,20 +94,20 @@ Be precise about what is implemented vs. what is planned.
 ### `config.py`
 Single source of truth for core constants unless explicitly refactored.
 
-### `models/`
-Contains physical plant composition and state-space/dynamic assembly.
-
 ### `controllers/`
 Contains control logic only. Keep controller behavior separate from plant physics.
 
-### `networks/`
+### `microgrid.py`
+Contains physical plant composition and state-space/dynamic assembly for baseline dynamics.
+
+### `ieee33_coupling.py`
 Contains IEEE 33 coupling and network-side integration.
 
-### `plots/`
+### `ieee33_plots.py`
 Contains visualization only. Avoid putting physical logic here.
 
-### `simulation/`
-Contains runners, reporting, and simulation-side utilities.
+### `main.py` and `ieee33_main.py`
+Contain run entrypoints for local baseline and IEEE33 one-way study.
 
 ## When asked to validate a change
 Report using:
