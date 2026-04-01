@@ -25,7 +25,7 @@ if "--show" not in sys.argv:
     matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from bess_second_life import SecondLifeBattery1RC
+from bess.model import SecondLifeBattery1RC
 
 
 NUM_TOL = 1e-10

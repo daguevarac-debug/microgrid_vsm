@@ -3,6 +3,7 @@
 Scope:
 - Validate z_deg/SoH/Q_eff/R0 consistency with the implemented equations.
 - Keep Thevenin 1RC physics unchanged.
+- Use OCV/R1/C1 parameterization loaded from literature-digitized Excel.
 - Produce thesis-ready plots and summary tables.
 """
 
@@ -25,7 +26,7 @@ if "--show" not in sys.argv:
     matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from bess_second_life import SecondLifeBattery1RC
+from bess.model import SecondLifeBattery1RC
 
 
 MONO_TOL = 1e-8
@@ -34,6 +35,7 @@ SLOPE_ATOL = 5e-8
 Q_NOM_AH = 66.0
 Q_AVAILABLE_2ND_LIFE_AH = 44.1
 SOH_INITIAL = Q_AVAILABLE_2ND_LIFE_AH / Q_NOM_AH
+R0_NOMINAL_OHM = 0.000970
 
 
 @dataclass
@@ -54,10 +56,13 @@ class CaseResult:
 
 
 def _build_model(**overrides) -> SecondLifeBattery1RC:
+    repo_root = SRC_DIR.parent
+    excel_path = repo_root / "OCV_SOC.xlsx"
     base = dict(
+        excel_path=excel_path,
         q_nom_ah=Q_NOM_AH,
         soh_initial=SOH_INITIAL,
-        r0_nominal_ohm=0.02,
+        r0_nominal_ohm=R0_NOMINAL_OHM,
         r0_soh_sensitivity=1.0,
         k_deg=1.478e-6,
         soh_min=0.50,
@@ -67,7 +72,9 @@ def _build_model(**overrides) -> SecondLifeBattery1RC:
         soc_max=0.90,
     )
     base.update(overrides)
-    return SecondLifeBattery1RC(**base)
+    # Parameterization note:
+    # OCV(SoC), R1(SoC), C1(SoC) are loaded from literature-digitized Excel.
+    return SecondLifeBattery1RC.from_excel_characterization(**base)
 
 
 def _mae(x: np.ndarray) -> float:
@@ -344,6 +351,10 @@ def _write_summary_csv(cases: list[CaseResult], out_dir: Path) -> None:
 def main(show_plots: bool = False) -> int:
     out_dir = SRC_DIR.parent / "outputs" / "validation" / "bess_step3"
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Validation scope note:
+    # This is a consistency-of-equations validation using literature-based
+    # parameterization, not a fit against a measured experimental time series.
 
     # Case A: constant discharge.
     model = _build_model()

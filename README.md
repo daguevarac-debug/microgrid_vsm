@@ -1,86 +1,125 @@
-# Baseline de Tesis: Microrred Fotovoltaica Acoplada al IEEE 33
+# Baseline de Tesis: Microrred Fotovoltaica + BESS-SLB
 
-## Descripcion general
-Este repositorio implementa un **baseline de tesis** para una microrred fotovoltaica con simulacion dinamica local y acople secuencial **one-way** al sistema de distribucion IEEE de 33 nodos.
+## Descripción general
+Este repositorio implementa un **baseline de tesis** para una microrred fotovoltaica con simulación dinámica local, acople secuencial **one-way** al sistema de distribución IEEE de 33 nodos, y un modelo dinámico de batería de segunda vida (BESS-SLB).
 
-El objetivo del baseline es mantener una base tecnicamente consistente, trazable y extensible para trabajo de investigacion posterior.
+El objetivo del baseline es mantener una base técnicamente consistente, trazable y extensible para trabajo de investigación posterior.
 
 ## Alcance actual (implementado)
+
+### Microrred PV
 - Modelo del arreglo fotovoltaico (PV array).
-- Dinamica del bus DC (DC-link).
+- Dinámica del bus DC (DC-link).
 - Modelo del filtro LCL.
 - Fuente inversora y control baseline tipo grid-following con PI.
-- Simulacion dinamica local del sistema de microrred.
+- Simulación dinámica local del sistema de microrred.
 - Acople secuencial one-way al sistema IEEE 33 en el PCC.
 
-## Funcionalidades no implementadas aun
-- Integracion de BESS.
-- Modelo operativo de bateria de segunda vida.
+### BESS-SLB (batería de segunda vida)
+- **Modelo dinámico Thevenin 1RC** (`bess/model.py`):
+  - Terminal: `V_t = OCV(SoC) - i*R0(SoH) - V_rc`
+  - RC: `dV_rc/dt = -V_rc/(R1*C1) + i/C1`
+  - SoC: `dSoC/dt = -i/(3600*Q_eff)` (coulomb counting)
+- **Degradación de primer orden** (`bess/model.py`):
+  - Estado de throughput: `dz_deg/dt = |i|/3600`
+  - Ley de desvanecimiento lineal de SoH: `SoH = SoH_0 - k_deg*z_deg`
+  - Resistencia dependiente de envejecimiento: `R0 = R0_nom*(1+k*(1-SoH))`
+- **Carga de parámetros desde Excel** (`bess/characterization.py`):
+  - OCV(SoC), R1(SoC), C1(SoC) desde archivo `OCV_SOC.xlsx`.
+- **Modelo estático Phase-1** (`bess/phase1.py`):
+  - Capacidad nominal, SoH inicial, resistencia interna caracterizada.
+- **Validaciones cuantitativas** (`src/validation/`):
+  - Step-2: comportamiento dinámico 1RC sin degradación.
+  - Step-3: consistencia de degradación z_deg/SoH/Q_eff/R0.
+  - Carga Excel: verificación de lectura correcta desde archivo.
+
+### Convenciones de capacidad (obligatorias)
+- `Q_nom = 66 Ah` — capacidad nominal de referencia (par 2p Nissan Leaf).
+- `SoH_initial = 44.1 / 66 ≈ 0.6682` — fracción de capacidad disponible en segunda vida.
+- `Q_eff(0) = Q_nom * SoH_initial ≈ 44.1 Ah` — capacidad efectiva inicial.
+- Referencia: Braco et al. (2023) / Tran et al. (2021).
+
+## Funcionalidades no implementadas aún
+- Integración del BESS-SLB en la simulación dinámica de la microrred (acople BESS + PV + inversor).
 - Control grid-forming completo.
-- Contribucion final de inercia virtual activa.
+- Contribución final de inercia virtual activa.
 
-## Fase 1 BESS-SLB (base de modelo)
-- Se agrego el modulo `src/bess_second_life.py` para representar solo la base
-  de una bateria second-life de EV, sin integracion aun con la microrred.
-- Estructura definida:
-  - capacidad nominal (`nominal_capacity_ah`)
-  - SoH inicial (`soh_initial`)
-  - capacidad efectiva (`effective_capacity_ah = nominal_capacity_ah * soh_initial`)
-  - resistencia interna (`internal_resistance_ohm`)
-  - limites basicos de operacion (`soc_min`, `soc_max`, limites opcionales de voltaje y temperatura)
-- Preparado para Fase 2:
-  - `to_ecm_seed()` deja lista una semilla para ECM con placeholders de
-    `OCV(SoC)`, rama `RC` y degradacion dinamica.
-- Referencia de caracterizacion:
-  - Braco et al. (2023) como base metodologica para capacidad disponible y
-    resistencia interna en baterias second-life de Nissan Leaf.
-  - Los valores numericos deben cargarse desde caracterizacion propia del caso
-    de estudio; el modulo no inventa parametros faltantes.
-
-## Estructura del repositorio (actual)
-- `src/config.py`: constantes y parametros base del modelo.
-- `src/microgrid.py`: modelo compuesto de la microrred (`Microgrid`) y dinamica principal.
-- `src/controllers/`: logica de control (`base.py`, `grid_following.py`).
-- `src/pv_model.py`, `src/dclink.py`, `src/lcl_filter.py`, `src/inverter_source.py`: componentes fisicos del baseline.
-- `src/ieee33_base.py`: construccion de la red IEEE 33.
-- `src/ieee33_coupling.py`: acople secuencial one-way y clase `IEEE33MicrogridBaseline`.
-- `src/ieee33_reporting.py`: reporte de resultados del acople IEEE 33.
-- `src/ieee33_plots.py`: generacion y guardado de figuras del flujo IEEE 33.
-- `src/main.py`: punto de entrada de simulacion dinamica local.
-- `src/ieee33_main.py`: punto de entrada del estudio secuencial IEEE 33 + microrred.
-- `outputs/`: carpeta de salida para figuras del flujo IEEE 33.
-
-## Componentes principales del modelo
-- **PV array**: generacion fotovoltaica basada en parametros del arreglo.
-- **DC-link**: evolucion del voltaje de bus DC segun balance energetico.
-- **Filtro LCL**: dinamica electrica trifasica entre inversor y PCC local.
-- **Inversor**: sintesis de tension trifasica con limites de modulacion.
-- **Control baseline**: esquema grid-following PI para regular operacion en el escenario base.
+## Estructura del repositorio
+```
+microgrid_vsm/
+├── AGENTS.md                    # reglas de ingeniería para agentes/asistentes
+├── README.md                    # este archivo
+├── OCV_SOC.xlsx                 # datos de caracterización OCV/R1/C1
+├── src/
+│   ├── config.py                # constantes centralizadas del modelo
+│   ├── microgrid.py             # modelo compuesto de la microrred
+│   ├── main.py                  # punto de entrada: simulación local
+│   ├── pv_model.py              # modelo del arreglo PV
+│   ├── dclink.py                # dinámica del bus DC
+│   ├── lcl_filter.py            # filtro LCL
+│   ├── inverter_source.py       # fuente inversora
+│   ├── ieee33_base.py           # red IEEE 33
+│   ├── ieee33_coupling.py       # acople secuencial one-way
+│   ├── ieee33_main.py           # punto de entrada: estudio IEEE 33
+│   ├── ieee33_plots.py          # visualización IEEE 33
+│   ├── ieee33_reporting.py      # reporte IEEE 33
+│   ├── ieee33bus.txt             # datos de topología IEEE 33
+│   ├── controllers/
+│   │   ├── __init__.py
+│   │   ├── base.py              # interfaz base de controladores
+│   │   └── grid_following.py    # control grid-following PI
+│   ├── bess/                    # paquete BESS-SLB
+│   │   ├── __init__.py          # re-exports públicos
+│   │   ├── validators.py        # validación de entradas numéricas
+│   │   ├── lookup_table.py      # tabla OCV/R1/C1 vs SoC
+│   │   ├── phase1.py            # modelo estático Phase-1
+│   │   ├── model.py             # modelo dinámico 1RC + degradación
+│   │   └── characterization.py  # carga desde Excel
+│   ├── bess_second_life.py      # shim backward-compat
+│   ├── bess_characterization.py # shim backward-compat
+│   └── validation/
+│       ├── validate_bess_step2.py   # validación dinámica 1RC
+│       ├── validate_bess_step3.py   # validación degradación
+│       └── validate_excel_load.py   # validación carga Excel
+└── outputs/
+    └── validation/
+        ├── bess_step2/          # figuras generadas por step2
+        └── bess_step3/          # figuras y CSV generados por step3
+```
 
 ## Puntos de entrada
-- Simulacion dinamica local:
-
 ```bash
+# Simulación dinámica local de la microrred PV
 python src/main.py
-```
 
-- Estudio de acople secuencial con IEEE 33:
-
-```bash
+# Estudio de acople secuencial con IEEE 33
 python src/ieee33_main.py
+
+# Validaciones BESS-SLB
+python src/validation/validate_bess_step2.py      # 1RC dinámico
+python src/validation/validate_bess_step3.py      # degradación
+python src/validation/validate_excel_load.py       # carga Excel
 ```
 
-## Instrucciones basicas de ejecucion
+## Instrucciones básicas de ejecución
 1. Crear y activar un entorno virtual de Python.
-2. Instalar dependencias requeridas segun modulos usados en `src/` (por ejemplo `numpy`, `scipy`, `matplotlib`, `pandas`, `pandapower`).
-3. Ejecutar el punto de entrada correspondiente.
+2. Instalar dependencias: `numpy`, `scipy`, `matplotlib`, `pandas`, `openpyxl`, `pandapower`.
+3. Ejecutar el punto de entrada correspondiente desde la raíz del repositorio.
 
-## Notas de ingenieria
-- Este repositorio prioriza **coherencia fisica** y **trazabilidad cientifica** del baseline.
-- La arquitectura separa fisica, control, simulacion, plotting y reporte para facilitar analisis de tesis.
-- El baseline esta disenado para extenderse en etapas futuras sin reescritura agresiva.
+## Supuestos simplificados vigentes
+- Modelo térmico: no implementado (temperatura constante asumida).
+- Degradación: primer orden lineal, sin modelo de rodilla ni efectos no lineales.
+- OCV/R1/C1: datos interpolados desde tabla; no incluye histéresis.
+- R0 aging: ley empírica simplificada, no copiada textualmente de literatura.
+- El BESS-SLB no está aún integrado en la dinámica de la microrred.
+
+## Notas de ingeniería
+- Este repositorio prioriza **coherencia física** y **trazabilidad científica**.
+- La arquitectura separa física, control, simulación, plotting y reporte.
+- El baseline está diseñado para extenderse en etapas futuras sin reescritura agresiva.
+- Bibliografía principal: Braco et al. (2023), Tran et al. (2021).
 
 ## Advertencias sobre el alcance de tesis
-- Este baseline **no** debe interpretarse como implementacion grid-forming completa.
-- Este baseline **no** incluye BESS operativo.
-- No se debe presentar codigo scaffold o planificado como contribucion final implementada.
+- Este baseline **no** debe interpretarse como implementación grid-forming completa.
+- El BESS-SLB está **modelado y validado**, pero **no integrado** en la simulación dinámica de la microrred.
+- No se debe presentar código scaffold o planificado como contribución final implementada.
