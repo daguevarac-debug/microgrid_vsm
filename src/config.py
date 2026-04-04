@@ -90,6 +90,32 @@ VSG_DAMPING_D_DEFAULT = 10.0
 VSG_OMEGA_REF_RAD_S_DEFAULT = 2.0 * np.pi * 60.0
 
 # ------------------------------
+# FOVIC defaults
+# ------------------------------
+# Nour (2023), Table 1 - Eq. (23) parameters
+FOVIC_K_DC_DEFAULT = 1.0
+FOVIC_T_DC_S_DEFAULT = 0.1
+FOVIC_T_BESS_S_DEFAULT = 0.1
+FOVIC_K_H_DEFAULT = 1.0
+FOVIC_MU_DEFAULT = 0.4
+
+# Oustaloup approximation settings (Yu 2023 Sec. III-B1 Eq. (7)-(8))
+FOVIC_OUSTALOUP_ORDER_N_DEFAULT = 5
+FOVIC_OMEGA_L_RAD_S_DEFAULT = 0.1
+FOVIC_OMEGA_H_RAD_S_DEFAULT = 1000.0
+
+# Swing equation parameters for FOVIC formulation (Nour 2023 Eq. (18))
+FOVIC_INERTIA_H_DEFAULT = VSG_INERTIA_J_DEFAULT
+FOVIC_DAMPING_D_DEFAULT = VSG_DAMPING_D_DEFAULT
+FOVIC_SWING_TWO_FACTOR_DEFAULT = 2.0
+
+# Inverter modulation/frequency defaults for FOVIC class wiring
+FOVIC_FREQ_HZ_DEFAULT = GRID_FREQ_HZ_DEFAULT
+FOVIC_V_LN_RMS_DEFAULT = GRID_V_LN_RMS_DEFAULT
+FOVIC_THETA0_RAD_DEFAULT = GRID_THETA0_RAD_DEFAULT
+FOVIC_MODULATION_INDEX_MAX_DEFAULT = INVERTER_MODULATION_INDEX_MAX_DEFAULT
+
+# ------------------------------
 # Microgrid operating defaults
 # ------------------------------
 MICROGRID_PV_VOC_STC_V_DEFAULT = 50.0
