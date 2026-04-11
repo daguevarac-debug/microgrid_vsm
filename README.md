@@ -32,6 +32,7 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
   - Step-2: comportamiento dinámico 1RC sin degradación.
   - Step-3: consistencia de degradación z_deg/SoH/Q_eff/R0.
   - Carga Excel: verificación de lectura correcta desde archivo.
+  - Validación externa Braco Fig.5(b): comparación `Voltage vs Ah` contra `5b_SL_0p5C_25C.xlsx`.
 
 ### Convenciones de capacidad (obligatorias)
 - `q_nom_ref_ah = 66 Ah` — capacidad nominal de referencia del par 2p Nissan Leaf.
@@ -83,7 +84,8 @@ microgrid_vsm/
 │   └── validation/
 │       ├── validate_bess_step2.py   # validación dinámica 1RC
 │       ├── validate_bess_step3.py   # validación degradación
-│       └── validate_excel_load.py   # validación carga Excel
+│       ├── validate_excel_load.py   # validación carga Excel
+│       └── validate_braco_fig5b_sl_0p5c.py  # validación externa contra curva digitalizada
 └── outputs/
     └── validation/
         ├── bess_step2/          # figuras generadas por step2
@@ -102,7 +104,14 @@ python src/ieee33_main.py
 python src/validation/validate_bess_step2.py      # 1RC dinámico
 python src/validation/validate_bess_step3.py      # degradación
 python src/validation/validate_excel_load.py       # carga Excel
+python src/validation/validate_braco_fig5b_sl_0p5c.py  # Braco Fig.5(b) SL 0.5C 25C
 ```
+
+Entrada esperada para validación externa:
+- `5b_SL_0p5C_25C.xlsx` en la raíz del repositorio.
+
+Salida esperada:
+- `outputs/validation/braco_fig5b_sl_0p5c/` con figura y CSV (si no hay bloqueo de escritura).
 
 ## Instrucciones básicas de ejecución
 1. Crear y activar un entorno virtual de Python.
