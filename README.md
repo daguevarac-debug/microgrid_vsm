@@ -34,10 +34,12 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
   - Carga Excel: verificación de lectura correcta desde archivo.
 
 ### Convenciones de capacidad (obligatorias)
-- `Q_nom = 66 Ah` — capacidad nominal de referencia (par 2p Nissan Leaf).
-- `SoH_initial = 44.1 / 66 ≈ 0.6682` — fracción de capacidad disponible en segunda vida.
-- `Q_eff(0) = Q_nom * SoH_initial ≈ 44.1 Ah` — capacidad efectiva inicial.
-- Referencia: Braco et al. (2023) / Tran et al. (2021).
+- `q_nom_ref_ah = 66 Ah` — capacidad nominal de referencia del par 2p Nissan Leaf.
+- `q_init_case_ah` — capacidad inicial configurable del caso (no universal).
+- `soh_init_case = q_init_case_ah / q_nom_ref_ah` — SoH inicial siempre derivado.
+- `Q_eff(0) = q_nom_ref_ah * soh_init_case = q_init_case_ah`.
+- Trazabilidad: Braco (2020, 2021) sustenta 66 Ah y la definicion de 1C desde esa referencia.
+- Nota: Tran (2021) trabaja con celdas LFP de 20 Ah; no es fuente del valor 66 Ah.
 
 ## Funcionalidades no implementadas aún
 - Integración del BESS-SLB en la simulación dinámica de la microrred (acople BESS + PV + inversor).
@@ -71,6 +73,7 @@ microgrid_vsm/
 │   ├── bess/                    # paquete BESS-SLB
 │   │   ├── __init__.py          # re-exports públicos
 │   │   ├── validators.py        # validación de entradas numéricas
+│   │   ├── capacity.py          # convención de capacidad (q_nom_ref, q_init_case, soh derivado)
 │   │   ├── lookup_table.py      # tabla OCV/R1/C1 vs SoC
 │   │   ├── phase1.py            # modelo estático Phase-1
 │   │   ├── model.py             # modelo dinámico 1RC + degradación

@@ -15,18 +15,21 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from bess.model import SecondLifeBattery1RC
+from bess.capacity import Q_NOM_REF_NISSAN_LEAF_2P_AH
 
 REPO_ROOT = SRC_DIR.parent
 EXCEL_PATH = REPO_ROOT / "OCV_SOC.xlsx"
-Q_NOM = 66.0  # Ah - capacidad nominal de referencia del par 2p Nissan Leaf
-SOH_INITIAL = 44.1 / 66.0  # segunda vida: capacidad disponible inicial segun Braco
+# Braco (2020, 2021): nominal reference for Nissan Leaf 2p.
+Q_NOM_REF_AH = Q_NOM_REF_NISSAN_LEAF_2P_AH
+# Case-specific initial available capacity (example case only).
+Q_INIT_CASE_AH = 44.1
 
 
 def main() -> int:
     model = SecondLifeBattery1RC.from_excel_characterization(
         excel_path=EXCEL_PATH,
-        q_nom_ah=Q_NOM,
-        soh_initial=SOH_INITIAL,
+        q_nom_ref_ah=Q_NOM_REF_AH,
+        q_init_case_ah=Q_INIT_CASE_AH,
         r0_nominal_ohm=0.000970,
     )
 

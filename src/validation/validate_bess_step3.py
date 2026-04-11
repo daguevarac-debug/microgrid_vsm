@@ -27,14 +27,20 @@ if "--show" not in sys.argv:
 import matplotlib.pyplot as plt
 
 from bess.model import SecondLifeBattery1RC
+from bess.capacity import Q_NOM_REF_NISSAN_LEAF_2P_AH, derive_soh_init_case
 
 
 MONO_TOL = 1e-8
 SLOPE_RTOL = 2e-3
 SLOPE_ATOL = 5e-8
-Q_NOM_AH = 66.0
-Q_AVAILABLE_2ND_LIFE_AH = 44.1
-SOH_INITIAL = Q_AVAILABLE_2ND_LIFE_AH / Q_NOM_AH
+# Braco (2020, 2021): 66 Ah is nominal reference for Nissan Leaf 2p.
+Q_NOM_REF_AH = Q_NOM_REF_NISSAN_LEAF_2P_AH
+# Case-specific initial available capacity (not universal second-life value).
+Q_INIT_CASE_AH = 44.1
+SOH_INIT_CASE = derive_soh_init_case(
+    q_init_case_ah=Q_INIT_CASE_AH,
+    q_nom_ref_ah=Q_NOM_REF_AH,
+)
 R0_NOMINAL_OHM = 0.000970
 
 
@@ -60,8 +66,8 @@ def _build_model(**overrides) -> SecondLifeBattery1RC:
     excel_path = repo_root / "OCV_SOC.xlsx"
     base = dict(
         excel_path=excel_path,
-        q_nom_ah=Q_NOM_AH,
-        soh_initial=SOH_INITIAL,
+        q_nom_ref_ah=Q_NOM_REF_AH,
+        q_init_case_ah=Q_INIT_CASE_AH,
         r0_nominal_ohm=R0_NOMINAL_OHM,
         r0_soh_sensitivity=1.0,
         k_deg=1.478e-6,
@@ -109,7 +115,7 @@ def _run_case(
 
     def f(t: float, x: np.ndarray) -> list[float]:
         # `soh` is ignored by dynamic mode with x=[SoC, Vrc, z_deg], kept for compatibility.
-        return model.rhs(t, x, i_bess=float(i_profile(t)), soh=model.soh_initial)
+        return model.rhs(t, x, i_bess=float(i_profile(t)), soh=model.soh_init_case)
 
     sol = solve_ivp(
         f,
@@ -309,9 +315,9 @@ def _write_summary_csv(cases: list[CaseResult], out_dir: Path) -> None:
             f,
             fieldnames=[
                 "case",
-                "q_nom_ah",
-                "q_available_initial_ah",
-                "soh_initial",
+                "q_nom_ref_ah",
+                "q_init_case_ah",
+                "soh_init_case",
                 "soc_ini",
                 "soc_fin",
                 "zdeg_ini_ah",
@@ -330,9 +336,9 @@ def _write_summary_csv(cases: list[CaseResult], out_dir: Path) -> None:
             writer.writerow(
                 {
                     "case": c.name,
-                    "q_nom_ah": f"{Q_NOM_AH:.6f}",
-                    "q_available_initial_ah": f"{Q_AVAILABLE_2ND_LIFE_AH:.6f}",
-                    "soh_initial": f"{SOH_INITIAL:.12f}",
+                    "q_nom_ref_ah": f"{Q_NOM_REF_AH:.6f}",
+                    "q_init_case_ah": f"{Q_INIT_CASE_AH:.6f}",
+                    "soh_init_case": f"{SOH_INIT_CASE:.12f}",
                     "soc_ini": f"{c.soc[0]:.12f}",
                     "soc_fin": f"{c.soc[-1]:.12f}",
                     "zdeg_ini_ah": f"{c.zdeg[0]:.12f}",

@@ -28,9 +28,9 @@ Mathematical and bibliographic traceability notes (thesis transparency):
    - Literature status: direct consequence of SoH definition by remaining
      capacity; consistent with Braco and Tran framing.
    - Capacity convention used in this repository:
-     Q_nom is the new/reference nominal capacity, while second-life available
-     capacity at t=0 is Q_eff(0) = Q_nom * SoH_0.
-     Example: Q_nom=66.0 Ah and SoH_0=44.1/66.0 imply Q_eff(0)≈44.1 Ah.
+     Q_nom is the nominal reference capacity and Q_eff(0) is case-dependent.
+     We parameterize each case with q_init_case_ah and derive
+     soh_init_case = q_init_case_ah / q_nom_ref_ah.
 
 5) Degradation throughput state (implemented in Step-3 dynamic mode):
    dz_deg/dt = |i_bess|
@@ -55,16 +55,17 @@ Important:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
 
-from bess.validators import _ensure_finite, _ensure_positive, _ensure_fraction
+from bess.capacity import derive_q_init_case_ah, derive_soh_init_case
 from bess.lookup_table import OCVR1C1LookupTable, DEFAULT_TRAN_LOOKUP_TABLE
+from bess.validators import _ensure_finite, _ensure_fraction, _ensure_positive
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SecondLifeBattery1RC:
     """Power-system level Thevenin 1RC model for second-life BESS.
 
@@ -73,14 +74,18 @@ class SecondLifeBattery1RC:
     x[1] = V_rc
 
     Capacity convention:
-    - `q_nom_ah`: nominal/new-reference capacity.
-    - `soh_initial`: second-life available-capacity fraction at initialization.
-    - Initial usable capacity is Q_eff(0) = q_nom_ah * soh_initial.
+    - `q_nom_ref_ah`: nominal reference capacity.
+    - `q_init_case_ah`: initial available capacity for a specific case.
+    - `soh_init_case`: derived as q_init_case_ah / q_nom_ref_ah.
+
+    Traceability:
+    - Braco (2020, 2021) reports the 66 Ah nominal reference for Nissan Leaf 2p.
+    - Tran (2021) uses 20 Ah LFP cells and is not the source for 66 Ah.
     """
 
-    q_nom_ah: float
-    soh_initial: float
     r0_nominal_ohm: float
+    q_nom_ref_ah: float | None = None
+    q_init_case_ah: float | None = None
     r0_soh_sensitivity: float = 0.0
     k_deg: float = 0.0
     soh_min: float = 0.5
@@ -91,10 +96,74 @@ class SecondLifeBattery1RC:
     soc_max: float = 0.9
     source_braco: str = "Braco et al. (2023), Applied Energy"
     source_tran: str = "Tran et al. (2021)"
+    # Simple compatibility bridge for legacy arguments.
+    q_nom_ah: float | None = None
+    soh_initial: float | None = None
+    # Canonical derived value.
+    soh_init_case: float = field(init=False)
+
+    def _normalize_capacity_inputs(self) -> tuple[float, float, float]:
+        """Normalize canonical/legacy capacity inputs into canonical values."""
+        q_nom_ref = self.q_nom_ref_ah
+        q_nom_legacy = self.q_nom_ah
+        q_init_case = self.q_init_case_ah
+        soh_legacy = self.soh_initial
+
+        if q_nom_ref is None and q_nom_legacy is None:
+            raise ValueError(
+                "Capacity input missing: provide q_nom_ref_ah (canonical) "
+                "or q_nom_ah (legacy)."
+            )
+
+        if q_nom_ref is None:
+            q_nom_ref = _ensure_positive("q_nom_ah", q_nom_legacy)
+        else:
+            q_nom_ref = _ensure_positive("q_nom_ref_ah", q_nom_ref)
+            if q_nom_legacy is not None:
+                q_nom_legacy_eval = _ensure_positive("q_nom_ah", q_nom_legacy)
+                if not np.isclose(q_nom_ref, q_nom_legacy_eval, rtol=0.0, atol=1e-12):
+                    raise ValueError(
+                        "Inconsistent q_nom_ref_ah and q_nom_ah values: "
+                        f"{q_nom_ref} vs {q_nom_legacy_eval}."
+                    )
+
+        if q_init_case is None and soh_legacy is None:
+            raise ValueError(
+                "Capacity input missing: provide q_init_case_ah (canonical) "
+                "or soh_initial (legacy)."
+            )
+
+        if q_init_case is None:
+            q_init_case = derive_q_init_case_ah(
+                soh_init_case=_ensure_fraction("soh_initial", soh_legacy),
+                q_nom_ref_ah=q_nom_ref,
+            )
+        else:
+            q_init_case = _ensure_positive("q_init_case_ah", q_init_case)
+
+        soh_init_case = derive_soh_init_case(
+            q_init_case_ah=q_init_case,
+            q_nom_ref_ah=q_nom_ref,
+        )
+        if soh_legacy is not None:
+            soh_legacy_eval = _ensure_fraction("soh_initial", soh_legacy)
+            if not np.isclose(soh_init_case, soh_legacy_eval, rtol=0.0, atol=1e-12):
+                raise ValueError(
+                    "Inconsistent q_init_case_ah and soh_initial values: "
+                    f"{soh_init_case} vs {soh_legacy_eval}."
+                )
+
+        return q_nom_ref, q_init_case, soh_init_case
 
     def __post_init__(self) -> None:
-        self.q_nom_ah = _ensure_positive("q_nom_ah", self.q_nom_ah)
-        self.soh_initial = _ensure_fraction("soh_initial", self.soh_initial)
+        q_nom_ref_ah, q_init_case_ah, soh_init_case = self._normalize_capacity_inputs()
+        self.q_nom_ref_ah = q_nom_ref_ah
+        self.q_init_case_ah = q_init_case_ah
+        self.soh_init_case = soh_init_case
+        # Legacy read aliases preserved for compatibility.
+        self.q_nom_ah = q_nom_ref_ah
+        self.soh_initial = soh_init_case
+
         self.r0_nominal_ohm = _ensure_positive("r0_nominal_ohm", self.r0_nominal_ohm)
         self.r0_soh_sensitivity = _ensure_finite(
             "r0_soh_sensitivity", self.r0_soh_sensitivity
@@ -116,9 +185,9 @@ class SecondLifeBattery1RC:
             raise ValueError(
                 f"soc_initial={self.soc_initial} must be within [{self.soc_min}, {self.soc_max}]."
             )
-        if self.soh_initial < self.soh_min:
+        if self.soh_init_case < self.soh_min:
             raise ValueError(
-                f"soh_initial={self.soh_initial} must be >= soh_min={self.soh_min}."
+                f"soh_init_case={self.soh_init_case} must be >= soh_min={self.soh_min}."
             )
         if not isinstance(self.lookup_table_1rc, OCVR1C1LookupTable):
             raise ValueError(
@@ -130,10 +199,12 @@ class SecondLifeBattery1RC:
     def from_excel_characterization(
         cls,
         excel_path: str | Path,
-        q_nom_ah: float,
-        soh_initial: float,
-        r0_nominal_ohm: float,
-        *,
+        *args,
+        q_nom_ref_ah: float | None = None,
+        q_init_case_ah: float | None = None,
+        r0_nominal_ohm: float | None = None,
+        q_nom_ah: float | None = None,
+        soh_initial: float | None = None,
         k_deg: float = 1.478e-6,
         r0_soh_sensitivity: float = 1.0,
         soh_min: float = 0.50,
@@ -143,35 +214,68 @@ class SecondLifeBattery1RC:
         soc_max: float = 0.9,
         source_reference: str = "Braco et al. (2021) / Tran et al. (2021)",
     ) -> "SecondLifeBattery1RC":
-        """Construye el modelo cargando OCV/R1/C1 desde Excel.
+        """Build the model by loading OCV/R1/C1 from Excel.
 
-        Fuente: bess.characterization.load_ocv_r1c1_from_excel()
-        k_deg por defecto: Braco (2021) Tabla IV, 1.478e-6 [Ah]^-1.
-        Convención de capacidad:
-        - `q_nom_ah` es la capacidad nominal de referencia.
-        - `soh_initial` representa la fracción de capacidad disponible en
-          segunda vida al inicio de la simulación.
+        Capacity convention:
+        - Canonical: q_nom_ref_ah + q_init_case_ah.
+        - Legacy bridge: q_nom_ah + soh_initial.
+        - Initial SoH is always derived as q_init_case_ah / q_nom_ref_ah.
         """
         from bess.characterization import load_ocv_r1c1_from_excel
+
+        if args:
+            if len(args) != 3:
+                raise TypeError(
+                    "from_excel_characterization positional bridge expects exactly "
+                    "3 args: q_nom_ah, soh_initial, r0_nominal_ohm."
+                )
+            if any(
+                value is not None
+                for value in (
+                    q_nom_ref_ah,
+                    q_init_case_ah,
+                    q_nom_ah,
+                    soh_initial,
+                    r0_nominal_ohm,
+                )
+            ):
+                raise TypeError(
+                    "Cannot mix positional legacy capacity args with keyword "
+                    "capacity args in from_excel_characterization."
+                )
+            q_nom_ah, soh_initial, r0_nominal_ohm = args
+
+        if r0_nominal_ohm is None:
+            raise TypeError("r0_nominal_ohm is required.")
+
+        q_nom_for_loader = q_nom_ref_ah if q_nom_ref_ah is not None else q_nom_ah
+        if q_nom_for_loader is None:
+            raise ValueError(
+                "Capacity input missing: provide q_nom_ref_ah (canonical) "
+                "or q_nom_ah (legacy)."
+            )
+        q_nom_for_loader = _ensure_positive("q_nom_ref_ah", q_nom_for_loader)
 
         _ = source_reference
         table = load_ocv_r1c1_from_excel(
             path=excel_path,
-            q_nom_ah=q_nom_ah,
+            q_nom_ah=q_nom_for_loader,
         )
 
         return cls(
-            q_nom_ah=q_nom_ah,  # Fuente: Braco (2021) / Tran (2021)
-            soh_initial=soh_initial,  # Fuente: Braco (2021) / Tran (2021)
-            r0_nominal_ohm=r0_nominal_ohm,  # Fuente: Braco (2021) / Tran (2021)
-            lookup_table_1rc=table,  # Fuente: Braco (2021) / Tran (2021)
-            k_deg=k_deg,  # Fuente: Braco (2021) / Tran (2021)
-            r0_soh_sensitivity=r0_soh_sensitivity,  # Fuente: Braco (2021) / Tran (2021)
-            soh_min=soh_min,  # Fuente: Braco (2021) / Tran (2021)
-            q_eff_min_ah=q_eff_min_ah,  # Fuente: Braco (2021) / Tran (2021)
-            soc_initial=soc_initial,  # Fuente: Braco (2021) / Tran (2021)
-            soc_min=soc_min,  # Fuente: Braco (2021) / Tran (2021)
-            soc_max=soc_max,  # Fuente: Braco (2021) / Tran (2021)
+            q_nom_ref_ah=q_nom_ref_ah,
+            q_init_case_ah=q_init_case_ah,
+            q_nom_ah=q_nom_ah,
+            soh_initial=soh_initial,
+            r0_nominal_ohm=r0_nominal_ohm,
+            lookup_table_1rc=table,
+            k_deg=k_deg,
+            r0_soh_sensitivity=r0_soh_sensitivity,
+            soh_min=soh_min,
+            q_eff_min_ah=q_eff_min_ah,
+            soc_initial=soc_initial,
+            soc_min=soc_min,
+            soc_max=soc_max,
             source_braco="Braco et al. (2021)",
             source_tran="Tran et al. (2021)",
         )
@@ -187,14 +291,14 @@ class SecondLifeBattery1RC:
         - Consistent with SoH-by-capacity definition used in Braco/Tran context.
         - This is a direct definition-level relation, not a fitted dynamic law.
         """
-        soh_eval = self.soh_initial if soh is None else _ensure_fraction("soh", soh)
-        return max(self.q_eff_min_ah, self.q_nom_ah * soh_eval)
+        soh_eval = self.soh_init_case if soh is None else _ensure_fraction("soh", soh)
+        return max(self.q_eff_min_ah, self.q_nom_ref_ah * soh_eval)
 
     def soh_from_z_deg(self, z_deg: float) -> float:
         """Return SoH(z_deg) from first-order empirical linear fade law.
 
         Equation (empirical law proposed for this work):
-        - SoH = max(soh_min, soh_initial - k_deg * z_deg)
+        - SoH = max(soh_min, soh_init_case - k_deg * z_deg)
 
         Notes:
         - Uses throughput state z_deg as continuous-time synthesis of literature
@@ -204,16 +308,16 @@ class SecondLifeBattery1RC:
         z_eval = _ensure_finite("z_deg", z_deg)
         if z_eval < 0.0:
             raise ValueError(f"z_deg must be >= 0, got {z_eval}.")
-        return max(self.soh_min, self.soh_initial - self.k_deg * z_eval)
+        return max(self.soh_min, self.soh_init_case - self.k_deg * z_eval)
 
     def effective_capacity_from_z_deg(self, z_deg: float) -> float:
         """Return Q_eff(z_deg) with strict positivity guarantee.
 
         Equation (definition-level relation):
-        - Q_eff = max(q_eff_min_ah, q_nom_ah * SoH(z_deg))
+        - Q_eff = max(q_eff_min_ah, q_nom_ref_ah * SoH(z_deg))
         """
         soh_eval = self.soh_from_z_deg(z_deg)
-        return max(self.q_eff_min_ah, self.q_nom_ah * soh_eval)
+        return max(self.q_eff_min_ah, self.q_nom_ref_ah * soh_eval)
 
     def r0_from_z_deg(self, z_deg: float) -> float:
         """Return R0(z_deg) via SoH(z_deg) in the same empirical R0 law."""
@@ -355,16 +459,12 @@ class SecondLifeBattery1RC:
             raise ValueError(f"z_deg must be >= 0, got {z0}.")
         return [soc0, _ensure_finite("v_rc", v_rc), z0]
 
-    # Fix: SoC event stop — step3 validation.
+    # Fix: SoC event stop - step3 validation.
     def soc_min_event(self, t: float, x) -> float:
-        """Evento de parada: retorna 0 cuando SoC alcanza soc_min.
-        Usar con solve_ivp events= para detener la integración en el límite.
-        Convención: solve_ivp para la integración cuando este valor cruza cero
-        de positivo a negativo.
-        """
+        """Stop event: return 0 when SoC reaches soc_min."""
         return float(x[0]) - self.soc_min
 
-    # Fix: SoC event stop — step3 validation.
+    # Fix: SoC event stop - step3 validation.
     soc_min_event.terminal = True
-    # Fix: SoC event stop — step3 validation.
+    # Fix: SoC event stop - step3 validation.
     soc_min_event.direction = -1

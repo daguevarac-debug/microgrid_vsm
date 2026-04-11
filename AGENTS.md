@@ -37,10 +37,12 @@ This codebase is part of a research thesis. Changes must preserve scientific tra
 ## BESS-SLB mandatory conventions
 
 ### Capacity convention
-- `Q_nom = 66 Ah` — nominal/reference capacity of Nissan Leaf 2p module.
-- `SoH_initial = 44.1 / 66.0` — second-life available capacity fraction.
-- `Q_eff(0) = Q_nom * SoH_initial ≈ 44.1 Ah` — initial effective capacity.
-- These values must NOT be changed without explicit discussion.
+- `q_nom_ref_ah = 66 Ah` — nominal/reference capacity of Nissan Leaf 2p module.
+- `q_init_case_ah` — case-dependent initial available capacity (not universal).
+- `soh_init_case = q_init_case_ah / q_nom_ref_ah` — derived initial SoH.
+- `Q_eff(0) = q_nom_ref_ah * soh_init_case = q_init_case_ah`.
+- Braco (2020, 2021) is the traceability source for 66 Ah/1C reference.
+- Tran (2021) is not the source for 66 Ah because it uses 20 Ah LFP cells.
 
 ### Protected physics equations
 These equations are validated and must not be modified:
@@ -114,6 +116,7 @@ Contains control logic only. Keep controller behavior separate from plant physic
 ### `bess/` (BESS-SLB package)
 Contains the second-life battery model:
 - `validators.py` — input validation helpers
+- `capacity.py` — capacity convention helpers (`q_nom_ref_ah`, `q_init_case_ah`, `soh_init_case`)
 - `lookup_table.py` — OCV/R1/C1 lookup table dataclass and placeholder
 - `phase1.py` — static Phase-1 battery model and ECM seed
 - `model.py` — **core 1RC dynamic Thevenin model with degradation** (main module)

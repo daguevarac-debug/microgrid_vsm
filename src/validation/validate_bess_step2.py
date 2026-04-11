@@ -26,6 +26,7 @@ if "--show" not in sys.argv:
 import matplotlib.pyplot as plt
 
 from bess.model import SecondLifeBattery1RC
+from bess.capacity import Q_NOM_REF_NISSAN_LEAF_2P_AH, derive_q_init_case_ah
 
 
 NUM_TOL = 1e-10
@@ -48,9 +49,11 @@ class CaseResult:
 
 def _build_model() -> SecondLifeBattery1RC:
     """Model instance using current placeholders (no new real data injected)."""
+    q_nom_ref_ah = Q_NOM_REF_NISSAN_LEAF_2P_AH
+    q_init_case_ah = derive_q_init_case_ah(soh_init_case=0.80, q_nom_ref_ah=q_nom_ref_ah)
     return SecondLifeBattery1RC(
-        q_nom_ah=66.0,
-        soh_initial=0.80,
+        q_nom_ref_ah=q_nom_ref_ah,
+        q_init_case_ah=q_init_case_ah,
         r0_nominal_ohm=0.02,
         r0_soh_sensitivity=1.0,
         soc_initial=0.60,
