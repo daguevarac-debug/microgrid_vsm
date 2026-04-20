@@ -27,6 +27,8 @@ from bess.model import SecondLifeBattery1RC
 
 OCV_MODEL_FILENAME = "OCV_SOC.xlsx"
 MAPE_PASS_THRESHOLD_PCT = 10.0
+# Braco (2020, 2021): nominal R0 used in external Fig.5(b) baseline validation.
+R0_NOMINAL_BRACO_OHM = 0.000970
 
 
 @dataclass(frozen=True)
@@ -135,6 +137,7 @@ def build_case_model(
     ocv_model_path: Path,
     q_init_case_ah: float,
     soc_initial: float,
+    r0_nominal_ohm: float = R0_NOMINAL_BRACO_OHM,
 ) -> SecondLifeBattery1RC:
     if not ocv_model_path.exists():
         raise FileNotFoundError(f"OCV model file not found: {ocv_model_path}")
@@ -143,7 +146,7 @@ def build_case_model(
         excel_path=ocv_model_path,
         q_nom_ref_ah=Q_NOM_REF_NISSAN_LEAF_2P_AH,
         q_init_case_ah=q_init_case_ah,
-        r0_nominal_ohm=0.000970,
+        r0_nominal_ohm=r0_nominal_ohm,
         r0_soh_sensitivity=1.0,
         k_deg=1.478e-6,
         soh_min=0.50,
@@ -460,4 +463,3 @@ def run_case(case: BracoValidationCase, argv: list[str] | None = None) -> int:
     )
 
     return 0 if metrics["mape_pct"] < MAPE_PASS_THRESHOLD_PCT else 1
-

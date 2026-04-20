@@ -16,14 +16,8 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 - Acople secuencial one-way al sistema IEEE 33 en el PCC.
 
 ### BESS-SLB (batería de segunda vida)
-- **Modelo dinámico Thevenin 1RC** (`bess/model.py`):
-  - Terminal: `V_t = OCV(SoC) - i*R0(SoH) - V_rc`
-  - RC: `dV_rc/dt = -V_rc/(R1*C1) + i/C1`
-  - SoC: `dSoC/dt = -i/(3600*Q_eff)` (coulomb counting)
-- **Degradación de primer orden** (`bess/model.py`):
-  - Estado de throughput: `dz_deg/dt = |i|/3600`
-  - Ley de desvanecimiento lineal de SoH: `SoH = SoH_0 - k_deg*z_deg`
-  - Resistencia dependiente de envejecimiento: `R0 = R0_nom*(1+k*(1-SoH))`
+- **Modelo dinámico Thevenin 1RC** (`bess/model.py`) ya validado en campañas internas.
+- **Degradación de primer orden** (`bess/model.py`) con métricas cuantitativas en Step-3.
 - **Carga de parámetros desde Excel** (`bess/characterization.py`):
   - OCV(SoC), R1(SoC), C1(SoC) desde archivo `OCV_SOC.xlsx`.
 - **Modelo estático Phase-1** (`bess/phase1.py`):
@@ -35,17 +29,23 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
   - Validaciones externas Braco Fig.5(b): comparación `Voltage vs Ah` para SL 0.5C, 1C y 1.5C.
 
 ### Convenciones de capacidad (obligatorias)
-- `q_nom_ref_ah = 66 Ah` — capacidad nominal de referencia del par 2p Nissan Leaf.
-- `q_init_case_ah` — capacidad inicial configurable del caso (no universal).
-- `soh_init_case = q_init_case_ah / q_nom_ref_ah` — SoH inicial siempre derivado.
-- `Q_eff(0) = q_nom_ref_ah * soh_init_case = q_init_case_ah`.
-- Trazabilidad: Braco (2020, 2021) sustenta 66 Ah y la definicion de 1C desde esa referencia.
-- Nota: Tran (2021) trabaja con celdas LFP de 20 Ah; no es fuente del valor 66 Ah.
+- `q_nom_ref_ah = 66 Ah` como capacidad nominal de referencia Nissan Leaf 2p.
+- `q_init_case_ah` es dependiente del caso; `soh_init_case` se deriva como `q_init_case_ah / q_nom_ref_ah`.
+- La trazabilidad completa de ecuaciones protegidas y convenciones se mantiene en `AGENTS.md`.
 
 ## Funcionalidades no implementadas aún
 - Integración del BESS-SLB en la simulación dinámica de la microrred (acople BESS + PV + inversor).
 - Control grid-forming completo.
 - Contribución final de inercia virtual activa.
+
+## Estado de validación BESS-SLB
+| Validación | Resultado | Estado |
+| --- | ---: | --- |
+| Braco Fig.5(b) SL 0.5C 25°C | MAPE=6.4201% (`outputs/validation/braco_fig5b_sl_0p5c/metrics_summary.csv`) | PASS |
+| Braco Fig.5(b) SL 1C 25°C | MAPE=8.1716% (`outputs/validation/braco_fig5b_sl_1c/metrics_summary.csv`) | PASS |
+| Braco Fig.5(b) SL 1.5C 25°C | MAPE=9.3351% (`outputs/validation/braco_fig5b_sl_1p5c/metrics_summary.csv`) | PASS |
+| Step-2 1RC dinámico | Validado (ver `src/validation/validate_bess_step2.py`) | PASS |
+| Step-3 degradación | Métricas en `outputs/validation/bess_step3/summary_metrics.csv` | PASS |
 
 ## Estructura del repositorio
 ```
@@ -134,12 +134,9 @@ Salida esperada:
 2. Instalar dependencias: `numpy`, `scipy`, `matplotlib`, `pandas`, `openpyxl`, `pandapower`.
 3. Ejecutar el punto de entrada correspondiente desde la raíz del repositorio.
 
-## Supuestos simplificados vigentes
-- Modelo térmico: no implementado (temperatura constante asumida).
-- Degradación: primer orden lineal, sin modelo de rodilla ni efectos no lineales.
-- OCV/R1/C1: datos interpolados desde tabla; no incluye histéresis.
-- R0 aging: ley empírica simplificada, no copiada textualmente de literatura.
-- El BESS-SLB no está aún integrado en la dinámica de la microrred.
+## Supuestos del modelo
+Los supuestos simplificados vigentes del baseline se documentan en:
+- `docs/model_assumptions.md`
 
 ## Notas de ingeniería
 - Este repositorio prioriza **coherencia física** y **trazabilidad científica**.

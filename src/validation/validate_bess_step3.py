@@ -41,6 +41,7 @@ SOH_INIT_CASE = derive_soh_init_case(
     q_init_case_ah=Q_INIT_CASE_AH,
     q_nom_ref_ah=Q_NOM_REF_AH,
 )
+# Braco-based baseline calibration for thesis validation scripts.
 R0_NOMINAL_OHM = 0.000970
 
 

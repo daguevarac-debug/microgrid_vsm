@@ -19,4 +19,11 @@ env/
 Thumbs.db
 
 # Generated figures/results
-*.png
+outputs/*.png
+outputs/validation/**/*.png
+outputs/validation/braco_fig5b_sl_*/aligned_curves.csv
+
+# Thesis final figures (versioned)
+!outputs/validation/figures_final/
+!outputs/validation/figures_final/.gitkeep
+!outputs/validation/figures_final/**/*.png

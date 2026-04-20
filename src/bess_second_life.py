@@ -1,8 +1,6 @@
-"""Backward-compatible shim — imports redirected to bess/ package.
+"""LEGACY SHIM - do not use in new code.
 
-This file exists so that existing scripts using
-``from bess_second_life import SecondLifeBattery1RC`` continue to work.
-New code should import from ``bess`` directly.
+Backward-compatible shim redirected to the ``bess`` package.
 """
 
 # Re-export everything that was originally in this module.
@@ -17,3 +15,4 @@ from bess import (  # noqa: F401
     ECMSeedParameters,
     SecondLifeBattery1RC,
 )
+

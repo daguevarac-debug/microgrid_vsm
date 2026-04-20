@@ -28,12 +28,12 @@ REPO_ROOT = SRC_DIR.parent
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from bess.capacity import Q_NOM_REF_NISSAN_LEAF_2P_AH
-from bess.model import SecondLifeBattery1RC
 from validation.braco_fig5b_external_common import (
     OCV_MODEL_FILENAME,
+    R0_NOMINAL_BRACO_OHM,
     BracoValidationCase,
     align_curves_by_ah,
+    build_case_model,
     compute_metrics,
     load_and_clean_reference_curve,
     run_constant_discharge_case,
@@ -42,7 +42,7 @@ from validation.validate_braco_fig5b_sl_0p5c import CASE as CASE_0P5C
 from validation.validate_braco_fig5b_sl_1c import CASE as CASE_1C
 from validation.validate_braco_fig5b_sl_1p5c import CASE as CASE_1P5C
 
-DEFAULT_R0_OHM = 0.000970
+DEFAULT_R0_OHM = R0_NOMINAL_BRACO_OHM
 DEFAULT_SOC_INITIAL = 0.999
 OUTPUT_SUBDIR = Path("outputs") / "validation" / "braco_fig5b_sensitivity"
 
@@ -63,27 +63,6 @@ SWEEPS = (
     SweepSpec("r0_nominal_ohm", "relative", R0_REL_SWEEP),
     SweepSpec("soc_initial", "absolute", SOC_ABS_SWEEP),
 )
-
-
-def _build_model(
-    ocv_model_path: Path,
-    q_init_case_ah: float,
-    r0_nominal_ohm: float,
-    soc_initial: float,
-) -> SecondLifeBattery1RC:
-    return SecondLifeBattery1RC.from_excel_characterization(
-        excel_path=ocv_model_path,
-        q_nom_ref_ah=Q_NOM_REF_NISSAN_LEAF_2P_AH,
-        q_init_case_ah=q_init_case_ah,
-        r0_nominal_ohm=r0_nominal_ohm,
-        r0_soh_sensitivity=1.0,
-        k_deg=1.478e-6,
-        soh_min=0.50,
-        q_eff_min_ah=1e-9,
-        soc_initial=soc_initial,
-        soc_min=0.0,
-        soc_max=1.0,
-    )
 
 
 def _safe_mkdir(path: Path) -> str | None:
@@ -198,11 +177,11 @@ def _run_single_case(
             }
 
             try:
-                model = _build_model(
+                model = build_case_model(
                     ocv_model_path=ocv_model_path,
                     q_init_case_ah=q_val,
-                    r0_nominal_ohm=r0_val,
                     soc_initial=soc_val,
+                    r0_nominal_ohm=r0_val,
                 )
                 simulation = run_constant_discharge_case(
                     model=model,
