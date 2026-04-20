@@ -32,7 +32,7 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
   - Step-2: comportamiento dinámico 1RC sin degradación.
   - Step-3: consistencia de degradación z_deg/SoH/Q_eff/R0.
   - Carga Excel: verificación de lectura correcta desde archivo.
-  - Validación externa Braco Fig.5(b): comparación `Voltage vs Ah` contra `5b_SL_0p5C_25C.xlsx`.
+  - Validaciones externas Braco Fig.5(b): comparación `Voltage vs Ah` para SL 0.5C, 1C y 1.5C.
 
 ### Convenciones de capacidad (obligatorias)
 - `q_nom_ref_ah = 66 Ah` — capacidad nominal de referencia del par 2p Nissan Leaf.
@@ -85,7 +85,10 @@ microgrid_vsm/
 │       ├── validate_bess_step2.py   # validación dinámica 1RC
 │       ├── validate_bess_step3.py   # validación degradación
 │       ├── validate_excel_load.py   # validación carga Excel
-│       └── validate_braco_fig5b_sl_0p5c.py  # validación externa contra curva digitalizada
+│       ├── braco_fig5b_external_common.py   # helper común de validaciones externas
+│       ├── validate_braco_fig5b_sl_0p5c.py  # validación externa SL 0.5C
+│       ├── validate_braco_fig5b_sl_1c.py    # validación externa SL 1C
+│       └── validate_braco_fig5b_sl_1p5c.py  # validación externa SL 1.5C
 └── outputs/
     └── validation/
         ├── bess_step2/          # figuras generadas por step2
@@ -105,13 +108,26 @@ python src/validation/validate_bess_step2.py      # 1RC dinámico
 python src/validation/validate_bess_step3.py      # degradación
 python src/validation/validate_excel_load.py       # carga Excel
 python src/validation/validate_braco_fig5b_sl_0p5c.py  # Braco Fig.5(b) SL 0.5C 25C
+python src/validation/validate_braco_fig5b_sl_1c.py    # Braco Fig.5(b) SL 1C 25C
+python src/validation/validate_braco_fig5b_sl_1p5c.py  # Braco Fig.5(b) SL 1.5C 25C
+python src/validation/validate_braco_fig5b_sensitivity.py  # sensibilidad paramétrica externa Braco Fig.5(b)
 ```
+
+Sensibilidad paramétrica externa Braco Fig.5(b):
+- Propósito: cuantificar robustez del modelo frente a perturbaciones razonables sin recalibración manual.
+- Parámetros perturbados (one-at-a-time): `q_init_case_ah` (±5%), `r0_nominal_ohm` (±10%), `soc_initial` (0.98, 0.999, 1.0).
+- Casos incluidos: SL 0.5C, SL 1C y SL 1.5C a 25°C.
 
 Entrada esperada para validación externa:
 - `5b_SL_0p5C_25C.xlsx` en la raíz del repositorio.
+- `5b_SL_1C_25C.xlsx` en la raíz del repositorio.
+- `5b_SL_1p5C_25C.xlsx` en la raíz del repositorio.
 
 Salida esperada:
 - `outputs/validation/braco_fig5b_sl_0p5c/` con figura y CSV (si no hay bloqueo de escritura).
+- `outputs/validation/braco_fig5b_sl_1c/` con figura y CSV (si no hay bloqueo de escritura).
+- `outputs/validation/braco_fig5b_sl_1p5c/` con figura y CSV (si no hay bloqueo de escritura).
+- `outputs/validation/braco_fig5b_sensitivity/` con `sensitivity_runs.csv`, `sensitivity_summary.csv` y `mape_sensitivity_span.png`.
 
 ## Instrucciones básicas de ejecución
 1. Crear y activar un entorno virtual de Python.

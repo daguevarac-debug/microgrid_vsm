@@ -1,0 +1,4 @@
+case_label,mape_impact_span_q_init_case_ah,mape_impact_span_r0_nominal_ohm,mape_impact_span_soc_initial,cutoff_impact_span_q_init_case_ah,cutoff_impact_span_r0_nominal_ohm,cutoff_impact_span_soc_initial,n_ok_runs,n_error_runs,highest_mape_impact_param,highest_cutoff_impact_param
+Braco Fig.5(b) SL 0.5C 25C,2.464486836962914,0.2330263114481923,0.7194912003891218,4.310557780060961,0.0,0.8254252230325463,9,0,q_init_case_ah,q_init_case_ah
+Braco Fig.5(b) SL 1C 25C,2.6389010532582082,0.48335414478707595,0.5942924195336836,5.1420357781123585,0.0,1.1936869334118967,9,0,q_init_case_ah,q_init_case_ah
+Braco Fig.5(b) SL 1.5C 25C,2.7489756920119293,0.7643649618869723,0.516859348842555,4.801676256715808,0.0,0.9801451179361891,9,0,q_init_case_ah,q_init_case_ah
