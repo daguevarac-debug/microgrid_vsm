@@ -9,6 +9,8 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 
 ### Microrred PV
 - Modelo del arreglo fotovoltaico (PV array).
+- Modelo FV parametrizado con modulo comercial real de referencia: **LONGi LR7-54HJD-500M**.
+- Ajuste STC del modelo FV de un diodo validado contra datasheet.
 - Dinámica del bus DC (DC-link).
 - Modelo del filtro LCL.
 - Fuente inversora y control baseline tipo grid-following con PI.
@@ -46,6 +48,15 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 | Braco Fig.5(b) SL 1.5C 25°C | MAPE=9.3351% (`outputs/validation/braco_fig5b_sl_1p5c/metrics_summary.csv`) | PASS |
 | Step-2 1RC dinámico | Validado (ver `src/validation/validate_bess_step2.py`) | PASS |
 | Step-3 degradación | Métricas en `outputs/validation/bess_step3/summary_metrics.csv` | PASS |
+
+## Estado de validación FV
+- Módulo de referencia: `LONGi LR7-54HJD-500M`.
+- Variables comparadas: `Vmpp`, `Impp`, `Isc`.
+- Criterio de aceptación: error absoluto `<= 5 %`.
+- Resultado final: `PASS`.
+- Errores STC reportados (ajuste restringido): `Vmpp = -0.2423 %`, `Impp = -3.0904 %`, `Isc = -0.0000 %`.
+- Supuestos del modelo: `docs/model_assumptions.md`.
+- Script de validación: `src/validation/validate_pv_stc_fit.py`.
 
 ## Estructura del repositorio
 ```
@@ -85,6 +96,7 @@ microgrid_vsm/
 │       ├── validate_bess_step2.py   # validación dinámica 1RC
 │       ├── validate_bess_step3.py   # validación degradación
 │       ├── validate_excel_load.py   # validación carga Excel
+│       ├── validate_pv_stc_fit.py   # validación STC del modelo FV contra datasheet
 │       ├── braco_fig5b_external_common.py   # helper común de validaciones externas
 │       ├── validate_braco_fig5b_sl_0p5c.py  # validación externa SL 0.5C
 │       ├── validate_braco_fig5b_sl_1c.py    # validación externa SL 1C
@@ -107,6 +119,7 @@ python src/ieee33_main.py
 python src/validation/validate_bess_step2.py      # 1RC dinámico
 python src/validation/validate_bess_step3.py      # degradación
 python src/validation/validate_excel_load.py       # carga Excel
+python src/validation/validate_pv_stc_fit.py       # validación STC del modelo FV contra datasheet
 python src/validation/validate_braco_fig5b_sl_0p5c.py  # Braco Fig.5(b) SL 0.5C 25C
 python src/validation/validate_braco_fig5b_sl_1c.py    # Braco Fig.5(b) SL 1C 25C
 python src/validation/validate_braco_fig5b_sl_1p5c.py  # Braco Fig.5(b) SL 1.5C 25C
