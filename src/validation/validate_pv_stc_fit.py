@@ -28,8 +28,10 @@ from config import (
 )
 from pv_model import PVArrayParams, PVArraySingleDiode, PVModuleParams
 
-# Simple acceptance rule for thesis-level STC fit using datasheet-only parameters.
-REASONABLE_MAX_ABS_ERROR_PCT = 3.5
+# STC acceptance criteria for this validation task.
+ACCEPT_MAX_ABS_VMPP_ERR_PCT = 5.0
+ACCEPT_MAX_ABS_IMPP_ERR_PCT = 5.0
+ACCEPT_MAX_ABS_ISC_ERR_PCT = 5.0
 
 
 def _build_module_model(n: float, rs: float, rsh: float) -> PVArraySingleDiode:
@@ -156,6 +158,14 @@ def _max_abs_error_pct(errors_pct: dict[str, float]) -> float:
     return max(abs(v) for v in errors_pct.values())
 
 
+def _acceptance_pass(errors_pct: dict[str, float]) -> bool:
+    return (
+        abs(errors_pct["Vmp"]) <= ACCEPT_MAX_ABS_VMPP_ERR_PCT
+        and abs(errors_pct["Imp"]) <= ACCEPT_MAX_ABS_IMPP_ERR_PCT
+        and abs(errors_pct["Isc"]) <= ACCEPT_MAX_ABS_ISC_ERR_PCT
+    )
+
+
 def _print_case(title: str, n: float, rs: float, rsh: float, obj: float) -> dict[str, float]:
     points = stc_model_points(n=n, rs=rs, rsh=rsh)
     errs = _errors_pct(points)
@@ -219,16 +229,26 @@ def main() -> None:
         obj=obj_rest,
     )
 
-    print("\n=== Decision aid for config update ===")
-    print(
-        f"Restricted-fit reasonable threshold: max_abs_error <= {REASONABLE_MAX_ABS_ERROR_PCT:.2f} %"
-    )
-    print(f"Free-fit max_abs_error       = {_max_abs_error_pct(errs_free):.4f} %")
-    print(f"Restricted-fit max_abs_error = {_max_abs_error_pct(errs_rest):.4f} %")
-    if _max_abs_error_pct(errs_rest) <= REASONABLE_MAX_ABS_ERROR_PCT:
-        print("Restricted fit is REASONABLE for thesis baseline use.")
-    else:
-        print("Restricted fit is NOT reasonable under current threshold.")
+    print("\n=== STC acceptance criteria (this task) ===")
+    print(f"|error Vmpp| <= {ACCEPT_MAX_ABS_VMPP_ERR_PCT:.1f} %")
+    print(f"|error Impp| <= {ACCEPT_MAX_ABS_IMPP_ERR_PCT:.1f} %")
+    print(f"|error Isc|  <= {ACCEPT_MAX_ABS_ISC_ERR_PCT:.1f} %")
+
+    print("\n=== Acceptance check: Free fit ===")
+    print(f"error Vmpp = {errs_free['Vmp']:+.4f} %")
+    print(f"error Impp = {errs_free['Imp']:+.4f} %")
+    print(f"error Isc  = {errs_free['Isc']:+.4f} %")
+    print(f"STATUS = {'PASS' if _acceptance_pass(errs_free) else 'FAIL'}")
+
+    print("\n=== Acceptance check: Restricted fit ===")
+    print(f"error Vmpp = {errs_rest['Vmp']:+.4f} %")
+    print(f"error Impp = {errs_rest['Imp']:+.4f} %")
+    print(f"error Isc  = {errs_rest['Isc']:+.4f} %")
+    status_restricted = "PASS" if _acceptance_pass(errs_rest) else "FAIL"
+    print(f"STATUS = {status_restricted}")
+
+    print("\n=== Final decision (restricted fit) ===")
+    print(f"FINAL_STATUS = {status_restricted}")
 
 
 if __name__ == "__main__":
