@@ -149,6 +149,16 @@ MICROGRID_P_REF_NOMINAL_W_DEFAULT = (
 )
 
 # ------------------------------
+# BESS coupled-to-DC defaults (first integration step)
+# ------------------------------
+BESS_COUPLED_KP_DEFAULT = 0.5
+BESS_COUPLED_I_MAX_DEFAULT = 66.0
+BESS_COUPLED_SOC_INIT_DEFAULT = 0.6
+BESS_COUPLED_R0_DEFAULT = 0.000970
+BESS_COUPLED_Q_NOM_REF_AH_DEFAULT = 66.0
+BESS_COUPLED_Q_INIT_CASE_AH_DEFAULT = 44.1
+
+# ------------------------------
 # Simulation defaults
 # ------------------------------
 SIM_T_START_S_DEFAULT = 0.0

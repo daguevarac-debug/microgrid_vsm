@@ -6,10 +6,18 @@ Contains:
 """
 
 from numbers import Real
+from pathlib import Path
 
 import numpy as np
 
+from bess.model import SecondLifeBattery1RC
 from config import (
+    BESS_COUPLED_I_MAX_DEFAULT,
+    BESS_COUPLED_KP_DEFAULT,
+    BESS_COUPLED_Q_INIT_CASE_AH_DEFAULT,
+    BESS_COUPLED_Q_NOM_REF_AH_DEFAULT,
+    BESS_COUPLED_R0_DEFAULT,
+    BESS_COUPLED_SOC_INIT_DEFAULT,
     DCLINK_CAP_F_DEFAULT,
     DCLINK_VMIN_DEFAULT,
     GRID_V_LN_RMS_DEFAULT,
@@ -291,3 +299,212 @@ class Microgrid:
         theta = x[11]
         _, _, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
         return control.p_bridge, control.p_pcc, control.idc_inv, control.p_cmd, control.m_ctrl
+
+
+class MicrogridWithBESS(Microgrid):
+    """Conservative first-step integration of validated BESS into DC-link dynamics.
+
+    Added BESS states:
+    - soc_bess
+    - vrc_bess
+    - zdeg_bess
+
+    Modeling note:
+    - The BESS is coupled through an idealized DC/DC interface that is not
+      modeled in detail at this stage.
+    - ``i_bess`` is the exchange variable between storage and the DC bus.
+    - ``V_t_bess``, SoC, and SoH are used for storage internal dynamics and
+      diagnostics.
+    - ``V_t_bess`` is an internal battery-model variable (diagnostic), not the
+      DC-bus voltage.
+    """
+
+    def __init__(
+        self,
+        irradiance_profile=None,
+        temperature_profile=None,
+        load_profile=None,
+        controller: InverterControllerBase | None = None,
+        bess_model: SecondLifeBattery1RC | None = None,
+        kp_bess: float = BESS_COUPLED_KP_DEFAULT,
+        i_bess_max: float = BESS_COUPLED_I_MAX_DEFAULT,
+        bess_excel_path: str | Path | None = None,
+    ):
+        super().__init__(
+            irradiance_profile=irradiance_profile,
+            temperature_profile=temperature_profile,
+            load_profile=load_profile,
+            controller=controller,
+        )
+        self.kp_bess = _positive_float("MicrogridWithBESS.kp_bess", kp_bess)
+        self.i_bess_max = _positive_float("MicrogridWithBESS.i_bess_max", i_bess_max)
+
+        if bess_model is not None and not isinstance(bess_model, SecondLifeBattery1RC):
+            raise ValueError(
+                "bess_model must be SecondLifeBattery1RC when provided, got "
+                f"{type(bess_model).__name__}."
+            )
+
+        if bess_model is None:
+            repo_root = Path(__file__).resolve().parents[1]
+            excel_path = Path(bess_excel_path) if bess_excel_path is not None else (repo_root / "OCV_SOC.xlsx")
+            self.bess = SecondLifeBattery1RC.from_excel_characterization(
+                excel_path=excel_path,
+                q_nom_ref_ah=BESS_COUPLED_Q_NOM_REF_AH_DEFAULT,
+                q_init_case_ah=BESS_COUPLED_Q_INIT_CASE_AH_DEFAULT,
+                r0_nominal_ohm=BESS_COUPLED_R0_DEFAULT,
+                r0_soh_sensitivity=1.0,
+                k_deg=1.478e-6,
+                soh_min=0.50,
+                q_eff_min_ah=1e-9,
+                soc_initial=BESS_COUPLED_SOC_INIT_DEFAULT,
+                soc_min=0.0,
+                soc_max=1.0,
+            )
+        else:
+            self.bess = bess_model
+
+        self._last_i_bess = 0.0
+        self._last_soc_bess = float(self.bess.soc_initial)
+        self._last_soh_bess = float(self.bess.soh_init_case)
+        self._last_vt_bess = float(
+            self.bess.terminal_voltage(
+                soc=self.bess.soc_initial,
+                v_rc=0.0,
+                i_bess=0.0,
+                soh=self.bess.soh_init_case,
+            )
+        )
+
+    def initial_state_with_bess(self, vdc0: float = SIM_VDC0_V_DEFAULT) -> list[float]:
+        """Return baseline initial state augmented with BESS dynamic states."""
+        vdc0 = _finite_float("vdc0", vdc0)
+        base_state = [
+            vdc0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            getattr(getattr(self.controller, "modulator", None), "theta0", 0.0),
+        ]
+        return base_state + self.bess.initial_state_with_degradation(
+            soc=self.bess.soc_initial,
+            v_rc=0.0,
+            z_deg=0.0,
+        )
+
+    def _compute_i_bess(self, Vdc: float, soc_bess: float) -> float:
+        """Simple proportional DC-link support with SoC and current saturations."""
+        Vdc = _finite_float("Vdc", Vdc)
+        soc_bess = _finite_float("soc_bess", soc_bess)
+        i_bess_cmd = self.kp_bess * (self.vdc_ref - Vdc)
+        i_bess_sat = float(np.clip(i_bess_cmd, -self.i_bess_max, self.i_bess_max))
+
+        # Sign convention (battery model): i_bess > 0 discharge, i_bess < 0 charge.
+        if soc_bess <= self.bess.soc_min and i_bess_sat > 0.0:
+            i_bess_sat = 0.0
+        if soc_bess >= self.bess.soc_max and i_bess_sat < 0.0:
+            i_bess_sat = 0.0
+        return i_bess_sat
+
+    def system_dynamics(self, t: float, x):
+        """Return ODE derivatives for integrated baseline + BESS state vector."""
+        Vdc = x[0]
+        i1 = np.array([x[1], x[2], x[3]])
+        vc = np.array([x[4], x[5], x[6]])
+        i2 = np.array([x[7], x[8], x[9]])
+        xi_vdc = x[10]
+        theta = x[11]
+        soc_bess = x[12]
+        vrc_bess = x[13]
+        zdeg_bess = x[14]
+
+        Ipv, v_pcc, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess)
+        di1dt, dvcdt, di2dt = self.plant.lcl_derivatives(control.v_inv, v_pcc, i1, vc, i2)
+        dVdc = self.plant.dc_link_derivative(Ipv, control.idc_inv, i_bess=i_bess)
+        d_bess = self.bess.rhs(
+            t=t,
+            x=[soc_bess, vrc_bess, zdeg_bess],
+            i_bess=i_bess,
+            soh=self.bess.soh_init_case,
+        )
+
+        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        vt_bess = self.bess.terminal_voltage(
+            soc=soc_bess,
+            v_rc=vrc_bess,
+            i_bess=i_bess,
+            soh=soh_bess,
+        )
+
+        self._last_p_bridge = control.p_bridge
+        self._last_p_pcc = control.p_pcc
+        self._last_p_cmd = control.p_cmd
+        self._last_m_ctrl = control.m_ctrl
+        self._last_i_bess = i_bess
+        self._last_soc_bess = soc_bess
+        self._last_soh_bess = soh_bess
+        self._last_vt_bess = vt_bess
+
+        return [
+            dVdc,
+            di1dt[0],
+            di1dt[1],
+            di1dt[2],
+            dvcdt[0],
+            dvcdt[1],
+            dvcdt[2],
+            di2dt[0],
+            di2dt[1],
+            di2dt[2],
+            control.d_xi_vdc_dt,
+            control.d_theta_dt,
+            d_bess[0],
+            d_bess[1],
+            d_bess[2],
+        ]
+
+    def integrated_signals(self, t: float, x) -> dict[str, float]:
+        """Return key integrated diagnostics for thesis traceability."""
+        Vdc = x[0]
+        i1 = np.array([x[1], x[2], x[3]])
+        i2 = np.array([x[7], x[8], x[9]])
+        xi_vdc = x[10]
+        theta = x[11]
+        soc_bess = x[12]
+        vrc_bess = x[13]
+        zdeg_bess = x[14]
+
+        _, _, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess)
+        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        vt_bess = self.bess.terminal_voltage(
+            soc=soc_bess,
+            v_rc=vrc_bess,
+            i_bess=i_bess,
+            soh=soh_bess,
+        )
+        r_load_t = _positive_float(
+            f"MicrogridWithBESS.load_profile(t={t!r})",
+            _evaluate_profile("Microgrid.load_profile", self.load_profile, t),
+        )
+        v_pcc = i2 * r_load_t
+        p_load = float(np.dot(v_pcc, i2))
+
+        return {
+            "Vdc": float(Vdc),
+            "p_bridge": float(control.p_bridge),
+            "p_pcc": float(control.p_pcc),
+            "p_load": p_load,
+            "i_bess": float(i_bess),
+            "soc_bess": float(soc_bess),
+            "vt_bess": float(vt_bess),
+            "soh_bess": float(soh_bess),
+        }
