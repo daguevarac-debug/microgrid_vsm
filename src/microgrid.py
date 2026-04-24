@@ -130,8 +130,16 @@ class HardwarePlant:
         return i2 * r_load
 
     def dc_link_derivative(self, ipv: float, idc_inv: float, i_bess: float = 0.0) -> float:
-        """Return DC-link voltage derivative from power balance."""
-        # TODO [MODELO_BESS]: agregar i_bess cuando se implemente bateria.
+        """Return DC-link voltage derivative from current balance.
+
+        Sign convention at the DC-link capacitor:
+        - Positive current enters the capacitor (raises Vdc).
+        - `ipv > 0` injects from PV to DC bus.
+        - `i_bess > 0` injects from BESS to DC bus (battery discharge).
+        - `idc_inv > 0` is absorbed by inverter from DC bus to AC side.
+        """
+        # TODO [MODELO_BESS]: mantener trazabilidad de la convencion de signo
+        # del intercambio BESS<->bus DC durante la integracion incremental.
         return (ipv + i_bess - idc_inv) / self.dcp.Cdc
 
     def lcl_derivatives(
@@ -268,7 +276,8 @@ class Microgrid:
         Ipv, v_pcc, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
         di1dt, dvcdt, di2dt = self.plant.lcl_derivatives(control.v_inv, v_pcc, i1, vc, i2)
 
-        # TODO [MODELO_BESS]: El balance DC pasara a dVdc=(Ipv+i_bess-Idc_inv)/Cdc cuando se integre bateria.
+        # TODO [MODELO_BESS]: en baseline sin BESS activo se usa i_bess=0.0;
+        # al integrar almacenamiento, usar dVdc=(Ipv+i_bess-Idc_inv)/Cdc.
         dVdc = self.plant.dc_link_derivative(Ipv, control.idc_inv)
         self._last_p_bridge = control.p_bridge
         self._last_p_pcc = control.p_pcc

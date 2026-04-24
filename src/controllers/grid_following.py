@@ -107,6 +107,8 @@ class GridFollowingController(InverterControllerBase):
             v_inv = self.modulator.modulate(theta, vdc_eff, m_max=m_ctrl)
             p_bridge = float(np.dot(v_inv, i1))
             p_pcc = float(np.dot(v_pcc, i2))
+            # Unidirectional DC-link assumption in this baseline:
+            # inverter DC current is modeled as absorbed from bus to AC only.
             p_dc = max(p_bridge, 0.0) / plant.eta
             idc_inv = p_dc / max(vdc_eff, plant.dcp.Vmin)
 
