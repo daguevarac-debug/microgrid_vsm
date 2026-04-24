@@ -67,14 +67,18 @@ class GridFormingFrequencyDynamics:
         del theta
         return _finite_float("omega", omega)
 
+    def power_imbalance(self, p_e: float, p_ref: float | None = None) -> float:
+        """Return the active-power imbalance P_ref - P_e."""
+        p_e = _finite_float("p_e", p_e)
+        p_ref_eval = self.p_ref if p_ref is None else _finite_float("p_ref", p_ref)
+        return p_ref_eval - p_e
+
     def omega_derivative(self, omega: float, p_e: float, p_ref: float | None = None) -> float:
         """Evaluate the reduced VSG/swing frequency derivative."""
         omega = _finite_float("omega", omega)
-        p_e = _finite_float("p_e", p_e)
-        p_ref_eval = self.p_ref if p_ref is None else _finite_float("p_ref", p_ref)
+        imbalance = self.power_imbalance(p_e=p_e, p_ref=p_ref)
         return (
-            p_ref_eval
-            - p_e
+            imbalance
             - self.damping_d * (omega - self.omega_ref)
         ) / self.inertia_m
 

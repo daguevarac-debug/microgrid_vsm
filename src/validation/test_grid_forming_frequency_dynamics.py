@@ -32,6 +32,34 @@ class TestGridFormingFrequencyDynamics(unittest.TestCase):
 
         self.assertEqual(dynamics.theta_derivative(theta=1.2, omega=377.5), 377.5)
 
+    def test_power_imbalance_returns_reference_minus_electrical_power(self) -> None:
+        dynamics = GridFormingFrequencyDynamics(omega_ref=376.99111843, p_ref=1000.0)
+
+        imbalance = dynamics.power_imbalance(p_e=875.0)
+
+        self.assertEqual(imbalance, 125.0)
+
+    def test_power_imbalance_is_positive_when_reference_exceeds_electrical_power(self) -> None:
+        dynamics = GridFormingFrequencyDynamics(omega_ref=376.99111843)
+
+        imbalance = dynamics.power_imbalance(p_e=900.0, p_ref=1000.0)
+
+        self.assertGreater(imbalance, 0.0)
+
+    def test_power_imbalance_is_negative_when_electrical_power_exceeds_reference(self) -> None:
+        dynamics = GridFormingFrequencyDynamics(omega_ref=376.99111843)
+
+        imbalance = dynamics.power_imbalance(p_e=1100.0, p_ref=1000.0)
+
+        self.assertLess(imbalance, 0.0)
+
+    def test_power_imbalance_is_zero_at_power_equilibrium(self) -> None:
+        dynamics = GridFormingFrequencyDynamics(omega_ref=376.99111843)
+
+        imbalance = dynamics.power_imbalance(p_e=1000.0, p_ref=1000.0)
+
+        self.assertEqual(imbalance, 0.0)
+
     def test_omega_derivative_is_zero_at_power_and_frequency_equilibrium(self) -> None:
         omega_ref = 376.99111843
         dynamics = GridFormingFrequencyDynamics(
@@ -97,6 +125,20 @@ class TestGridFormingFrequencyDynamics(unittest.TestCase):
         expected_domega_dt = dynamics.omega_derivative(omega=377.5, p_e=1000.0)
 
         self.assertEqual(dtheta_dt, 377.5)
+        self.assertEqual(domega_dt, expected_domega_dt)
+
+    def test_rhs_domega_dt_is_coherent_with_power_imbalance(self) -> None:
+        omega_ref = 376.99111843
+        dynamics = GridFormingFrequencyDynamics(
+            omega_ref=omega_ref,
+            p_ref=1200.0,
+            inertia_m=2.0,
+            damping_d=5.0,
+        )
+
+        _, domega_dt = dynamics.rhs(t=0.0, x=[0.1, omega_ref], p_e=1000.0)
+        expected_domega_dt = dynamics.power_imbalance(p_e=1000.0) / dynamics.inertia_m
+
         self.assertEqual(domega_dt, expected_domega_dt)
 
     def test_rhs_uses_power_equilibrium_when_pe_is_omitted(self) -> None:
