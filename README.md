@@ -12,7 +12,7 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 - Modelo FV parametrizado con modulo comercial real de referencia: **LONGi LR7-54HJD-500M**.
 - Ajuste STC del modelo FV de un diodo validado contra datasheet.
 - Dinámica del bus DC (DC-link).
-- Modelo del filtro LCL.
+- Modelo del filtro LCL integrado y validado en etapa baseline (ver `docs/model_assumptions.md`).
 - Fuente inversora y control baseline tipo grid-following con PI.
 - Simulación dinámica local del sistema de microrred.
 - Acople secuencial one-way al sistema IEEE 33 en el PCC.
@@ -66,6 +66,15 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 - Ecuación verificada: `dVdc/dt = (ipv + i_bess - idc_inv)/Cdc`.
 - Pruebas unitarias de balance/signo: `src/validation/test_dclink_dynamics.py`.
 - Criterios internos, supuestos y PASS/FAIL de etapa: `docs/model_assumptions.md`.
+
+## Validaciones básicas del filtro LCL
+- Parámetros y ecuaciones baseline documentados en `docs/model_assumptions.md`.
+- Frecuencia de resonancia calculada: `f_res ≈ 2250.8 Hz`.
+- Verificación preliminar: `f_res > 10*f_g` para `f_g = 60 Hz`.
+- Requisito futuro: `f_sw >= 4501.6 Hz` para cumplir `f_res <= 0.5*f_sw`.
+- Script de validación: `src/validation/validate_lcl_no_unphysical_oscillations.py`.
+- Resultado actual: `PASS`.
+- Esta validación no es una demostración formal de estabilidad ni reemplaza el análisis futuro de control/grid-forming.
 
 ## Estado de validación FV
 - Módulo de referencia: `LONGi LR7-54HJD-500M`.
@@ -149,6 +158,7 @@ python src/validation/validate_bess_step3.py      # degradación
 python src/validation/validate_excel_load.py       # carga Excel
 python src/validation/validate_pv_stc_fit.py       # validación STC del modelo FV contra datasheet
 python -m unittest discover -s src/validation -p "test_dclink_dynamics.py" -v  # pruebas básicas DC-link
+python src/validation/validate_lcl_no_unphysical_oscillations.py  # validación práctica de estados LCL
 
 # Validaciones GFM mínimas aisladas (no acopladas a Microgrid)
 python src/validation/test_grid_forming_frequency_dynamics.py

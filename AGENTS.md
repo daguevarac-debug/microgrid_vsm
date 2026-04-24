@@ -6,7 +6,7 @@ This repository contains a thesis baseline for a photovoltaic microgrid dynamica
 Current implemented scope:
 - PV array model
 - DC-link dynamics
-- LCL filter
+- LCL filter (baseline-documented in `docs/model_assumptions.md` and practically validated in baseline)
 - inverter source and baseline control (grid-following PI)
 - local dynamic simulation
 - sequential one-way coupling to IEEE 33 at the PCC
@@ -47,6 +47,7 @@ This codebase is part of a research thesis. Changes must preserve scientific tra
 13. Do not replace `GridFollowingController` as the baseline controller unless explicitly requested.
 14. Do not present isolated GFM validation as full microgrid validation.
 15. Do not treat isolated frequency metrics as final thesis performance metrics until the GFM is coupled to the complete plant.
+16. Do not change LCL filter parameters or equations without updating `docs/model_assumptions.md` and running `src/validation/validate_lcl_no_unphysical_oscillations.py`.
 
 ## BESS-SLB mandatory conventions
 
@@ -162,6 +163,7 @@ Contains validation scripts:
 - `validate_bess_step2.py` — 1RC dynamic validation (SoC, V_rc, V_terminal)
 - `validate_bess_step3.py` — degradation validation (z_deg, SoH, Q_eff, R0)
 - `validate_excel_load.py` — Excel characterization loading smoke test
+- `validate_lcl_no_unphysical_oscillations.py` — practical check of no non-physical oscillations in LCL states
 - `test_grid_forming_frequency_dynamics.py` — isolated GFM unit checks
 - `validate_grid_forming_islanded_operation.py` — isolated islanded GFM operation
 - `validate_grid_forming_voltage_regulation.py` — isolated three-phase voltage reference and Vdc limitation
@@ -177,6 +179,7 @@ From the repository root:
 python src/validation/validate_bess_step2.py          # 1RC dynamic
 python src/validation/validate_bess_step3.py          # degradation
 python src/validation/validate_excel_load.py           # Excel loading
+python src/validation/validate_lcl_no_unphysical_oscillations.py  # practical LCL check
 python src/validation/test_grid_forming_frequency_dynamics.py
 python src/validation/validate_grid_forming_islanded_operation.py
 python src/validation/validate_grid_forming_voltage_regulation.py
