@@ -35,10 +35,22 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 - `q_init_case_ah` es dependiente del caso; `soh_init_case` se deriva como `q_init_case_ah / q_nom_ref_ah`.
 - La trazabilidad completa de ecuaciones protegidas y convenciones se mantiene en `AGENTS.md`.
 
+### Inversor grid-forming mínimo aislado
+- Estructura mínima documentada en `docs/grid_forming_minimal_structure.md`.
+- Dinámica aislada del bloque GFM con `x_gfm = [theta, omega]`.
+- Ecuación de frecuencia tipo swing/VSG reducida:
+  `domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M`.
+- Implementación aislada en `src/controllers/grid_forming.py` mediante `GridFormingFrequencyDynamics`.
+- Validaciones aisladas de operación en isla, referencia trifásica de tensión, comportamiento de frecuencia y escalón de carga.
+- Interfaz planta-control documentada en `docs/grid_forming_plant_control_interface.md`.
+- Este avance es base trazable para el Objetivo 2; no reemplaza todavía el baseline grid-following del modelo principal.
+
 ## Funcionalidades no implementadas aún
 - Integración completa del BESS-SLB en la simulación dinámica de la microrred (acople BESS + PV + inversor) aún en desarrollo.
-- Control grid-forming completo.
-- Contribución final de inercia virtual activa.
+- Control grid-forming completo integrado al modelo `Microgrid`.
+- Estrategia final de inercia virtual VSG/FOVIC.
+- Gestión BESS/BMS para control de inercia virtual con restricciones de SoC, SoH, corriente y potencia.
+- Acople del GFM aislado con PV + BESS + DC-link + LCL + PCC en el modelo principal.
 
 ## Estado de validación BESS-SLB
 | Validación | Resultado | Estado |
@@ -70,6 +82,10 @@ microgrid_vsm/
 ├── AGENTS.md                    # reglas de ingeniería para agentes/asistentes
 ├── README.md                    # este archivo
 ├── OCV_SOC.xlsx                 # datos de caracterización OCV/R1/C1
+├── docs/
+│   ├── model_assumptions.md     # supuestos y criterios internos del baseline
+│   ├── grid_forming_minimal_structure.md       # estructura matemática mínima GFM
+│   └── grid_forming_plant_control_interface.md # interfaz planta-control GFM
 ├── src/
 │   ├── config.py                # constantes centralizadas del modelo
 │   ├── microgrid.py             # modelo compuesto de la microrred
@@ -87,7 +103,8 @@ microgrid_vsm/
 │   ├── controllers/
 │   │   ├── __init__.py
 │   │   ├── base.py              # interfaz base de controladores
-│   │   └── grid_following.py    # control grid-following PI
+│   │   ├── grid_following.py    # control grid-following PI
+│   │   └── grid_forming.py      # dinámica GFM mínima aislada
 │   ├── bess/                    # paquete BESS-SLB
 │   │   ├── __init__.py          # re-exports públicos
 │   │   ├── validators.py        # validación de entradas numéricas
@@ -103,6 +120,11 @@ microgrid_vsm/
 │       ├── validate_bess_step3.py   # validación degradación
 │       ├── validate_excel_load.py   # validación carga Excel
 │       ├── validate_pv_stc_fit.py   # validación STC del modelo FV contra datasheet
+│       ├── test_grid_forming_frequency_dynamics.py       # pruebas unitarias GFM mínimo
+│       ├── validate_grid_forming_step_response.py        # escalón de carga GFM aislado
+│       ├── validate_grid_forming_islanded_operation.py   # operación aislada GFM
+│       ├── validate_grid_forming_voltage_regulation.py   # referencia trifásica y límite Vdc
+│       ├── validate_grid_forming_frequency_behavior.py   # equilibrio/aumento/reducción de carga
 │       ├── braco_fig5b_external_common.py   # helper común de validaciones externas
 │       ├── validate_braco_fig5b_sl_0p5c.py  # validación externa SL 0.5C
 │       ├── validate_braco_fig5b_sl_1c.py    # validación externa SL 1C
@@ -127,6 +149,14 @@ python src/validation/validate_bess_step3.py      # degradación
 python src/validation/validate_excel_load.py       # carga Excel
 python src/validation/validate_pv_stc_fit.py       # validación STC del modelo FV contra datasheet
 python -m unittest discover -s src/validation -p "test_dclink_dynamics.py" -v  # pruebas básicas DC-link
+
+# Validaciones GFM mínimas aisladas (no acopladas a Microgrid)
+python src/validation/test_grid_forming_frequency_dynamics.py
+python src/validation/validate_grid_forming_islanded_operation.py
+python src/validation/validate_grid_forming_voltage_regulation.py
+python src/validation/validate_grid_forming_frequency_behavior.py
+python src/validation/validate_grid_forming_step_response.py
+
 python src/validation/validate_braco_fig5b_sl_0p5c.py  # Braco Fig.5(b) SL 0.5C 25C
 python src/validation/validate_braco_fig5b_sl_1c.py    # Braco Fig.5(b) SL 1C 25C
 python src/validation/validate_braco_fig5b_sl_1p5c.py  # Braco Fig.5(b) SL 1.5C 25C
@@ -165,6 +195,8 @@ Los supuestos simplificados vigentes del baseline se documentan en:
 - Bibliografía principal: Braco et al. (2023), Tran et al. (2021).
 
 ## Advertencias sobre el alcance de tesis
-- Este baseline **no** debe interpretarse como implementación grid-forming completa.
+- El GFM actual es **mínimo, aislado y validado funcionalmente**; sirve como base para el Objetivo 2.
+- El GFM actual **no** debe presentarse como controlador final ni como estrategia de inercia virtual ya implementada.
+- El GFM actual **no** reemplaza todavía el baseline grid-following del modelo principal.
 - El BESS-SLB está **modelado y validado** y cuenta con **acople preliminar al bus DC** (`MicrogridWithBESS`), pero no con integración completa ni control grid-forming final.
 - No se debe presentar código scaffold o planificado como contribución final implementada.

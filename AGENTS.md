@@ -14,11 +14,16 @@ Current implemented scope:
 - **First-order degradation model** (z_deg throughput, SoH linear fade, R0 aging)
 - **Excel characterization loader** for OCV/R1/C1 from experimental/literature data
 - **Phase-1 static battery model** (capacity, SoH, internal resistance)
+- **Isolated minimal grid-forming frequency dynamics** (`GridFormingFrequencyDynamics`)
+- **Reduced swing/VSG-like frequency equation** for the isolated GFM block
+- **Isolated GFM validations** for islanded operation, voltage reference, frequency behavior, and load-step response
+- **Plant-control interface documentation** for the transition to Objective 2
 
 Not yet implemented:
 - Full BESS + PV + inverter integration beyond first-step coupling
-- full grid-forming controller
-- active virtual inertia control for final thesis contribution
+- full grid-forming controller integrated into `Microgrid`
+- final virtual inertia strategy (VSG/FOVIC) for the thesis contribution
+- BESS/BMS-constrained virtual inertia control
 
 Current partial integration status:
 - First-step/conservative BESS coupling to the DC-link exists through `MicrogridWithBESS`.
@@ -38,6 +43,10 @@ This codebase is part of a research thesis. Changes must preserve scientific tra
 9. When in doubt, preserve the current baseline behavior.
 10. Do not change the DC-link equation `dVdc/dt = (ipv + i_bess - idc_inv)/Cdc` or its sign convention without explicit request.
 11. Keep DC-link internal validation criteria documented in `docs/model_assumptions.md`.
+12. Do not connect `GridFormingFrequencyDynamics` to `Microgrid.system_dynamics` unless explicitly requested.
+13. Do not replace `GridFollowingController` as the baseline controller unless explicitly requested.
+14. Do not present isolated GFM validation as full microgrid validation.
+15. Do not treat isolated frequency metrics as final thesis performance metrics until the GFM is coupled to the complete plant.
 
 ## BESS-SLB mandatory conventions
 
@@ -117,6 +126,14 @@ Single source of truth for core constants unless explicitly refactored.
 
 ### `controllers/`
 Contains control logic only. Keep controller behavior separate from plant physics.
+- `grid_following.py` — baseline grid-following PI controller.
+- `grid_forming.py` — isolated minimal GFM frequency dynamics for Activity 1.3; not connected to `Microgrid.system_dynamics` yet.
+
+### `docs/`
+Contains traceability and thesis-scope documentation.
+- `model_assumptions.md` — baseline model assumptions and internal validation criteria.
+- `grid_forming_minimal_structure.md` — mathematical structure of the minimal GFM block.
+- `grid_forming_plant_control_interface.md` — plant-control interface for transition to Objective 2.
 
 ### `bess/` (BESS-SLB package)
 Contains the second-life battery model:
@@ -145,6 +162,11 @@ Contains validation scripts:
 - `validate_bess_step2.py` — 1RC dynamic validation (SoC, V_rc, V_terminal)
 - `validate_bess_step3.py` — degradation validation (z_deg, SoH, Q_eff, R0)
 - `validate_excel_load.py` — Excel characterization loading smoke test
+- `test_grid_forming_frequency_dynamics.py` — isolated GFM unit checks
+- `validate_grid_forming_islanded_operation.py` — isolated islanded GFM operation
+- `validate_grid_forming_voltage_regulation.py` — isolated three-phase voltage reference and Vdc limitation
+- `validate_grid_forming_frequency_behavior.py` — isolated frequency behavior for active-power scenarios
+- `validate_grid_forming_step_response.py` — isolated load-step frequency response
 
 ### `bess_second_life.py` and `bess_characterization.py` (shims)
 Backward-compatible import shims. New code should import from `bess.*` directly.
@@ -155,6 +177,11 @@ From the repository root:
 python src/validation/validate_bess_step2.py          # 1RC dynamic
 python src/validation/validate_bess_step3.py          # degradation
 python src/validation/validate_excel_load.py           # Excel loading
+python src/validation/test_grid_forming_frequency_dynamics.py
+python src/validation/validate_grid_forming_islanded_operation.py
+python src/validation/validate_grid_forming_voltage_regulation.py
+python src/validation/validate_grid_forming_frequency_behavior.py
+python src/validation/validate_grid_forming_step_response.py
 python src/main.py                                     # local PV microgrid
 python src/ieee33_main.py                              # IEEE 33 coupling
 ```
@@ -178,6 +205,9 @@ If a request is ambiguous, choose the most conservative interpretation and avoid
 Do not present scaffold code as a completed contribution.
 Do not describe baseline grid-following behavior as grid-forming.
 Do not imply full BESS+PV+inverter integration when only preliminary DC-link coupling is implemented.
+The current GFM work is an isolated minimal model suitable as a base for Objective 2.
+It is not the final VSG/FOVIC controller.
+It is not yet coupled with the complete PV+BESS+DC-link+LCL+PCC plant.
 Be precise about what is implemented vs. what is planned.
 
 ## Style guidance
