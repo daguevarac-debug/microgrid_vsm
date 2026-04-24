@@ -183,6 +183,7 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
     p_pcc = np.zeros_like(t)
     p_load = np.zeros_like(t)
     i_bess = np.zeros_like(t)
+    p_bess_dc = np.zeros_like(t)
     soc_bess = np.zeros_like(t)
     vt_bess = np.zeros_like(t)
     soh_bess = np.zeros_like(t)
@@ -193,6 +194,7 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
         p_pcc[k] = sig["p_pcc"]
         p_load[k] = sig["p_load"]
         i_bess[k] = sig["i_bess"]
+        p_bess_dc[k] = sig["p_bess_dc"]
         soc_bess[k] = sig["soc_bess"]
         vt_bess[k] = sig["vt_bess"]
         soh_bess[k] = sig["soh_bess"]
@@ -204,6 +206,7 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
         "p_pcc": p_pcc,
         "p_load": p_load,
         "i_bess": i_bess,
+        "p_bess_dc": p_bess_dc,
         "soc_bess": soc_bess,
         "vt_bess": vt_bess,
         "soh_bess": soh_bess,
@@ -272,6 +275,11 @@ def run_bess_comparison() -> dict[str, dict[str, np.ndarray] | dict[str, float]]
         if np.any(step_window)
         else float("nan")
     )
+    p_bess_dc_step_mean = (
+        float(np.mean(with_bess["p_bess_dc"][step_window]))
+        if np.any(step_window)
+        else float("nan")
+    )
 
     return {
         "baseline": base,
@@ -279,6 +287,7 @@ def run_bess_comparison() -> dict[str, dict[str, np.ndarray] | dict[str, float]]
         "metrics_baseline": metrics_base,
         "metrics_with_bess": metrics_bess,
         "i_bess_step_mean": i_bess_step_mean,
+        "p_bess_dc_step_mean": p_bess_dc_step_mean,
     }
 
 
@@ -376,6 +385,7 @@ def main() -> None:
             f"t_recovery_s={m1['t_recovery_s']:.6f}"
         )
         print(f"  i_bess_mean en ventana post-escalon: {comparison['i_bess_step_mean']:.6f} A")
+        print(f"  p_bess_dc_mean en ventana post-escalon: {comparison['p_bess_dc_step_mean']:.6f} W")
         try:
             save_bess_comparison_figures(
                 comparison=comparison,
@@ -405,6 +415,7 @@ def main() -> None:
         print(
             f"  Vdc_final={signals_bess['Vdc'][-1]:.3f} V | "
             f"i_bess_final={signals_bess['i_bess'][-1]:.3f} A | "
+            f"p_bess_dc_final={signals_bess['p_bess_dc'][-1]:.3f} W | "
             f"soc_bess_final={signals_bess['soc_bess'][-1]:.6f} | "
             f"soh_bess_final={signals_bess['soh_bess'][-1]:.6f} | "
             f"vt_bess_final={signals_bess['vt_bess'][-1]:.3f} V"

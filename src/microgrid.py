@@ -493,6 +493,7 @@ class MicrogridWithBESS(Microgrid):
 
         _, _, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
         i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess)
+        p_bess_dc = float(Vdc) * float(i_bess)
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         vt_bess = self.bess.terminal_voltage(
             soc=soc_bess,
@@ -513,6 +514,7 @@ class MicrogridWithBESS(Microgrid):
             "p_pcc": float(control.p_pcc),
             "p_load": p_load,
             "i_bess": float(i_bess),
+            "p_bess_dc": p_bess_dc,
             "soc_bess": float(soc_bess),
             "vt_bess": float(vt_bess),
             "soh_bess": float(soh_bess),

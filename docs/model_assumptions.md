@@ -177,6 +177,24 @@ Interaccion energetica en el bus DC:
 - El inversor demanda corriente del nodo DC para alimentar la etapa AC.
 - El desbalance neto de corrientes determina `dVdc/dt`.
 
+### Intercambio de potencia BESS-DC-link
+
+Para trazabilidad diagnostica de la integracion preliminar BESS-bus DC se
+reporta:
+
+- `p_bess_dc = Vdc * i_bess`
+
+Convencion de signos:
+
+- `i_bess > 0` indica descarga del BESS hacia el bus DC.
+- `p_bess_dc > 0` indica potencia entregada por el BESS al sistema.
+- `i_bess < 0` indica carga del BESS desde el bus DC.
+- `p_bess_dc < 0` indica potencia absorbida por el BESS desde el sistema.
+
+Esta senal es una metrica diagnostica de intercambio de potencia en la
+integracion preliminar. No representa todavia un modelo detallado del
+convertidor DC/DC ni sus perdidas, control interno o limites dinamicos.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
