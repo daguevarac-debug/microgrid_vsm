@@ -222,6 +222,43 @@ alta `Vdc/vt_bess`, no se interpreta como fallo numerico. Es una advertencia de
 interpretacion fisica: falta representar explicitamente el convertidor DC/DC
 ideal o el escalamiento del banco completo.
 
+### Caso nominal integrado BESS-DC-link
+
+Objetivo de la prueba:
+
+- Verificar que el baseline integrado `MicrogridWithBESS` corre el caso nominal
+  PV + DC-link + LCL + BESS-SLB con estabilidad numerica practica y coherencia
+  fisica minima.
+
+Alcance:
+
+- Es una validacion practica del baseline actual.
+- No es una validacion formal del controlador.
+- No evalua desempeno final grid-forming, VSG/FOVIC ni estrategia de inercia
+  virtual.
+- No introduce cambios de parametros, ganancias, ecuaciones ni arquitectura.
+
+Variables revisadas por `src/validation/validate_bess_integrated_nominal.py`:
+
+- Estados completos de la solucion numerica.
+- `Vdc`, `i_bess`, `p_bess_dc`, `soc_bess`, `vt_bess`, `soh_bess`.
+- `p_bridge`, `p_pcc` y `p_load`.
+- Identidad diagnostica `p_bess_dc = Vdc * i_bess` en toda la trayectoria.
+
+Criterio de reporte:
+
+- `PASS`: el solver termina correctamente, estados y senales son finitos, los
+  rangos fisicos basicos se cumplen y la identidad de potencia BESS-DC-link se
+  mantiene.
+- `REVIEW`: el caso corre y los checks basicos se cumplen, pero aparece una
+  advertencia interpretativa, por ejemplo una escala alta `Vdc/vt_bess`.
+- `FAIL`: error numerico, `NaN/inf`, violacion de rangos fisicos o identidad
+  `p_bess_dc = Vdc * i_bess` incorrecta.
+
+Un `REVIEW` asociado a la escala `Vdc/vt_bess` no invalida la corrida nominal.
+Indica que la interpretacion fisica sigue limitada hasta modelar explicitamente
+el convertidor DC/DC ideal o el escalamiento del banco completo.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
