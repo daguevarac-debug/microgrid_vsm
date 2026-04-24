@@ -16,9 +16,12 @@ Current implemented scope:
 - **Phase-1 static battery model** (capacity, SoH, internal resistance)
 
 Not yet implemented:
-- BESS integration into the microgrid dynamic simulation (coupling BESS + PV + inverter)
+- Full BESS + PV + inverter integration beyond first-step coupling
 - full grid-forming controller
 - active virtual inertia control for final thesis contribution
+
+Current partial integration status:
+- First-step/conservative BESS coupling to the DC-link exists through `MicrogridWithBESS`.
 
 ## Main engineering intent
 This codebase is part of a research thesis. Changes must preserve scientific traceability, physical consistency, and future extensibility.
@@ -33,6 +36,8 @@ This codebase is part of a research thesis. Changes must preserve scientific tra
 7. Do not silently change sign conventions for power, current, voltage, or control signals.
 8. Do not convert the baseline into a different architecture unless explicitly requested.
 9. When in doubt, preserve the current baseline behavior.
+10. Do not change the DC-link equation `dVdc/dt = (ipv + i_bess - idc_inv)/Cdc` or its sign convention without explicit request.
+11. Keep DC-link internal validation criteria documented in `docs/model_assumptions.md`.
 
 ## BESS-SLB mandatory conventions
 
@@ -172,7 +177,7 @@ If a request is ambiguous, choose the most conservative interpretation and avoid
 ## Thesis-specific caution
 Do not present scaffold code as a completed contribution.
 Do not describe baseline grid-following behavior as grid-forming.
-Do not imply BESS is integrated into the microgrid if it is not.
+Do not imply full BESS+PV+inverter integration when only preliminary DC-link coupling is implemented.
 Be precise about what is implemented vs. what is planned.
 
 ## Style guidance

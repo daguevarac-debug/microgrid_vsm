@@ -36,7 +36,7 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 - La trazabilidad completa de ecuaciones protegidas y convenciones se mantiene en `AGENTS.md`.
 
 ## Funcionalidades no implementadas aún
-- Integración del BESS-SLB en la simulación dinámica de la microrred (acople BESS + PV + inversor).
+- Integración completa del BESS-SLB en la simulación dinámica de la microrred (acople BESS + PV + inversor) aún en desarrollo.
 - Control grid-forming completo.
 - Contribución final de inercia virtual activa.
 
@@ -48,6 +48,12 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 | Braco Fig.5(b) SL 1.5C 25°C | MAPE=9.3351% (`outputs/validation/braco_fig5b_sl_1p5c/metrics_summary.csv`) | PASS |
 | Step-2 1RC dinámico | Validado (ver `src/validation/validate_bess_step2.py`) | PASS |
 | Step-3 degradación | Métricas en `outputs/validation/bess_step3/summary_metrics.csv` | PASS |
+
+## Validaciones básicas de DC-link
+- Existe integración preliminar/conservadora del BESS al bus DC mediante `MicrogridWithBESS`.
+- Ecuación verificada: `dVdc/dt = (ipv + i_bess - idc_inv)/Cdc`.
+- Pruebas unitarias de balance/signo: `src/validation/test_dclink_dynamics.py`.
+- Criterios internos, supuestos y PASS/FAIL de etapa: `docs/model_assumptions.md`.
 
 ## Estado de validación FV
 - Módulo de referencia: `LONGi LR7-54HJD-500M`.
@@ -120,6 +126,7 @@ python src/validation/validate_bess_step2.py      # 1RC dinámico
 python src/validation/validate_bess_step3.py      # degradación
 python src/validation/validate_excel_load.py       # carga Excel
 python src/validation/validate_pv_stc_fit.py       # validación STC del modelo FV contra datasheet
+python -m unittest discover -s src/validation -p "test_dclink_dynamics.py" -v  # pruebas básicas DC-link
 python src/validation/validate_braco_fig5b_sl_0p5c.py  # Braco Fig.5(b) SL 0.5C 25C
 python src/validation/validate_braco_fig5b_sl_1c.py    # Braco Fig.5(b) SL 1C 25C
 python src/validation/validate_braco_fig5b_sl_1p5c.py  # Braco Fig.5(b) SL 1.5C 25C
@@ -159,5 +166,5 @@ Los supuestos simplificados vigentes del baseline se documentan en:
 
 ## Advertencias sobre el alcance de tesis
 - Este baseline **no** debe interpretarse como implementación grid-forming completa.
-- El BESS-SLB está **modelado y validado**, pero **no integrado** en la simulación dinámica de la microrred.
+- El BESS-SLB está **modelado y validado** y cuenta con **acople preliminar al bus DC** (`MicrogridWithBESS`), pero no con integración completa ni control grid-forming final.
 - No se debe presentar código scaffold o planificado como contribución final implementada.

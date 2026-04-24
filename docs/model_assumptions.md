@@ -9,7 +9,7 @@ README corto y enfocado en ejecución/estado.
 - Degradación: primer orden lineal, sin modelo de rodilla ni efectos no lineales.
 - OCV/R1/C1: datos interpolados desde tabla; no incluye histéresis.
 - R0 aging: ley empírica simplificada, no copiada textualmente de literatura.
-- El BESS-SLB está modelado y validado, pero aún no integrado en la dinámica de la microrred.
+- El BESS-SLB esta modelado y validado, y existe una integracion preliminar/conservadora al bus DC mediante `MicrogridWithBESS`.
 
 ## Generador fotovoltaico (baseline actual)
 
@@ -23,3 +23,82 @@ README corto y enfocado en ejecución/estado.
 - No se modelan efectos de sombreado parcial, mismatch entre módulos, suciedad, degradación del módulo FV ni dispersión estadística entre paneles.
 - No se implementa un modelo térmico dinámico del módulo; la temperatura de celda se trata como entrada del modelo.
 - La curva I-V/P-V del arreglo se obtiene escalando el módulo por el número de módulos en serie y strings en paralelo definidos en config.py.
+
+## DC-link (PV + BESS preliminar)
+
+Ecuacion dinamica usada en el baseline:
+
+- `dVdc/dt = (ipv + i_bess - idc_inv) / Cdc`
+
+Significado fisico de variables:
+
+- `ipv`: corriente FV hacia el bus DC.
+- `i_bess`: corriente de intercambio BESS-bus DC.
+- `idc_inv`: corriente absorbida por el inversor desde el bus DC hacia AC.
+
+Convencion de signos:
+
+- Corriente positiva entra al capacitor del bus DC y aumenta `Vdc`.
+- `ipv > 0` inyecta al bus.
+- `i_bess > 0` descarga BESS e inyecta al bus.
+- `i_bess < 0` carga BESS desde el bus.
+- `idc_inv > 0` extrae corriente del bus hacia el lado AC.
+
+Interaccion energetica en el bus DC:
+
+- PV y BESS aportan corriente al nodo DC.
+- El inversor demanda corriente del nodo DC para alimentar la etapa AC.
+- El desbalance neto de corrientes determina `dVdc/dt`.
+
+Simplificaciones validas para esta etapa:
+
+- Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
+- `idc_inv` modelado unidireccional DC->AC en el baseline.
+- `p_available` del controlador referido a disponibilidad FV.
+- No se incluye carga DC adicional ni perdidas explicitas del bus DC.
+
+Alcance de validacion en esta etapa:
+
+- Se verifico coherencia fisica de la ecuacion y de la convencion de signos.
+- Se implementaron pruebas unitarias basicas del balance/signos en:
+  `src/validation/test_dclink_dynamics.py`.
+
+- `DeltaVdc_abs = |Vdc_pre_step - Vdc_min_post|`.
+- `DeltaVdc_pct = 100 * DeltaVdc_abs / Vdc_pre_step`.
+- `t_rec_95_pre`: primer instante despues del minimo post-escalon en que
+  `Vdc` recupera el 95 % de la caida respecto al valor pre-escalon.
+- `t_settle_new_2pct`: primer instante en que `Vdc` entra a una banda de
+  `+-2 %` respecto al valor final post-escalon.
+- Si existe nuevo punto operativo y no se recupera el nivel pre-escalon en la
+  ventana simulada, se prioriza la interpretacion con `t_settle_new_2pct`.
+- Para esta etapa, se acepta si `Vdc` permanece dentro de la banda `+-2 %`
+  respecto al valor final post-escalon durante el tramo final de la simulacion.
+- Si se usa una ventana de `2 s` con escalon en `0.8 s`, puede reportarse
+  tambien `t_settle_new_2pct` como metrica auxiliar.
+- Este criterio es interno de validacion de etapa; no es un limite normativo ni
+  una especificacion final de diseno del convertidor/control.
+
+Criterio explicito PASS/FAIL (validacion DC-link en esta etapa):
+
+- PASS si se cumplen simultaneamente:
+  - `DeltaVdc_pct <= 5 %` en el evento de escalon evaluado.
+  - `Vdc` y estados relevantes permanecen acotados y sin `NaN/inf`.
+  - El balance corriente-potencia del bus DC es consistente con el modelo:
+    `dVdc/dt = (ipv + i_bess - idc_inv)/Cdc` y su forma de potencia equivalente.
+  - La integracion es numericamente estable en chequeo practico (misma tendencia
+    y metricas principales similares bajo ajuste moderado de tolerancias/paso).
+  - Desempeno dinamico post-escalon: se cumple `t_rec_95_pre` si aplica, o en
+    presencia de nuevo punto operativo se verifica permanencia en banda `+-2 %`
+    respecto al valor final post-escalon en el tramo final de simulacion.
+- FAIL en caso contrario.
+- Este PASS/FAIL es un criterio interno de validacion del modelo en etapa
+  baseline; no es criterio normativo ni especificacion final de control
+  grid-forming.
+
+Respaldo conceptual general:
+
+- El enfoque de balance promedio en bus DC es consistente con literatura de
+  microrredes/inversores DC-link en los articulos de soporte revisados en el
+  proyecto (sin reclamar citas textuales aqui).
+
+
