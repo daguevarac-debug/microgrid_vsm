@@ -126,6 +126,17 @@ Referencias de esta verificacion:
   Connected Three Phase Power Converters" para el criterio
   `10*f_g <= f_res <= 0.5*f_sw`.
 
+Validacion practica de oscilaciones no fisicas (baseline):
+
+- Se ejecuto `python src/validation/validate_lcl_no_unphysical_oscillations.py`.
+- Se revisaron los estados del filtro LCL `i1`, `vc` e `i2`.
+- Se verifico ausencia de `NaN/inf` en la simulacion baseline.
+- Se evaluo que las ventanas finales (`70-85 %` y `85-100 %` del tiempo) no
+  muestren crecimiento artificial evidente mediante razones RMS.
+- Resultado reportado por el script: `PASS`.
+- Esta prueba es un chequeo practico de no crecimiento no fisico; no reemplaza
+  una demostracion formal de estabilidad ni el analisis posterior de control.
+
 ## DC-link (PV + BESS preliminar)
 
 Ecuacion dinamica usada en el baseline:
