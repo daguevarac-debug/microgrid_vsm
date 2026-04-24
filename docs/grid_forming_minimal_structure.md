@@ -25,7 +25,7 @@ Por tanto, el sistema actual no debe presentarse todavía como control grid-form
 
 ## 2. Variables de estado mínimas del inversor grid-forming
 
-Para representar un inversor grid-forming como fuente interna de tensión con dinámica propia, el bloque mínimo del inversor debe tener los siguientes estados:
+Para representar el inversor grid-forming mínimo como una fuente interna de tensión con dinámica propia, el vector mínimo de estados del bloque GFM debe ser:
 
 ```text
 x_gfm = [theta, omega]
@@ -36,11 +36,13 @@ Donde:
 - `theta` [rad]: ángulo eléctrico interno del inversor.
 - `omega` [rad/s]: frecuencia angular interna del inversor.
 
-Estos estados pertenecen al bloque de control/fuente del inversor. Cuando se integren al modelo completo, deben añadirse de forma explícita y documentada, sin cambiar silenciosamente el orden del vector de estados existente.
+En el baseline actual, `theta` ya existe como variable asociada a la fase eléctrica de la fuente/inversor, pero `omega` todavía no está incorporada como estado dinámico independiente; la frecuencia se mantiene referida a `omega_ref`.
+
+La incorporación futura de `omega` como estado debe hacerse de forma explícita y documentada, sin cambiar silenciosamente el orden del vector de estados existente de `Microgrid` ni activar todavía control grid-forming.
 
 ## 3. Ángulo eléctrico theta
 
-El ángulo `theta` define la fase de la tensión trifásica sintetizada por el inversor:
+`theta` [rad] es el ángulo eléctrico interno del inversor grid-forming y define la fase de la tensión trifásica sintetizada:
 
 ```text
 v_a = Vpk * sin(theta)
@@ -48,21 +50,43 @@ v_b = Vpk * sin(theta - 2*pi/3)
 v_c = Vpk * sin(theta + 2*pi/3)
 ```
 
-En una fuente sinusoidal ideal, `theta` se impone desde afuera como una señal fija. En un inversor grid-forming, `theta` es un estado interno del sistema.
+En este contexto, `theta` no debe interpretarse como una señal externa impuesta por la red. En el baseline actual, `theta` ya existe, pero todavía está asociado a una frecuencia fija de referencia.
 
-## 4. Frecuencia angular omega
-
-La frecuencia angular `omega` determina la velocidad de evolución del ángulo interno:
+En el inversor grid-forming, `theta` debe evolucionar según:
 
 ```text
 dtheta/dt = omega
 ```
 
-En el baseline actual, la frecuencia se mantiene fija en `omega_ref`. En un inversor grid-forming, `omega` puede cambiar dinámicamente ante desequilibrios de potencia.
+Esta ecuación queda documentada como estructura mínima futura; no se implementa todavía ni cambia el vector de estados actual de `Microgrid`.
+
+## 4. Frecuencia angular omega
+
+`omega` [rad/s] es la frecuencia angular interna del inversor grid-forming y gobierna la evolución del ángulo eléctrico interno:
+
+```text
+dtheta/dt = omega
+```
+
+La referencia nominal se define como:
+
+```text
+omega_ref = 2*pi*f_nom
+```
+
+Para `f_nom = 60 Hz`, `omega_ref ≈ 376.99 rad/s`.
+
+En una fuente sinusoidal ideal, `omega` es constante e impuesta. En un inversor grid-forming, `omega` debe tratarse como un estado dinámico interno.
+
+La ecuación para `domega/dt` queda fuera de esta subtarea; no se implementa todavía ni cambia el vector de estados actual de `Microgrid`.
 
 ## 5. Ecuación dinámica mínima de frecuencia
 
-La estructura mínima de frecuencia se deja planteada con una ecuación tipo swing reducida:
+La estructura matemática mínima se plantea como una forma reducida tipo VSG/swing, coherente con la revisión de GFM/VSG de Anttila et al. (2022), el uso de inercia virtual y amortiguamiento en microrred wind-PV-battery de Zhou et al. (2023), el soporte de inercia virtual con BESS de Nour et al. (2023) y la ecuación swing para dinámica de frecuencia en microrred de Nguyen et al. (2025):
+
+```text
+dtheta/dt = omega
+```
 
 ```text
 domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
@@ -70,40 +94,49 @@ domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
 
 Donde:
 
+- `theta` [rad]: ángulo eléctrico interno del inversor.
+- `omega` [rad/s]: frecuencia angular interna del inversor.
 - `P_ref` [W]: potencia activa mecánica/virtual o referencia activa equivalente.
-- `P_e` [W]: potencia eléctrica entregada por el inversor al punto de acople local.
+- `P_e` [W]: potencia eléctrica entregada por el inversor; `P_ref - P_e` representa el desequilibrio activo.
 - `D` [W/(rad/s)]: amortiguamiento virtual.
-- `M` [J/(rad/s)^2] o parámetro equivalente: inercia virtual agregada.
+- `M` [J/(rad/s)^2] o parámetro equivalente: inercia virtual.
 - `omega_ref` [rad/s]: frecuencia angular nominal.
 
-Para mantener coherencia con el modelo existente, una opción natural para `P_e` en la integración futura es la potencia medida en el lado AC/PCC:
+Para mantener coherencia con el modelo existente, `P_e` puede calcularse en una implementación futura como la potencia medida en el lado AC/PCC:
 
 ```text
 P_e = v_pcc^T * i2
 ```
 
-La selección final de `P_e` debe mantenerse trazable porque el código actual también calcula `p_bridge` y `p_pcc` como señales diagnósticas.
+Esta sección solo define la estructura matemática mínima; no implementa `domega/dt`, no activa control grid-forming y no introduce FOVIC ni controles avanzados.
 
 ## 6. Diferencia frente a una fuente sinusoidal ideal
 
-Una fuente sinusoidal ideal se define por:
+Una fuente sinusoidal ideal de frecuencia fija impone:
 
 ```text
 theta(t) = omega_ref*t + theta0
 omega(t) = omega_ref
 ```
 
-Eso significa que la frecuencia no responde al intercambio de potencia, ni al escalón de carga, ni al estado del bus DC.
+En ese caso, la frecuencia es externa/constante y no responde a cambios de carga ni a desequilibrios de potencia.
 
-Un inversor grid-forming mínimo se diferencia porque:
+El inversor grid-forming mínimo no solo genera senoidales; incorpora estados internos:
+
+```text
+x_gfm = [theta, omega]
+```
+
+con la estructura dinámica mínima:
 
 ```text
 dtheta/dt = omega
-omega = estado dinamico
-omega responde a P_ref - P_e
+domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
 ```
 
-Por esta razón, el inversor grid-forming puede formar una referencia de tensión/frecuencia interna sin depender de una red externa rígida.
+La diferencia clave es que `omega` puede variar dinámicamente ante el desequilibrio activo `P_ref - P_e`, con amortiguamiento virtual `D` e inercia virtual o equivalente `M`.
+
+Esta definición sigue siendo estructural: no implica que el control grid-forming ya esté implementado, ni cambia el vector de estados actual de `Microgrid`.
 
 ## 7. Implicación para la siguiente tarea
 
