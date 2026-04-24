@@ -24,6 +24,21 @@ README corto y enfocado en ejecución/estado.
 - No se implementa un modelo térmico dinámico del módulo; la temperatura de celda se trata como entrada del modelo.
 - La curva I-V/P-V del arreglo se obtiene escalando el módulo por el número de módulos en serie y strings en paralelo definidos en config.py.
 
+## Filtro LCL (baseline)
+
+Los parametros del filtro LCL se mantienen centralizados en `src/config.py` y
+se interpretan por fase.
+
+- `L1 = 1e-3 H`
+- `R1 = 0.05 ohm`
+- `Cf = 10e-6 F`
+- `Rd = 1e6 ohm`
+- `L2 = 1e-3 H`
+- `R2 = 0.05 ohm`
+
+Estos valores corresponden al baseline actual. Pueden ajustarse en etapas
+posteriores si el analisis de resonancia lo requiere.
+
 ## DC-link (PV + BESS preliminar)
 
 Ecuacion dinamica usada en el baseline:
