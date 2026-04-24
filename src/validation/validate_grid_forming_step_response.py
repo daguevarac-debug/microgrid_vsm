@@ -36,6 +36,7 @@ class StepResponseMetrics:
     freq_min_post_step_hz: float
     freq_final_hz: float
     max_frequency_drop_hz: float
+    max_abs_frequency_deviation_hz: float
     power_imbalance_post_step: float
 
 
@@ -109,11 +110,14 @@ def main() -> int:
     omega_initial = float(omega[0])
     omega_min_post_step = float(np.min(omega[post_step]))
     omega_final = float(omega[-1])
+    freq_ref_hz = _rad_s_to_hz(omega_ref)
+    freq_hz = _rad_s_to_hz(omega)
     freq_initial_hz = _rad_s_to_hz(omega_initial)
     freq_pre_step_hz = _rad_s_to_hz(float(omega[pre_step][-1]))
     freq_min_post_step_hz = _rad_s_to_hz(omega_min_post_step)
     freq_final_hz = _rad_s_to_hz(omega_final)
     max_frequency_drop_hz = freq_pre_step_hz - freq_min_post_step_hz
+    max_abs_frequency_deviation_hz = float(np.max(np.abs(freq_hz - freq_ref_hz)))
     power_imbalance_post_step = dynamics.power_imbalance(p_e=p_ref + delta_p_load)
 
     metrics = StepResponseMetrics(
@@ -125,15 +129,23 @@ def main() -> int:
         freq_min_post_step_hz=freq_min_post_step_hz,
         freq_final_hz=freq_final_hz,
         max_frequency_drop_hz=max_frequency_drop_hz,
+        max_abs_frequency_deviation_hz=max_abs_frequency_deviation_hz,
         power_imbalance_post_step=power_imbalance_post_step,
     )
 
+    deviation_tol_hz = 1e-9
     checks = {
         "power_imbalance_post_step < 0": metrics.power_imbalance_post_step < 0.0,
         "freq_min_post_step_hz < freq_pre_step_hz": (
             metrics.freq_min_post_step_hz < metrics.freq_pre_step_hz
         ),
         "max_frequency_drop_hz > 0": metrics.max_frequency_drop_hz > 0.0,
+        "max_abs_frequency_deviation_hz > 0": metrics.max_abs_frequency_deviation_hz > 0.0,
+        "max_abs_frequency_deviation_hz finite": np.isfinite(metrics.max_abs_frequency_deviation_hz),
+        "max_abs_frequency_deviation_hz coherent with max_frequency_drop_hz": (
+            abs(metrics.max_abs_frequency_deviation_hz - metrics.max_frequency_drop_hz)
+            <= deviation_tol_hz
+        ),
         "theta and omega finite": all_finite,
         "no NaN/Inf": all_finite,
         "no forbidden grid imports": _forbidden_imports_absent(),
@@ -144,6 +156,7 @@ def main() -> int:
     print("Scope: isolated x_gfm = [theta, omega], no Microgrid coupling.")
     print("\nParameters:")
     print(f"omega_ref={omega_ref:.9f} rad/s")
+    print(f"freq_ref_hz={freq_ref_hz:.9f} Hz")
     print(f"theta0={theta0:.6f} rad")
     print(f"p_ref={p_ref:.3f} W")
     print(f"inertia_m={inertia_m:.6f}")
@@ -161,6 +174,7 @@ def main() -> int:
     print(f"freq_min_post_step_hz={metrics.freq_min_post_step_hz:.9f} Hz")
     print(f"freq_final_hz={metrics.freq_final_hz:.9f} Hz")
     print(f"max_frequency_drop_hz={metrics.max_frequency_drop_hz:.9f} Hz")
+    print(f"max_abs_frequency_deviation_hz={metrics.max_abs_frequency_deviation_hz:.9f} Hz")
     print(f"omega_initial={metrics.omega_initial:.9f} rad/s")
     print(f"omega_min_post_step={metrics.omega_min_post_step:.9f} rad/s")
     print(f"omega_final={metrics.omega_final:.9f} rad/s")
