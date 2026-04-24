@@ -18,6 +18,8 @@ from config import (
     BESS_COUPLED_Q_NOM_REF_AH_DEFAULT,
     BESS_COUPLED_R0_DEFAULT,
     BESS_COUPLED_SOC_INIT_DEFAULT,
+    BESS_COUPLED_SOC_MAX_DEFAULT,
+    BESS_COUPLED_SOC_MIN_DEFAULT,
     DCLINK_CAP_F_DEFAULT,
     DCLINK_VMIN_DEFAULT,
     GRID_V_LN_RMS_DEFAULT,
@@ -367,8 +369,8 @@ class MicrogridWithBESS(Microgrid):
                 soh_min=0.50,
                 q_eff_min_ah=1e-9,
                 soc_initial=BESS_COUPLED_SOC_INIT_DEFAULT,
-                soc_min=0.0,
-                soc_max=1.0,
+                soc_min=BESS_COUPLED_SOC_MIN_DEFAULT,
+                soc_max=BESS_COUPLED_SOC_MAX_DEFAULT,
             )
         else:
             self.bess = bess_model

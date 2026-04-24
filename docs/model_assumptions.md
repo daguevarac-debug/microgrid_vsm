@@ -259,6 +259,28 @@ Un `REVIEW` asociado a la escala `Vdc/vt_bess` no invalida la corrida nominal.
 Indica que la interpretacion fisica sigue limitada hasta modelar explicitamente
 el convertidor DC/DC ideal o el escalamiento del banco completo.
 
+### Limites operativos de SoC del BESS
+
+Para la integracion preliminar BESS-DC-link se aplican limites operativos
+conservadores de SoC:
+
+- `soc_min = 0.10`
+- `soc_max = 0.90`
+- `soc_initial = 0.60`
+
+Criterio de bloqueo de corriente:
+
+- Descarga bloqueada cuando `soc_bess <= soc_min` e `i_bess` comandada seria
+  positiva.
+- Carga bloqueada cuando `soc_bess >= soc_max` e `i_bess` comandada seria
+  negativa.
+- En el rango operativo interior, la corriente BESS conserva la convencion:
+  `i_bess > 0` descarga hacia el bus DC e `i_bess < 0` carga desde el bus DC.
+
+Este es un supuesto operativo baseline para evitar excursion fuera de una
+ventana conservadora. No es una optimizacion final ni una especificacion BMS
+definitiva.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
