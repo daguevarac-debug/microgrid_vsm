@@ -163,6 +163,10 @@ MICROGRID_P_REF_NOMINAL_W_DEFAULT = (
 # BESS coupled-to-DC defaults (first integration step)
 # ------------------------------
 BESS_COUPLED_KP_DEFAULT = 0.5
+# Baseline current limit for preliminary BESS-DC-link coupling.
+# Interpreted as a 1C reference current from Nissan Leaf second-life
+# modules/cells with rated capacity near 66 Ah reported by Braco et al.
+# This is not a final BMS or DC/DC converter rating.
 BESS_COUPLED_I_MAX_DEFAULT = 66.0
 BESS_COUPLED_SOC_INIT_DEFAULT = 0.6
 BESS_COUPLED_SOC_MIN_DEFAULT = 0.10

@@ -281,6 +281,29 @@ Este es un supuesto operativo baseline para evitar excursion fuera de una
 ventana conservadora. No es una optimizacion final ni una especificacion BMS
 definitiva.
 
+### Limites operativos de corriente del BESS
+
+Para la integracion preliminar BESS-DC-link se usa:
+
+- `i_bess_max = 66 A`
+- Saturacion simetrica: `-66 A <= i_bess <= +66 A`
+
+Convencion de signos:
+
+- `i_bess > 0`: descarga del BESS hacia el bus DC.
+- `i_bess < 0`: carga del BESS desde el bus DC.
+
+Trazabilidad:
+
+- El valor de `66 A` se adopta como referencia baseline equivalente a `1C`,
+  tomando como base la capacidad nominal cercana a `66 Ah` reportada para
+  modulos/celdas Nissan Leaf en Braco et al. (2020), Braco et al. (2021) y
+  Braco et al. (2023).
+
+Este valor no representa todavia una especificacion final de BMS ni un limite
+definitivo del convertidor DC/DC. Es una restriccion operativa conservadora para
+evitar corrientes no acotadas en la integracion preliminar BESS-DC-link.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
