@@ -59,6 +59,43 @@ domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
 
 No son estados internos del GFM: `P_ref` (referencia de control), `V_ref`/`v_ln_rms` (referencia de tensión), `m_ctrl`/`m_max` (índice o límite de modulación), `P_e` (medición o estimación de planta), `Vdc` (variable de planta/bus DC), `v_inv_abc` (señal manipulada hacia la planta), `freq_hz` (métrica derivada de `omega`), `power_imbalance = P_ref - P_e` (variable algebraica) ni `max_abs_frequency_deviation_hz` (métrica de validación).
 
+## Parámetros ajustables
+
+Los parámetros mínimos configurables del bloque GFM para simulación y validación son:
+
+1. `f_nom` [Hz] u `omega_ref` [rad/s]
+   - Frecuencia nominal del inversor.
+   - `omega_ref = 2*pi*f_nom`.
+
+2. `theta0` [rad]
+   - Ángulo eléctrico inicial.
+
+3. `P_ref` [W]
+   - Referencia de potencia activa.
+   - Define el punto de equilibrio de potencia activa.
+
+4. `V_ref` o `v_ln_rms` [V RMS fase-neutro]
+   - Referencia de tensión AC.
+   - Modifica la amplitud deseada de la referencia de tensión sintetizada.
+
+5. `M` o `inertia_m`
+   - Parámetro de inercia virtual equivalente.
+   - Debe ser estrictamente positivo.
+
+6. `D` o `damping_d`
+   - Amortiguamiento virtual.
+   - Debe ser mayor o igual que cero.
+
+7. `m_max` o `m_ctrl` [-]
+   - Límite o índice de modulación.
+   - Restringe la tensión sintetizable según `Vdc`.
+
+Ajustar estos parámetros no debe cambiar la estructura del modelo. `M` y `D` modifican la respuesta transitoria de frecuencia; `V_ref` y `m_max` modifican la amplitud de la referencia de tensión sintetizada.
+
+No son parámetros ajustables del control GFM: `Vdc` (pertenece a la planta/bus DC), `P_e` (medición o estimación de planta), `theta` y `omega` (estados internos), `freq_hz`, `power_imbalance` y `max_abs_frequency_deviation_hz` (métricas derivadas).
+
+Quedan fuera de esta etapa: `Q_ref`, droop `Q-V`, ganancias de lazos internos de tensión/corriente, FOVIC, parámetros fraccionarios y estrategias avanzadas de despacho o control.
+
 ## Salidas observables
 
 Las salidas observables no deben confundirse con entradas manipulables. En esta interfaz mínima se distinguen tres grupos.
