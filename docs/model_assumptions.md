@@ -346,6 +346,31 @@ Este orden no representa todavia una logica BMS final ni un convertidor DC/DC
 detallado; es una restriccion operativa conservadora para la integracion
 preliminar BESS-DC-link.
 
+### Verificacion de operacion dentro de rango
+
+`src/validation/validate_bess_integrated_nominal.py` verifica que, durante el
+caso nominal integrado baseline, el BESS permanezca dentro de sus restricciones
+operativas principales.
+
+Variables revisadas:
+
+- `soc_bess` y `soh_bess`.
+- `i_bess` y `p_bess_dc`.
+- `Vdc` y `vt_bess`.
+
+Limites aplicados:
+
+- `soc_min <= soc_bess <= soc_max`.
+- `soh_min <= soh_bess <= 1.0`.
+- `abs(i_bess) <= i_bess_max`.
+- `abs(p_bess_dc) <= p_bess_dc_max`.
+- `Vdc > 0` y `vt_bess > 0`.
+- Identidad diagnostica `p_bess_dc = Vdc * i_bess`.
+
+Esta prueba verifica el caso nominal integrado del baseline actual. No reemplaza
+una validacion exhaustiva con perfiles reales de operacion, ensayos de estres,
+estrategias BMS finales ni un modelo detallado del convertidor DC/DC.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).

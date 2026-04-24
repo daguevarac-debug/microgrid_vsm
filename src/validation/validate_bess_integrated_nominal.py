@@ -42,6 +42,7 @@ def _signals_over_solution(model: MicrogridWithBESS, t: np.ndarray, y: np.ndarra
         "Vdc",
         "i_bess",
         "p_bess_dc",
+        "p_bess_dc_max",
         "soc_bess",
         "vt_bess",
         "soh_bess",
@@ -76,6 +77,7 @@ def main() -> None:
     vdc = signals["Vdc"]
     i_bess = signals["i_bess"]
     p_bess_dc = signals["p_bess_dc"]
+    p_bess_dc_max = signals["p_bess_dc_max"]
     soc_bess = signals["soc_bess"]
     vt_bess = signals["vt_bess"]
     soh_bess = signals["soh_bess"]
@@ -84,6 +86,14 @@ def main() -> None:
 
     expected_p_bess_dc = vdc * i_bess
     voltage_scale_ratio = vdc / vt_bess
+    i_bess_abs_max = float(np.max(np.abs(i_bess)))
+    p_bess_abs_max = float(np.max(np.abs(p_bess_dc)))
+    soc_min_observed = float(np.min(soc_bess))
+    soc_max_observed = float(np.max(soc_bess))
+    soh_min_observed = float(np.min(soh_bess))
+    soh_max_observed = float(np.max(soh_bess))
+    vdc_min = float(np.min(vdc))
+    vt_bess_min = float(np.min(vt_bess))
 
     solver_ok = bool(sol.success)
     states_finite_ok = bool(np.all(np.isfinite(sol.y)))
@@ -92,6 +102,16 @@ def main() -> None:
     soc_range_ok = bool(np.all((soc_bess >= model.bess.soc_min) & (soc_bess <= model.bess.soc_max)))
     soh_range_ok = bool(np.all((soh_bess >= model.bess.soh_min) & (soh_bess <= 1.0)))
     vt_positive_ok = bool(np.all(vt_bess > 0.0))
+    current_limit_ok = bool(np.all(np.abs(i_bess) <= model.i_bess_max + IDENTITY_ATOL))
+    power_limit_ok = bool(np.all(np.abs(p_bess_dc) <= model.p_bess_max_w + IDENTITY_ATOL))
+    power_limit_signal_ok = bool(
+        np.allclose(
+            p_bess_dc_max,
+            model.p_bess_max_w,
+            rtol=IDENTITY_RTOL,
+            atol=IDENTITY_ATOL,
+        )
+    )
     identity_ok = bool(
         np.allclose(
             p_bess_dc,
@@ -109,6 +129,9 @@ def main() -> None:
         and soc_range_ok
         and soh_range_ok
         and vt_positive_ok
+        and current_limit_ok
+        and power_limit_ok
+        and power_limit_signal_ok
         and identity_ok
     )
     scale_review = bool(np.max(voltage_scale_ratio) > VOLTAGE_SCALE_REVIEW_THRESHOLD)
@@ -117,7 +140,7 @@ def main() -> None:
         status = "FAIL"
         observation = (
             "Fallo del caso nominal integrado: revisar solver, finitud, rangos "
-            "fisicos o identidad p_bess_dc=Vdc*i_bess."
+            "operativos o identidad p_bess_dc=Vdc*i_bess."
         )
     elif scale_review:
         status = "REVIEW"
@@ -135,17 +158,25 @@ def main() -> None:
     print(f"solver_message={sol.message}")
     print(f"n_steps={sol.t.size}")
     print(f"t_final={float(sol.t[-1]):.6f} s")
-    print(f"vdc_min={float(np.min(vdc)):.6f} V")
+    print(f"vdc_min={vdc_min:.6f} V")
     print(f"vdc_max={float(np.max(vdc)):.6f} V")
     print(f"vdc_final={float(vdc[-1]):.6f} V")
     print(f"soc_initial={float(soc_bess[0]):.6f}")
     print(f"soc_final={float(soc_bess[-1]):.6f}")
+    print(f"soc_min_observed={soc_min_observed:.6f}")
+    print(f"soc_max_observed={soc_max_observed:.6f}")
     print(f"soh_initial={float(soh_bess[0]):.6f}")
     print(f"soh_final={float(soh_bess[-1]):.6f}")
+    print(f"soh_min_observed={soh_min_observed:.6f}")
+    print(f"soh_max_observed={soh_max_observed:.6f}")
     print(f"i_bess_min={float(np.min(i_bess)):.6f} A")
     print(f"i_bess_max={float(np.max(i_bess)):.6f} A")
+    print(f"i_bess_abs_max={i_bess_abs_max:.6f} A")
     print(f"p_bess_dc_min={float(np.min(p_bess_dc)):.6f} W")
     print(f"p_bess_dc_max={float(np.max(p_bess_dc)):.6f} W")
+    print(f"p_bess_abs_max={p_bess_abs_max:.6f} W")
+    print(f"p_bess_dc_limit={float(model.p_bess_max_w):.6f} W")
+    print(f"vt_bess_min={vt_bess_min:.6f} V")
     print(f"p_load_final={float(p_load[-1]):.6f} W")
     print(f"p_pcc_final={float(p_pcc[-1]):.6f} W")
     print(f"voltage_scale_ratio_max={float(np.max(voltage_scale_ratio)):.6f}")
@@ -154,7 +185,9 @@ def main() -> None:
         f"solver_ok={solver_ok}, states_finite_ok={states_finite_ok}, "
         f"signals_finite_ok={signals_finite_ok}, vdc_positive_ok={vdc_positive_ok}, "
         f"soc_range_ok={soc_range_ok}, soh_range_ok={soh_range_ok}, "
-        f"vt_positive_ok={vt_positive_ok}, identity_ok={identity_ok}"
+        f"vt_positive_ok={vt_positive_ok}, current_limit_ok={current_limit_ok}, "
+        f"power_limit_ok={power_limit_ok}, power_limit_signal_ok={power_limit_signal_ok}, "
+        f"identity_ok={identity_ok}"
     )
     print(f"observation={observation}")
 
