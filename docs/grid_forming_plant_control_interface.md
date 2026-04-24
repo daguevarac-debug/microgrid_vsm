@@ -124,3 +124,19 @@ Las salidas observables no deben confundirse con entradas manipulables. En esta 
 `P_e`, `Vdc`, `i1_abc`, `i2_abc` y `v_pcc_abc` son señales de planta o mediciones/estimaciones. `theta` y `omega` son estados internos del GFM que se registran como salidas observables para diagnóstico. `freq_hz` y `max_abs_frequency_deviation_hz` son métricas derivadas, no estados físicos nuevos.
 
 Esta documentación no activa control grid-forming ni cambia el baseline actual.
+
+## Preparación para el Objetivo 2
+
+Esta interfaz deja definidos los elementos mínimos para iniciar el Objetivo 2: determinar la estrategia de control de inercia virtual del inversor grid-forming con el sistema de gestión de baterías de segunda vida.
+
+Elementos ya delimitados para el diseño:
+
+1. Entradas disponibles para el controlador: `P_ref`, `V_ref`/`v_ln_rms` y `m_max`/`m_ctrl`.
+2. Mediciones necesarias desde la planta: `P_e`, `Vdc`, `i1_abc`, `i2_abc`, `v_pcc_abc` e `idc_inv`.
+3. Estados internos disponibles: `theta` y `omega`.
+4. Parámetros ajustables: `f_nom`/`omega_ref`, `theta0`, `P_ref`, `V_ref`/`v_ln_rms`, `M`/`inertia_m`, `D`/`damping_d` y `m_max`/`m_ctrl`.
+5. Variables que deberán conectarse con el BESS/BMS: `SoC`, `SoH`, corriente máxima de carga/descarga, potencia máxima de carga/descarga y límites de operación segura del almacenamiento.
+
+Esta etapa no implementa todavía VSG completo, FOVIC ni gestión BESS/BMS. La interfaz queda documentada para que el Objetivo 2 pueda diseñar la estrategia de control sin redefinir la planta.
+
+La siguiente etapa deberá decidir si la estrategia será VSG clásico, FOVIC u otra variante justificada, y cómo los límites del BESS modifican `P_ref`, `M`, `D` o la potencia inercial disponible. No debe afirmarse todavía que la estrategia de inercia virtual está implementada.
