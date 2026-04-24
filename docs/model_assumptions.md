@@ -326,6 +326,26 @@ Es un supuesto baseline para evitar potencia DC no acotada en la integracion
 preliminar. No representa todavia una especificacion final del BMS ni del
 convertidor DC/DC.
 
+### Orden de saturaciones carga/descarga del BESS
+
+En la integracion preliminar `MicrogridWithBESS`, la corriente de intercambio
+`i_bess` se limita con el siguiente orden operativo:
+
+1. Se calcula `i_bess_cmd` por soporte proporcional del DC-link.
+2. Se aplica saturacion de corriente:
+   `-i_bess_max <= i_bess <= +i_bess_max`.
+3. Se aplican bloqueos direccionales por SoC:
+   - descarga bloqueada si `soc_bess <= soc_min`.
+   - carga bloqueada si `soc_bess >= soc_max`.
+4. Finalmente se aplica saturacion de potencia DC:
+   `abs(Vdc * i_bess) <= p_bess_dc_max`.
+
+La saturacion es simetrica para carga y descarga en esta etapa baseline y
+mantiene la convencion `i_bess > 0` para descarga e `i_bess < 0` para carga.
+Este orden no representa todavia una logica BMS final ni un convertidor DC/DC
+detallado; es una restriccion operativa conservadora para la integracion
+preliminar BESS-DC-link.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
