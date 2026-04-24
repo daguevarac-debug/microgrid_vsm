@@ -39,6 +39,22 @@ se interpretan por fase.
 Estos valores corresponden al baseline actual. Pueden ajustarse en etapas
 posteriores si el analisis de resonancia lo requiere.
 
+El filtro LCL implementado en `src/lcl_filter.py` se modela por fase en
+coordenadas `abc`.
+
+- `di1/dt = (v_inv - vc - R1*i1) / L1`
+- `dvc/dt = (i1 - i2 - vc/Rd) / Cf`
+- `di2/dt = (vc - v_pcc - R2*i2) / L2`
+
+Interpretacion fisica:
+
+- La primera y tercera ecuacion se obtienen por KVL en los lazos de los
+  inductores `L1` y `L2` con sus resistencias serie.
+- La ecuacion del capacitor se obtiene por KCL en el nodo del capacitor,
+  considerando la rama de amortiguamiento `Rd`.
+- Esta revision no cambia el modelo; solo agrega trazabilidad de tesis sobre las
+  ecuaciones ya implementadas.
+
 ## DC-link (PV + BESS preliminar)
 
 Ecuacion dinamica usada en el baseline:
