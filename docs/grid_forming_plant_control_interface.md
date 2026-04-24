@@ -34,3 +34,32 @@ domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
 `P_e` no es una entrada manipulable; es una magnitud medida o estimada de la planta. `theta` y `omega` son estados internos del control GFM, no entradas manipulables externas.
 
 Quedan fuera de esta interfaz mínima: `Q_ref`, control `Q-V`, droop reactivo, FOVIC y lazos avanzados.
+
+## Salidas observables
+
+Las salidas observables no deben confundirse con entradas manipulables. En esta interfaz mínima se distinguen tres grupos.
+
+### 1. Salida directa hacia la planta
+
+- `v_inv_abc` [V]: tensión trifásica sintetizada por el inversor. Es la señal que la planta eléctrica recibe desde el bloque inversor y puede registrarse para verificar amplitud, balance y limitación por `Vdc`.
+
+### 2. Mediciones o estimaciones provenientes de la planta
+
+- `P_e` [W]: potencia activa eléctrica entregada por el inversor. Puede estimarse en una integración futura como `P_e = v_pcc^T * i2`; no es entrada manipulable.
+- `Vdc` [V]: tensión del bus DC disponible para sintetizar tensión AC.
+- `i1_abc` [A]: corriente del lado inversor/filtro.
+- `i2_abc` [A]: corriente del lado PCC/carga.
+- `v_pcc_abc` [V]: tensión en el punto de acople local.
+- `idc_inv` [A]: corriente DC equivalente asociada al intercambio de potencia DC/AC; no es entrada manipulable independiente.
+
+### 3. Métricas derivadas para diagnóstico y validación
+
+- `theta` [rad]: ángulo interno GFM. Es estado interno, pero observable para diagnóstico.
+- `omega` [rad/s]: frecuencia angular interna. Es estado interno, pero observable para diagnóstico.
+- `freq_hz` [Hz]: frecuencia equivalente calculada como `omega/(2*pi)`.
+- `power_imbalance` [W]: diferencia `P_ref - P_e`; explica el signo de la evolución de frecuencia.
+- `max_abs_frequency_deviation_hz` [Hz]: métrica de validación respecto a la frecuencia nominal.
+
+`P_e`, `Vdc`, `i1_abc`, `i2_abc` y `v_pcc_abc` son señales de planta o mediciones/estimaciones. `theta` y `omega` son estados internos del GFM que se registran como salidas observables para diagnóstico. `freq_hz` y `max_abs_frequency_deviation_hz` son métricas derivadas, no estados físicos nuevos.
+
+Esta documentación no activa control grid-forming ni cambia el baseline actual.
