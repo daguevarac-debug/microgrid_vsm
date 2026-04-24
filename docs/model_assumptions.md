@@ -79,6 +79,29 @@ seleccion numerica optima de `L1`, `L2`, `Cf`, `R1`, `R2` o `Rd`.
 La justificacion numerica de parametros se abordara despues mediante analisis
 de resonancia/estabilidad y referencia tecnica.
 
+Frecuencia de resonancia del filtro LCL (baseline):
+
+- Se usa la expresion estandar: `f_res = (1/(2*pi)) * sqrt((L1 + L2)/(L1*L2*Cf))`.
+- Con `L1 = 1e-3 H`, `L2 = 1e-3 H` y `Cf = 10e-6 F`, se obtiene
+  `f_res ≈ 2250.8 Hz`.
+- Este valor queda muy por encima de la frecuencia fundamental (`60 Hz`), por
+  lo que los parametros actuales se mantienen como baseline razonable.
+- Este calculo no demuestra que `L1`, `L2` y `Cf` sean optimos ni cierra la
+  validacion dinamica completa del filtro.
+- La aceptacion completa de estos parametros queda condicionada a la siguiente
+  subtarea: verificar que `f_res` no interfiera con la banda de control.
+- Tambien queda pendiente comparar con la frecuencia de conmutacion `f_sw`; como
+  criterio practico de diseno, la literatura suele ubicar la resonancia entre
+  `10*f_g` y `0.5*f_sw`.
+
+Referencias tecnicas para esta trazabilidad:
+
+- Referencia principal: Pena-Alzola et al. (2013), diseno robusto y resonancia
+  en filtros LCL para convertidores conectados a red.
+- Referencia de apoyo: "Modelling, Design and Performance Analysis of LCL
+  Filter for Grid Connected Three Phase Power Converters" (criterio
+  `10*f_g <= f_res <= 0.5*f_sw`).
+
 ## DC-link (PV + BESS preliminar)
 
 Ecuacion dinamica usada en el baseline:
