@@ -168,6 +168,11 @@ BESS_COUPLED_KP_DEFAULT = 0.5
 # modules/cells with rated capacity near 66 Ah reported by Braco et al.
 # This is not a final BMS or DC/DC converter rating.
 BESS_COUPLED_I_MAX_DEFAULT = 66.0
+# Baseline DC power limit for preliminary BESS-DC-link coupling.
+# Computed as SIM_VDC0_V_DEFAULT * BESS_COUPLED_I_MAX_DEFAULT
+# = 340 V * 66 A = 22440 W.
+# This is a DC-bus-side operational limit, not a final BMS or DC/DC converter rating.
+BESS_COUPLED_P_MAX_W_DEFAULT = 22440.0
 BESS_COUPLED_SOC_INIT_DEFAULT = 0.6
 BESS_COUPLED_SOC_MIN_DEFAULT = 0.10
 BESS_COUPLED_SOC_MAX_DEFAULT = 0.90

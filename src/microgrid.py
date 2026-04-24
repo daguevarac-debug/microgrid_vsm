@@ -14,6 +14,7 @@ from bess.model import SecondLifeBattery1RC
 from config import (
     BESS_COUPLED_I_MAX_DEFAULT,
     BESS_COUPLED_KP_DEFAULT,
+    BESS_COUPLED_P_MAX_W_DEFAULT,
     BESS_COUPLED_Q_INIT_CASE_AH_DEFAULT,
     BESS_COUPLED_Q_NOM_REF_AH_DEFAULT,
     BESS_COUPLED_R0_DEFAULT,
@@ -339,6 +340,7 @@ class MicrogridWithBESS(Microgrid):
         bess_model: SecondLifeBattery1RC | None = None,
         kp_bess: float = BESS_COUPLED_KP_DEFAULT,
         i_bess_max: float = BESS_COUPLED_I_MAX_DEFAULT,
+        p_bess_max_w: float = BESS_COUPLED_P_MAX_W_DEFAULT,
         bess_excel_path: str | Path | None = None,
     ):
         super().__init__(
@@ -349,6 +351,7 @@ class MicrogridWithBESS(Microgrid):
         )
         self.kp_bess = _positive_float("MicrogridWithBESS.kp_bess", kp_bess)
         self.i_bess_max = _positive_float("MicrogridWithBESS.i_bess_max", i_bess_max)
+        self.p_bess_max_w = _positive_float("MicrogridWithBESS.p_bess_max_w", p_bess_max_w)
 
         if bess_model is not None and not isinstance(bess_model, SecondLifeBattery1RC):
             raise ValueError(
@@ -422,6 +425,9 @@ class MicrogridWithBESS(Microgrid):
             i_bess_sat = 0.0
         if soc_bess >= self.bess.soc_max and i_bess_sat < 0.0:
             i_bess_sat = 0.0
+        if Vdc > 0.0:
+            i_power_limit = self.p_bess_max_w / Vdc
+            i_bess_sat = float(np.clip(i_bess_sat, -i_power_limit, i_power_limit))
         return i_bess_sat
 
     def system_dynamics(self, t: float, x):
@@ -517,6 +523,7 @@ class MicrogridWithBESS(Microgrid):
             "p_load": p_load,
             "i_bess": float(i_bess),
             "p_bess_dc": p_bess_dc,
+            "p_bess_dc_max": float(self.p_bess_max_w),
             "soc_bess": float(soc_bess),
             "vt_bess": float(vt_bess),
             "soh_bess": float(soh_bess),

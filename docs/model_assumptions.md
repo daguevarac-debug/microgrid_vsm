@@ -304,6 +304,28 @@ Este valor no representa todavia una especificacion final de BMS ni un limite
 definitivo del convertidor DC/DC. Es una restriccion operativa conservadora para
 evitar corrientes no acotadas en la integracion preliminar BESS-DC-link.
 
+### Limites operativos de potencia del BESS
+
+La potencia diagnostica BESS-DC-link se calcula como:
+
+- `p_bess_dc = Vdc * i_bess`
+
+Para la integracion preliminar se usa el limite operativo baseline:
+
+- `p_bess_dc_max = 22440 W`
+- Calculado como `Vdc_ref * i_bess_max = 340 V * 66 A`
+- Limite simetrico: `-p_bess_dc_max <= p_bess_dc <= +p_bess_dc_max`
+
+Convencion de signos:
+
+- `p_bess_dc > 0`: el BESS entrega potencia al bus DC.
+- `p_bess_dc < 0`: el BESS absorbe potencia desde el bus DC.
+
+Este limite esta referido al bus DC y no a `vt_bess` del modelo interno 1RC.
+Es un supuesto baseline para evitar potencia DC no acotada en la integracion
+preliminar. No representa todavia una especificacion final del BMS ni del
+convertidor DC/DC.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
