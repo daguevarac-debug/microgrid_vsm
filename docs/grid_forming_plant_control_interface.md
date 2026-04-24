@@ -35,6 +35,30 @@ domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
 
 Quedan fuera de esta interfaz mínima: `Q_ref`, control `Q-V`, droop reactivo, FOVIC y lazos avanzados.
 
+## Estados internos
+
+El vector mínimo de estados internos del inversor grid-forming es:
+
+```text
+x_gfm = [theta, omega]
+```
+
+Donde:
+
+- `theta` [rad]: ángulo eléctrico interno del inversor; define la fase de la tensión trifásica sintetizada.
+- `omega` [rad/s]: frecuencia angular interna del inversor; gobierna la evolución de `theta`.
+
+La dinámica mínima asociada es:
+
+```text
+dtheta/dt = omega
+domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
+```
+
+`theta` y `omega` son estados internos dinámicos del control GFM. También pueden registrarse como salidas observables para diagnóstico, pero eso no cambia su naturaleza de estados internos.
+
+No son estados internos del GFM: `P_ref` (referencia de control), `V_ref`/`v_ln_rms` (referencia de tensión), `m_ctrl`/`m_max` (índice o límite de modulación), `P_e` (medición o estimación de planta), `Vdc` (variable de planta/bus DC), `v_inv_abc` (señal manipulada hacia la planta), `freq_hz` (métrica derivada de `omega`), `power_imbalance = P_ref - P_e` (variable algebraica) ni `max_abs_frequency_deviation_hz` (métrica de validación).
+
 ## Salidas observables
 
 Las salidas observables no deben confundirse con entradas manipulables. En esta interfaz mínima se distinguen tres grupos.
