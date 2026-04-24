@@ -65,6 +65,20 @@ Integracion del filtro LCL en la dinamica de la microrred (baseline):
 - Esta subtarea confirma la integracion ya existente; no implementa una nueva
   funcionalidad.
 
+Verificacion de coherencia dimensional (ecuaciones LCL ya implementadas):
+
+- `di1/dt = (v_inv - vc - R1*i1) / L1`: el numerador esta en voltios (`V`) y al
+  dividir por henrios (`H`) se obtiene `A/s`.
+- `dvc/dt = (i1 - i2 - vc/Rd) / Cf`: el numerador esta en amperios (`A`) y al
+  dividir por faradios (`F`) se obtiene `V/s`.
+- `di2/dt = (vc - v_pcc - R2*i2) / L2`: el numerador esta en voltios (`V`) y al
+  dividir por henrios (`H`) se obtiene `A/s`.
+
+Esta verificacion confirma consistencia dimensional del modelo. No valida aun la
+seleccion numerica optima de `L1`, `L2`, `Cf`, `R1`, `R2` o `Rd`.
+La justificacion numerica de parametros se abordara despues mediante analisis
+de resonancia/estabilidad y referencia tecnica.
+
 ## DC-link (PV + BESS preliminar)
 
 Ecuacion dinamica usada en el baseline:
