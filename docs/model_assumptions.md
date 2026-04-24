@@ -55,6 +55,16 @@ Interpretacion fisica:
 - Esta revision no cambia el modelo; solo agrega trazabilidad de tesis sobre las
   ecuaciones ya implementadas.
 
+Integracion del filtro LCL en la dinamica de la microrred (baseline):
+
+- El inversor entrega la tension trifasica `v_inv`.
+- Esta `v_inv` entra al filtro mediante `plant.lcl_derivatives(v_inv, v_pcc, i1, vc, i2)`.
+- La carga/PCC se representa en el baseline como `v_pcc = i2 * R_load`.
+- El filtro devuelve `di1dt`, `dvcdt` y `di2dt`, que se insertan en el vector
+  de derivadas del sistema dinamico.
+- Esta subtarea confirma la integracion ya existente; no implementa una nueva
+  funcionalidad.
+
 ## DC-link (PV + BESS preliminar)
 
 Ecuacion dinamica usada en el baseline:
