@@ -137,6 +137,20 @@ Validacion practica de oscilaciones no fisicas (baseline):
 - Esta prueba es un chequeo practico de no crecimiento no fisico; no reemplaza
   una demostracion formal de estabilidad ni el analisis posterior de control.
 
+Decision sobre ajuste de parametros LCL:
+
+- En esta subtarea no se ajustan parametros del filtro LCL.
+- La decision se basa en la validacion `PASS` de no oscilaciones no fisicas:
+  - `all_states_finite=True`
+  - `growth_ratio_i1=1.000238`
+  - `growth_ratio_vc=1.000238`
+  - `growth_ratio_i2=1.000238`
+- Los parametros actuales (`L1`, `L2`, `Cf`, `R1`, `R2`, `Rd`) se mantienen
+  como baseline.
+- Esta decision no implica un diseno optimo final del filtro.
+- Ajustes futuros podran realizarse si el analisis de control, `f_sw` o
+  validaciones posteriores lo requieren.
+
 ## DC-link (PV + BESS preliminar)
 
 Ecuacion dinamica usada en el baseline:
