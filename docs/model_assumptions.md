@@ -195,6 +195,33 @@ Esta senal es una metrica diagnostica de intercambio de potencia en la
 integracion preliminar. No representa todavia un modelo detallado del
 convertidor DC/DC ni sus perdidas, control interno o limites dinamicos.
 
+### Compatibilidad de escalas y unidades BESS-DC-link
+
+Variables principales y unidades:
+
+- `Vdc` [V]: tension del bus DC de la microrred.
+- `i_bess` [A]: corriente de intercambio BESS-bus DC; positiva en descarga.
+- `p_bess_dc` [W]: potencia diagnostica referida al bus DC,
+  `p_bess_dc = Vdc * i_bess`.
+- `soc_bess` [-] y `soh_bess` [-]: estados normalizados del BESS.
+- `vt_bess` [V]: tension terminal del modelo interno Thevenin 1RC.
+- `Q_eff` [Ah], `R0` [ohm], `R1` [ohm] y `C1` [F]: parametros efectivos o
+  interpolados del modelo interno 1RC.
+
+`p_bess_dc` esta referida al bus DC de la integracion preliminar. `vt_bess`
+pertenece al modelo interno 1RC y no debe interpretarse por si sola como la
+tension del bus DC ni como una representacion completa del banco escalado.
+
+La integracion actual es preliminar/conservadora: preserva la convencion de
+signos y permite trazabilidad de potencia, pero todavia no representa
+explicitamente el convertidor DC/DC ideal ni el escalamiento del banco completo
+en serie/paralelo.
+
+Si `src/validation/validate_bess_units_scales.py` reporta `REVIEW` por una razon
+alta `Vdc/vt_bess`, no se interpreta como fallo numerico. Es una advertencia de
+interpretacion fisica: falta representar explicitamente el convertidor DC/DC
+ideal o el escalamiento del banco completo.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
