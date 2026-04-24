@@ -102,6 +102,30 @@ Referencias tecnicas para esta trazabilidad:
   Filter for Grid Connected Three Phase Power Converters" (criterio
   `10*f_g <= f_res <= 0.5*f_sw`).
 
+Verificacion preliminar frente a banda de control/conmutacion:
+
+- Con `f_g = 60 Hz`, el limite inferior del criterio practico es:
+  `10*f_g = 10*60 = 600 Hz`.
+- Como `f_res ≈ 2250.8 Hz`, se cumple `f_res > 600 Hz`, por lo que la
+  resonancia queda alejada de la frecuencia fundamental y respalda el baseline.
+- Para el limite superior, `f_res <= 0.5*f_sw` implica `f_sw >= 2*f_res`; con
+  el valor actual, se requiere `f_sw >= 4501.6 Hz`.
+- El baseline actual no define aun una frecuencia de conmutacion ni una banda
+  de control consolidada; por tanto, esta subtarea no cierra la validacion
+  completa de interaccion con el control y deja documentado el requisito minimo
+  para la siguiente etapa.
+- Si en etapas posteriores se adopta `f_sw >= 5 kHz`, el valor actual de
+  `f_res` cumpliria el criterio `f_res <= 0.5*f_sw`; sin embargo, esta decision
+  no se fija en esta subtarea.
+
+Referencias de esta verificacion:
+
+- Principal: Pena-Alzola et al. (2013), resonancia y estabilidad de filtros LCL
+  en convertidores conectados a red.
+- Apoyo: "Modelling, Design and Performance Analysis of LCL Filter for Grid
+  Connected Three Phase Power Converters" para el criterio
+  `10*f_g <= f_res <= 0.5*f_sw`.
+
 ## DC-link (PV + BESS preliminar)
 
 Ecuacion dinamica usada en el baseline:
