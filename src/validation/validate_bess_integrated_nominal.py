@@ -43,6 +43,8 @@ def _signals_over_solution(model: MicrogridWithBESS, t: np.ndarray, y: np.ndarra
         "i_bess",
         "p_bess_dc",
         "p_bess_dc_max",
+        "i_bess_max_available",
+        "p_bess_dc_max_available",
         "soc_bess",
         "vt_bess",
         "soh_bess",
@@ -78,6 +80,8 @@ def main() -> None:
     i_bess = signals["i_bess"]
     p_bess_dc = signals["p_bess_dc"]
     p_bess_dc_max = signals["p_bess_dc_max"]
+    i_bess_max_available = signals["i_bess_max_available"]
+    p_bess_dc_max_available = signals["p_bess_dc_max_available"]
     soc_bess = signals["soc_bess"]
     vt_bess = signals["vt_bess"]
     soh_bess = signals["soh_bess"]
@@ -88,6 +92,10 @@ def main() -> None:
     voltage_scale_ratio = vdc / vt_bess
     i_bess_abs_max = float(np.max(np.abs(i_bess)))
     p_bess_abs_max = float(np.max(np.abs(p_bess_dc)))
+    i_bess_max_available_min = float(np.min(i_bess_max_available))
+    i_bess_max_available_max = float(np.max(i_bess_max_available))
+    p_bess_dc_max_available_min = float(np.min(p_bess_dc_max_available))
+    p_bess_dc_max_available_max = float(np.max(p_bess_dc_max_available))
     soc_min_observed = float(np.min(soc_bess))
     soc_max_observed = float(np.max(soc_bess))
     soh_min_observed = float(np.min(soh_bess))
@@ -102,8 +110,14 @@ def main() -> None:
     soc_range_ok = bool(np.all((soc_bess >= model.bess.soc_min) & (soc_bess <= model.bess.soc_max)))
     soh_range_ok = bool(np.all((soh_bess >= model.bess.soh_min) & (soh_bess <= 1.0)))
     vt_positive_ok = bool(np.all(vt_bess > 0.0))
-    current_limit_ok = bool(np.all(np.abs(i_bess) <= model.i_bess_max + IDENTITY_ATOL))
-    power_limit_ok = bool(np.all(np.abs(p_bess_dc) <= model.p_bess_max_w + IDENTITY_ATOL))
+    current_limit_ok = bool(np.all(np.abs(i_bess) <= i_bess_max_available + IDENTITY_ATOL))
+    power_limit_ok = bool(np.all(np.abs(p_bess_dc) <= p_bess_dc_max_available + IDENTITY_ATOL))
+    current_available_nominal_ok = bool(
+        np.all(i_bess_max_available <= model.i_bess_max + IDENTITY_ATOL)
+    )
+    power_available_nominal_ok = bool(
+        np.all(p_bess_dc_max_available <= model.p_bess_max_w + IDENTITY_ATOL)
+    )
     power_limit_signal_ok = bool(
         np.allclose(
             p_bess_dc_max,
@@ -131,6 +145,8 @@ def main() -> None:
         and vt_positive_ok
         and current_limit_ok
         and power_limit_ok
+        and current_available_nominal_ok
+        and power_available_nominal_ok
         and power_limit_signal_ok
         and identity_ok
     )
@@ -172,10 +188,15 @@ def main() -> None:
     print(f"i_bess_min={float(np.min(i_bess)):.6f} A")
     print(f"i_bess_max={float(np.max(i_bess)):.6f} A")
     print(f"i_bess_abs_max={i_bess_abs_max:.6f} A")
+    print(f"i_bess_max_nominal={float(model.i_bess_max):.6f} A")
+    print(f"i_bess_max_available_min={i_bess_max_available_min:.6f} A")
+    print(f"i_bess_max_available_max={i_bess_max_available_max:.6f} A")
     print(f"p_bess_dc_min={float(np.min(p_bess_dc)):.6f} W")
     print(f"p_bess_dc_max={float(np.max(p_bess_dc)):.6f} W")
     print(f"p_bess_abs_max={p_bess_abs_max:.6f} W")
     print(f"p_bess_dc_limit={float(model.p_bess_max_w):.6f} W")
+    print(f"p_bess_dc_max_available_min={p_bess_dc_max_available_min:.6f} W")
+    print(f"p_bess_dc_max_available_max={p_bess_dc_max_available_max:.6f} W")
     print(f"vt_bess_min={vt_bess_min:.6f} V")
     print(f"p_load_final={float(p_load[-1]):.6f} W")
     print(f"p_pcc_final={float(p_pcc[-1]):.6f} W")
@@ -186,7 +207,10 @@ def main() -> None:
         f"signals_finite_ok={signals_finite_ok}, vdc_positive_ok={vdc_positive_ok}, "
         f"soc_range_ok={soc_range_ok}, soh_range_ok={soh_range_ok}, "
         f"vt_positive_ok={vt_positive_ok}, current_limit_ok={current_limit_ok}, "
-        f"power_limit_ok={power_limit_ok}, power_limit_signal_ok={power_limit_signal_ok}, "
+        f"power_limit_ok={power_limit_ok}, "
+        f"current_available_nominal_ok={current_available_nominal_ok}, "
+        f"power_available_nominal_ok={power_available_nominal_ok}, "
+        f"power_limit_signal_ok={power_limit_signal_ok}, "
         f"identity_ok={identity_ok}"
     )
     print(f"observation={observation}")

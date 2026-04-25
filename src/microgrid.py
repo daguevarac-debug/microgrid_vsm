@@ -413,12 +413,27 @@ class MicrogridWithBESS(Microgrid):
             z_deg=0.0,
         )
 
-    def _compute_i_bess(self, Vdc: float, soc_bess: float) -> float:
-        """Simple proportional DC-link support with SoC and current saturations."""
+    def _available_i_bess_max(self, soh_bess: float | None = None) -> float:
+        """Return SoH-dependent available BESS current limit."""
+        soh_eval = self.bess.soh_init_case if soh_bess is None else _finite_float("soh_bess", soh_bess)
+        if soh_eval < 0.0 or soh_eval > 1.0:
+            raise ValueError(f"soh_bess must be within [0, 1], got {soh_eval}.")
+        i_available = self.i_bess_max * soh_eval
+        return min(self.i_bess_max, max(0.0, i_available))
+
+    def _available_p_bess_max_w(self, soh_bess: float | None = None) -> float:
+        """Return SoH-dependent available BESS DC power limit."""
+        i_available = self._available_i_bess_max(soh_bess)
+        p_available = self.vdc_ref * i_available
+        return min(self.p_bess_max_w, p_available)
+
+    def _compute_i_bess(self, Vdc: float, soc_bess: float, soh_bess: float | None = None) -> float:
+        """Simple proportional DC-link support with SoC, SoH, current and power limits."""
         Vdc = _finite_float("Vdc", Vdc)
         soc_bess = _finite_float("soc_bess", soc_bess)
         i_bess_cmd = self.kp_bess * (self.vdc_ref - Vdc)
-        i_bess_sat = float(np.clip(i_bess_cmd, -self.i_bess_max, self.i_bess_max))
+        i_limit_available = self._available_i_bess_max(soh_bess)
+        i_bess_sat = float(np.clip(i_bess_cmd, -i_limit_available, i_limit_available))
 
         # Sign convention (battery model): i_bess > 0 discharge, i_bess < 0 charge.
         if soc_bess <= self.bess.soc_min and i_bess_sat > 0.0:
@@ -426,7 +441,8 @@ class MicrogridWithBESS(Microgrid):
         if soc_bess >= self.bess.soc_max and i_bess_sat < 0.0:
             i_bess_sat = 0.0
         if Vdc > 0.0:
-            i_power_limit = self.p_bess_max_w / Vdc
+            p_limit_available = self._available_p_bess_max_w(soh_bess)
+            i_power_limit = p_limit_available / Vdc
             i_bess_sat = float(np.clip(i_bess_sat, -i_power_limit, i_power_limit))
         return i_bess_sat
 
@@ -443,7 +459,8 @@ class MicrogridWithBESS(Microgrid):
         zdeg_bess = x[14]
 
         Ipv, v_pcc, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
-        i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess)
+        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess, soh_bess=soh_bess)
         di1dt, dvcdt, di2dt = self.plant.lcl_derivatives(control.v_inv, v_pcc, i1, vc, i2)
         dVdc = self.plant.dc_link_derivative(Ipv, control.idc_inv, i_bess=i_bess)
         d_bess = self.bess.rhs(
@@ -453,7 +470,6 @@ class MicrogridWithBESS(Microgrid):
             soh=self.bess.soh_init_case,
         )
 
-        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         vt_bess = self.bess.terminal_voltage(
             soc=soc_bess,
             v_rc=vrc_bess,
@@ -500,9 +516,9 @@ class MicrogridWithBESS(Microgrid):
         zdeg_bess = x[14]
 
         _, _, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
-        i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess)
-        p_bess_dc = float(Vdc) * float(i_bess)
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess, soh_bess=soh_bess)
+        p_bess_dc = float(Vdc) * float(i_bess)
         vt_bess = self.bess.terminal_voltage(
             soc=soc_bess,
             v_rc=vrc_bess,
@@ -524,6 +540,8 @@ class MicrogridWithBESS(Microgrid):
             "i_bess": float(i_bess),
             "p_bess_dc": p_bess_dc,
             "p_bess_dc_max": float(self.p_bess_max_w),
+            "i_bess_max_available": float(self._available_i_bess_max(soh_bess)),
+            "p_bess_dc_max_available": float(self._available_p_bess_max_w(soh_bess)),
             "soc_bess": float(soc_bess),
             "vt_bess": float(vt_bess),
             "soh_bess": float(soh_bess),

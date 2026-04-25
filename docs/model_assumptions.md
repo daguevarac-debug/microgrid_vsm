@@ -395,6 +395,29 @@ En la implementacion actual, `effective_capacity_from_z_deg(z_deg)` calcula
 `R0(SoH)`. Esta subtarea no modifica el modelo 1RC; solo agrega trazabilidad
 documental de relaciones ya implementadas.
 
+### Dependencia del SoH en corriente y potencia disponibles
+
+Los limites nominales se conservan como referencias baseline:
+
+- `i_bess_max_nominal = 66 A`.
+- `p_bess_dc_max_nominal = 22440 W`.
+
+La disponibilidad operacional de soporte se reduce con el SoH:
+
+- `i_bess_max_available = i_bess_max_nominal * SoH`.
+- `p_bess_dc_max_available = min(p_bess_dc_max_nominal, Vdc_ref * i_bess_max_available)`.
+
+Para el caso integrado inicial, `SoH ~= 0.668`, por lo que:
+
+- `i_bess_max_available ~= 44.1 A`.
+- `p_bess_dc_max_available ~= 14.99 kW`.
+
+El limite nominal de `66 A` se mantiene como referencia `1C` basada en la
+capacidad nominal, pero la corriente y potencia disponibles para soporte se
+reducen con el SoH del BESS. Esta es una aproximacion operacional baseline para
+la integracion preliminar BESS-DC-link; no representa una logica BMS final ni
+un rating definitivo del convertidor DC/DC.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
