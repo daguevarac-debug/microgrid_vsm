@@ -14,16 +14,20 @@ Current implemented scope:
 - **First-order degradation model** (z_deg throughput, SoH linear fade, R0 aging)
 - **Excel characterization loader** for OCV/R1/C1 from experimental/literature data
 - **Phase-1 static battery model** (capacity, SoH, internal resistance)
+- **Preliminary BESS-DC-link integration** through `MicrogridWithBESS`
+- **BESS operational constraints** for SoC, current, and DC power
+- **SoH-dependent available current and support power**
+- **SoH scenario comparison** for integrated BESS support
 - **Isolated minimal grid-forming frequency dynamics** (`GridFormingFrequencyDynamics`)
 - **Reduced swing/VSG-like frequency equation** for the isolated GFM block
 - **Isolated GFM validations** for islanded operation, voltage reference, frequency behavior, and load-step response
 - **Plant-control interface documentation** for the transition to Objective 2
 
 Not yet implemented:
-- Full BESS + PV + inverter integration beyond first-step coupling
+- Final BESS integration with detailed DC/DC converter and final BMS logic
 - full grid-forming controller integrated into `Microgrid`
 - final virtual inertia strategy (VSG/FOVIC) for the thesis contribution
-- BESS/BMS-constrained virtual inertia control
+- BESS/BMS-constrained virtual inertia control with final GFM/VSG integration
 
 Current partial integration status:
 - First-step/conservative BESS coupling to the DC-link exists through `MicrogridWithBESS`.
@@ -48,6 +52,9 @@ This codebase is part of a research thesis. Changes must preserve scientific tra
 14. Do not present isolated GFM validation as full microgrid validation.
 15. Do not treat isolated frequency metrics as final thesis performance metrics until the GFM is coupled to the complete plant.
 16. Do not change LCL filter parameters or equations without updating `docs/model_assumptions.md` and running `src/validation/validate_lcl_no_unphysical_oscillations.py`.
+17. Do not remove SoH-dependent support limits unless explicitly requested.
+18. Do not interpret frequency metrics as final support metrics until GFM/VSG is integrated.
+19. Do not treat `REVIEW` due to `Vdc/vt_bess` scale as numerical failure.
 
 ## BESS-SLB mandatory conventions
 
@@ -72,6 +79,17 @@ These equations are validated and must not be modified:
 ### Sign convention
 - `i_bess > 0` → discharge
 - `i_bess < 0` → charge
+
+- `p_bess_dc = Vdc * i_bess`
+- `p_bess_dc > 0` means BESS delivers power to the DC bus.
+- `p_bess_dc < 0` means BESS absorbs power from the DC bus.
+
+### Operational support limits
+- `i_bess_max_nominal = 66 A` as 1C nominal reference.
+- `p_bess_dc_max_nominal = 22440 W`.
+- `i_bess_max_available = i_bess_max_nominal * SoH`.
+- `p_bess_dc_max_available = min(p_bess_dc_max_nominal, Vdc_ref*i_bess_max_available)`.
+- `REVIEW` due to `Vdc/vt_bess` scale is an interpretative scale warning, not numerical failure.
 
 ## Preferred workflow
 Before making edits:
@@ -179,6 +197,11 @@ From the repository root:
 python src/validation/validate_bess_step2.py          # 1RC dynamic
 python src/validation/validate_bess_step3.py          # degradation
 python src/validation/validate_excel_load.py           # Excel loading
+python src/validation/validate_bess_power_exchange.py
+python src/validation/validate_bess_units_scales.py
+python src/validation/validate_bess_integrated_nominal.py
+python src/validation/validate_bess_soc_operational_limits.py
+python src/validation/compare_bess_soh_scenarios.py
 python src/validation/validate_lcl_no_unphysical_oscillations.py  # practical LCL check
 python src/validation/test_grid_forming_frequency_dynamics.py
 python src/validation/validate_grid_forming_islanded_operation.py
@@ -186,6 +209,8 @@ python src/validation/validate_grid_forming_voltage_regulation.py
 python src/validation/validate_grid_forming_frequency_behavior.py
 python src/validation/validate_grid_forming_step_response.py
 python src/main.py                                     # local PV microgrid
+python src/main.py --with-bess                         # local PV microgrid with preliminary BESS coupling
+python src/main.py --compare-bess                      # no-BESS vs preliminary BESS comparison
 python src/ieee33_main.py                              # IEEE 33 coupling
 ```
 

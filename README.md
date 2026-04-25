@@ -24,6 +24,20 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
   - OCV(SoC), R1(SoC), C1(SoC) desde archivo `OCV_SOC.xlsx`.
 - **Modelo estático Phase-1** (`bess/phase1.py`):
   - Capacidad nominal, SoH inicial, resistencia interna caracterizada.
+- **Integracion preliminar BESS-DC-link** mediante `MicrogridWithBESS`:
+  - acople idealizado al bus DC con `dVdc/dt = (ipv + i_bess - idc_inv)/Cdc`;
+  - trazabilidad de potencia `p_bess_dc = Vdc * i_bess`.
+- **Restricciones operativas baseline**:
+  - `soc_min = 0.10`, `soc_max = 0.90`;
+  - `i_bess_max_nominal = 66 A`;
+  - `p_bess_dc_max_nominal = 22440 W`;
+  - saturaciones coherentes de SoC, corriente y potencia.
+- **Disponibilidad dependiente de SoH**:
+  - `i_bess_max_available = i_bess_max_nominal * SoH`;
+  - `p_bess_dc_max_available = min(p_bess_dc_max_nominal, Vdc_ref*i_bess_max_available)`;
+  - para `SoH ~= 0.668182`: `i_bess_max_available = 44.1 A` y `p_bess_dc_max_available = 14994 W`.
+- **Comparacion de escenarios de SoH** (`src/validation/compare_bess_soh_scenarios.py`):
+  - SoH `1.00`, `0.70` y nominal `~= 0.668182` bajo el mismo escalon de carga.
 - **Validaciones cuantitativas** (`src/validation/`):
   - Step-2: comportamiento dinámico 1RC sin degradación.
   - Step-3: consistencia de degradación z_deg/SoH/Q_eff/R0.
@@ -46,10 +60,10 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 - Este avance es base trazable para el Objetivo 2; no reemplaza todavía el baseline grid-following del modelo principal.
 
 ## Funcionalidades no implementadas aún
-- Integración completa del BESS-SLB en la simulación dinámica de la microrred (acople BESS + PV + inversor) aún en desarrollo.
+- La integracion preliminar BESS-DC-link ya existe; falta integracion final con convertidor DC/DC detallado y BMS final.
 - Control grid-forming completo integrado al modelo `Microgrid`.
 - Estrategia final de inercia virtual VSG/FOVIC.
-- Gestión BESS/BMS para control de inercia virtual con restricciones de SoC, SoH, corriente y potencia.
+- Gestion BESS/BMS final para control de inercia virtual con restricciones completas.
 - Acople del GFM aislado con PV + BESS + DC-link + LCL + PCC en el modelo principal.
 
 ## Estado de validación BESS-SLB
@@ -60,6 +74,15 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 | Braco Fig.5(b) SL 1.5C 25°C | MAPE=9.3351% (`outputs/validation/braco_fig5b_sl_1p5c/metrics_summary.csv`) | PASS |
 | Step-2 1RC dinámico | Validado (ver `src/validation/validate_bess_step2.py`) | PASS |
 | Step-3 degradación | Métricas en `outputs/validation/bess_step3/summary_metrics.csv` | PASS |
+
+## Estado de validacion BESS (integracion)
+| Validacion | Resultado | Estado |
+| --- | --- | --- |
+| `validate_bess_power_exchange.py` | `p_bess_dc = Vdc*i_bess` y signos coherentes | PASS |
+| `validate_bess_units_scales.py` | Unidades basicas correctas; advertencia de escala `Vdc/vt_bess` | REVIEW |
+| `validate_bess_integrated_nominal.py` | Caso nominal integrado estable; REVIEW interpretativo por escala | REVIEW |
+| `validate_bess_soc_operational_limits.py` | SoC, corriente, potencia y disponibilidad por SoH | PASS |
+| `compare_bess_soh_scenarios.py` | SoH 1.00, 0.70 y nominal; REVIEW interpretativo por escala | REVIEW |
 
 ## Validaciones básicas de DC-link
 - Existe integración preliminar/conservadora del BESS al bus DC mediante `MicrogridWithBESS`.
@@ -148,6 +171,8 @@ microgrid_vsm/
 ```bash
 # Simulación dinámica local de la microrred PV
 python src/main.py
+python src/main.py --with-bess      # simulacion local con BESS preliminar
+python src/main.py --compare-bess   # comparacion sin BESS vs con BESS
 
 # Estudio de acople secuencial con IEEE 33
 python src/ieee33_main.py
@@ -156,6 +181,11 @@ python src/ieee33_main.py
 python src/validation/validate_bess_step2.py      # 1RC dinámico
 python src/validation/validate_bess_step3.py      # degradación
 python src/validation/validate_excel_load.py       # carga Excel
+python src/validation/validate_bess_power_exchange.py          # potencia BESS-DC-link
+python src/validation/validate_bess_units_scales.py            # unidades y escalas BESS-DC
+python src/validation/validate_bess_integrated_nominal.py      # caso nominal integrado
+python src/validation/validate_bess_soc_operational_limits.py  # limites SoC/corriente/potencia
+python src/validation/compare_bess_soh_scenarios.py            # escenarios de SoH
 python src/validation/validate_pv_stc_fit.py       # validación STC del modelo FV contra datasheet
 python -m unittest discover -s src/validation -p "test_dclink_dynamics.py" -v  # pruebas básicas DC-link
 python src/validation/validate_lcl_no_unphysical_oscillations.py  # validación práctica de estados LCL
@@ -208,5 +238,7 @@ Los supuestos simplificados vigentes del baseline se documentan en:
 - El GFM actual es **mínimo, aislado y validado funcionalmente**; sirve como base para el Objetivo 2.
 - El GFM actual **no** debe presentarse como controlador final ni como estrategia de inercia virtual ya implementada.
 - El GFM actual **no** reemplaza todavía el baseline grid-following del modelo principal.
-- El BESS-SLB está **modelado y validado** y cuenta con **acople preliminar al bus DC** (`MicrogridWithBESS`), pero no con integración completa ni control grid-forming final.
+- El BESS-SLB esta **modelado y validado** y cuenta con **acople preliminar al bus DC** (`MicrogridWithBESS`), restricciones operativas y disponibilidad dependiente de SoH; todavia no incluye DC/DC detallado, BMS final ni control grid-forming final.
+- La frecuencia no debe interpretarse como metrica final de soporte mientras el modelo principal siga en baseline/grid-following.
+- El `REVIEW` por escala `Vdc/vt_bess` es una advertencia interpretativa por falta de escalamiento explicito del banco o DC/DC detallado; no es falla numerica por si mismo.
 - No se debe presentar código scaffold o planificado como contribución final implementada.
