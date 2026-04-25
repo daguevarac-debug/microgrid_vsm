@@ -371,6 +371,30 @@ Esta prueba verifica el caso nominal integrado del baseline actual. No reemplaza
 una validacion exhaustiva con perfiles reales de operacion, ensayos de estres,
 estrategias BMS finales ni un modelo detallado del convertidor DC/DC.
 
+### Dependencia del SoH en capacidad efectiva y resistencia interna
+
+El modelo BESS-SLB 1RC ya incorpora dependencia interna del SoH en capacidad
+efectiva y resistencia serie:
+
+- `SoH = max(soh_min, SoH_init - k_deg * z_deg)`.
+- `Q_eff = Q_nom_ref * SoH`.
+- `R0(SoH) = R0_nominal * (1 + k_R * (1 - SoH))`.
+
+La capacidad efectiva `Q_eff` afecta directamente la dinamica de SoC mediante:
+
+- `dSoC/dt = -i_bess / (3600 * Q_eff)`.
+
+La resistencia interna `R0(SoH)` afecta directamente la tension terminal del
+modelo Thevenin:
+
+- `Vt_bess = OCV(SoC) - i_bess * R0(SoH) - V_rc`.
+
+En la implementacion actual, `effective_capacity_from_z_deg(z_deg)` calcula
+`Q_eff` usando `SoH(z_deg)`, `r0_from_z_deg(z_deg)` calcula `R0` usando
+`SoH(z_deg)`, `rhs()` usa `Q_eff` para `dSoC/dt` y `terminal_voltage()` usa
+`R0(SoH)`. Esta subtarea no modifica el modelo 1RC; solo agrega trazabilidad
+documental de relaciones ya implementadas.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
