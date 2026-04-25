@@ -418,6 +418,32 @@ reducen con el SoH del BESS. Esta es una aproximacion operacional baseline para
 la integracion preliminar BESS-DC-link; no representa una logica BMS final ni
 un rating definitivo del convertidor DC/DC.
 
+### Escenarios de SoH para comparacion integrada
+
+`src/validation/compare_bess_soh_scenarios.py` compara la integracion preliminar
+BESS-DC-link bajo el mismo escalon de carga para tres escenarios:
+
+- `SoH = 1.00`.
+- `SoH = 0.70`.
+- `SoH` nominal actual `~= 0.668`.
+
+Para todos los casos se conserva el mismo perfil de carga y se comparan:
+
+- `Vdc`.
+- `i_bess`.
+- `p_bess_dc`.
+- `soc_bess`.
+- `vt_bess`.
+
+La prueba mide el impacto de la disponibilidad de soporte del BESS dependiente
+del SoH sobre la respuesta integrada baseline. No es una validacion final del
+control ni de una estrategia BMS.
+
+El impacto sobre frecuencia no se interpreta todavia como resultado final,
+porque el modelo actual sigue siendo baseline/grid-following y no esta acoplado
+a grid-forming/VSG. Cualquier diagnostico de frecuencia queda fuera de las
+metricas formales hasta activar esa etapa.
+
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
