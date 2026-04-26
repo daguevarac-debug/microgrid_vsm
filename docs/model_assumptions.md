@@ -272,6 +272,25 @@ El objetivo es verificar la respuesta ante una perturbacion severa de demanda.
 Este escenario no representa todavia un perfil medido ni un evento estocastico;
 queda como caso de estres para comparaciones posteriores con soporte BESS.
 
+### Escenario comparativo con y sin BESS
+
+El escenario comparativo usa el escalon moderado del `20 %` para evaluar la
+misma perturbacion con y sin almacenamiento:
+
+- Carga inicial `P_load = 3000 W`.
+- Carga final `P_load = 3600 W`, equivalente a `1.20*P_load_nominal`.
+- Factor de potencia constante `fp = 0.95` inductivo.
+- Caso sin BESS: `Microgrid`.
+- Caso con BESS: `MicrogridWithBESS`, usando la integracion preliminar al bus
+  DC ya existente.
+- Se revisan `Vdc`, potencias, corrientes, `i_bess`, `p_bess_dc`, SoC y SoH.
+
+Este escenario no exige todavia una mejora dinamica obligatoria del BESS frente
+al caso sin almacenamiento; la comparacion se reporta como diagnostico. Tampoco
+representa la estrategia final grid-forming/VSG, un BMS final ni un convertidor
+DC/DC detallado. Su objetivo es cerrar los escenarios con almacenamiento y sin
+almacenamiento bajo una misma perturbacion de carga.
+
 ### Justificacion de representatividad
 
 La carga R-L equivalente se adopta como aproximacion baseline para cerrar
