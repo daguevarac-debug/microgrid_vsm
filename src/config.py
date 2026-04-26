@@ -147,8 +147,14 @@ MICROGRID_UVLO_V_DEFAULT = 200.0
 MICROGRID_IRRADIANCE_W_PER_M2_DEFAULT = 800.0
 MICROGRID_TEMPERATURE_C_DEFAULT = 25.0
 MICROGRID_LOAD_STEP_TIME_S_DEFAULT = 0.8
+# Historical resistive-load values kept for traceability:
+# 14.4 ohm -> about 2.52 kW and 9.6 ohm -> about 3.78 kW
+# at GRID_V_LN_RMS_DEFAULT=110 V in a balanced three-phase load.
 MICROGRID_LOAD_R1_OHM_DEFAULT = 14.4
 MICROGRID_LOAD_R2_OHM_DEFAULT = 9.6
+MICROGRID_LOAD_P_NOM_W_DEFAULT = 3000.0
+MICROGRID_LOAD_POWER_FACTOR_DEFAULT = 0.95
+MICROGRID_LOAD_STEP_FRACTION_DEFAULT = 0.20
 # Potencia de referencia VSG por defecto (calculada externamente en Microgrid.__init__)
 # Se deja como documentacion del valor esperado @ STC
 MICROGRID_P_REF_NOMINAL_W_DEFAULT = (

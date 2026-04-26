@@ -5,6 +5,7 @@ Contains:
 - Microgrid: composed plant + controller for baseline averaged model
 """
 
+from dataclasses import dataclass
 from numbers import Real
 from pathlib import Path
 
@@ -23,12 +24,16 @@ from config import (
     BESS_COUPLED_SOC_MIN_DEFAULT,
     DCLINK_CAP_F_DEFAULT,
     DCLINK_VMIN_DEFAULT,
+    GRID_FREQ_HZ_DEFAULT,
     GRID_V_LN_RMS_DEFAULT,
     INVERTER_MODULATION_INDEX_MAX_DEFAULT,
     MICROGRID_ETA_DEFAULT,
     MICROGRID_IRRADIANCE_W_PER_M2_DEFAULT,
+    MICROGRID_LOAD_P_NOM_W_DEFAULT,
+    MICROGRID_LOAD_POWER_FACTOR_DEFAULT,
     MICROGRID_LOAD_R1_OHM_DEFAULT,
     MICROGRID_LOAD_R2_OHM_DEFAULT,
+    MICROGRID_LOAD_STEP_FRACTION_DEFAULT,
     MICROGRID_LOAD_STEP_TIME_S_DEFAULT,
     MICROGRID_PV_ALPHA_ISC_A_PER_C_DEFAULT,
     MICROGRID_PV_ARRAY_PARALLEL_DEFAULT,
@@ -81,6 +86,13 @@ def _eta_float(name: str, value) -> float:
     return out
 
 
+def _fraction_float(name: str, value) -> float:
+    out = _finite_float(name, value)
+    if out < 0.0 or out >= 1.0:
+        raise ValueError(f"{name} must be in [0, 1), got {value!r}.")
+    return out
+
+
 def _validate_profile_callable(name: str, profile) -> None:
     if not callable(profile):
         raise ValueError(f"{name} must be callable(t) -> finite numeric value, got {type(profile).__name__}.")
@@ -93,6 +105,50 @@ def _evaluate_profile(name: str, profile, t: float) -> float:
     except Exception as exc:  # pragma: no cover - exception passthrough
         raise ValueError(f"{name} failed at t={t!r}: {exc}") from exc
     return _finite_float(f"{name}(t={t!r})", value)
+
+
+@dataclass(frozen=True)
+class BalancedRLLoad:
+    """Balanced three-phase constant-impedance R-L load parameters."""
+
+    p_3ph_w: float
+    power_factor: float
+    v_ln_rms: float
+    f_hz: float
+    r_ohm: float
+    l_h: float
+    q_3ph_var: float
+
+    @classmethod
+    def from_active_power(
+        cls,
+        p_3ph_w: float,
+        power_factor: float,
+        v_ln_rms: float = GRID_V_LN_RMS_DEFAULT,
+        f_hz: float = GRID_FREQ_HZ_DEFAULT,
+    ) -> "BalancedRLLoad":
+        """Return a balanced inductive R-L load matching P and power factor."""
+        p_3ph_w = _positive_float("BalancedRLLoad.p_3ph_w", p_3ph_w)
+        power_factor = _eta_float("BalancedRLLoad.power_factor", power_factor)
+        v_ln_rms = _positive_float("BalancedRLLoad.v_ln_rms", v_ln_rms)
+        f_hz = _positive_float("BalancedRLLoad.f_hz", f_hz)
+
+        phi = float(np.arccos(power_factor))
+        z_abs = 3.0 * v_ln_rms**2 * power_factor / p_3ph_w
+        r_ohm = z_abs * power_factor
+        x_l_ohm = z_abs * np.sin(phi)
+        l_h = x_l_ohm / (2.0 * np.pi * f_hz)
+        q_3ph_var = p_3ph_w * np.tan(phi)
+
+        return cls(
+            p_3ph_w=p_3ph_w,
+            power_factor=power_factor,
+            v_ln_rms=v_ln_rms,
+            f_hz=f_hz,
+            r_ohm=float(r_ohm),
+            l_h=float(l_h),
+            q_3ph_var=float(q_3ph_var),
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -129,8 +185,35 @@ class HardwarePlant:
         return self.pv.ipv_from_vpv(vdc_eff, G=irradiance, T_c=cell_temp_c)
 
     def pcc_voltage(self, i2: np.ndarray, r_load: float) -> np.ndarray:
-        """Baseline local AC closure with equivalent resistive load."""
+        """Legacy resistive PCC closure kept for compatibility."""
         return i2 * r_load
+
+    def lcl_derivatives_with_rl_load(
+        self,
+        v_inv: np.ndarray,
+        i1: np.ndarray,
+        vc: np.ndarray,
+        i2: np.ndarray,
+        load: BalancedRLLoad,
+    ):
+        """Return LCL derivatives and PCC voltage for a balanced R-L load.
+
+        The R-L load is not added as a new state. For each phase,
+        v_pcc = R_load*i2 + L_load*di2/dt is substituted into the LCL
+        grid-side inductor equation, giving an explicit derivative with
+        effective inductance L2 + L_load.
+        """
+        v_inv = np.asarray(v_inv, dtype=float)
+        i1 = np.asarray(i1, dtype=float)
+        vc = np.asarray(vc, dtype=float)
+        i2 = np.asarray(i2, dtype=float)
+
+        di1dt = (v_inv - vc - self.lcl.R1 * i1) / self.lcl.L1
+        dvcdt = (i1 - i2 - vc / self.lcl.Rd) / self.lcl.Cf
+        di2dt = (vc - (self.lcl.R2 + load.r_ohm) * i2) / (self.lcl.L2 + load.l_h)
+        v_pcc = load.r_ohm * i2 + load.l_h * di2dt
+
+        return di1dt, dvcdt, di2dt, v_pcc
 
     def dc_link_derivative(self, ipv: float, idc_inv: float, i_bess: float = 0.0) -> float:
         """Return DC-link voltage derivative from current balance.
@@ -197,10 +280,21 @@ class Microgrid:
         self.t_step = _positive_float("Microgrid.t_step", MICROGRID_LOAD_STEP_TIME_S_DEFAULT)
         self.r_load_1 = _positive_float("Microgrid.r_load_1", MICROGRID_LOAD_R1_OHM_DEFAULT)
         self.r_load_2 = _positive_float("Microgrid.r_load_2", MICROGRID_LOAD_R2_OHM_DEFAULT)
+        self.p_load_nominal_w = _positive_float(
+            "Microgrid.p_load_nominal_w", MICROGRID_LOAD_P_NOM_W_DEFAULT
+        )
+        self.load_power_factor = _eta_float(
+            "Microgrid.load_power_factor", MICROGRID_LOAD_POWER_FACTOR_DEFAULT
+        )
+        self.load_step_fraction = _fraction_float(
+            "Microgrid.load_step_fraction", MICROGRID_LOAD_STEP_FRACTION_DEFAULT
+        )
+        self.p_load_1_w = self.p_load_nominal_w * (1.0 - self.load_step_fraction)
+        self.p_load_2_w = self.p_load_nominal_w * (1.0 + self.load_step_fraction)
 
         self.irradiance_profile = irradiance_profile or (lambda t: MICROGRID_IRRADIANCE_W_PER_M2_DEFAULT)
         self.temperature_profile = temperature_profile or (lambda t: MICROGRID_TEMPERATURE_C_DEFAULT)
-        self.load_profile = load_profile or (lambda t: self.r_load_1 if t < self.t_step else self.r_load_2)
+        self.load_profile = load_profile or (lambda t: self.p_load_1_w if t < self.t_step else self.p_load_2_w)
         _validate_profile_callable("Microgrid.irradiance_profile", self.irradiance_profile)
         _validate_profile_callable("Microgrid.temperature_profile", self.temperature_profile)
         _validate_profile_callable("Microgrid.load_profile", self.load_profile)
@@ -216,7 +310,7 @@ class Microgrid:
 
         g0 = _evaluate_profile("Microgrid.irradiance_profile", self.irradiance_profile, 0.0)
         t0 = _evaluate_profile("Microgrid.temperature_profile", self.temperature_profile, 0.0)
-        _ = _evaluate_profile("Microgrid.load_profile", self.load_profile, 0.0)
+        _ = self._load_at_time(0.0)
         ipv_ref = self.pv.ipv_from_vpv(max(self.vdc_ref, 0.0), G=g0, T_c=t0)
         self.p_available_ref = max(self.vdc_ref * ipv_ref * self.eta, 0.0)
         controller_p_ref = min(self.P_ref_nominal, self.p_available_ref)
@@ -242,19 +336,32 @@ class Microgrid:
         self._last_p_cmd = 0.0
         self._last_m_ctrl = 0.0
 
+    def _load_at_time(self, t: float) -> BalancedRLLoad:
+        """Evaluate active-power load profile and convert it to R-L parameters."""
+        # TODO [PERFIL_DEMANDA]: En baseline, load_profile representa potencia
+        # activa agregada equivalente; reemplazar luego con perfil P/Q medido.
+        p_load_t = _positive_float(
+            f"Microgrid.load_profile(t={t!r})", _evaluate_profile("Microgrid.load_profile", self.load_profile, t)
+        )
+        return BalancedRLLoad.from_active_power(
+            p_3ph_w=p_load_t,
+            power_factor=self.load_power_factor,
+            v_ln_rms=GRID_V_LN_RMS_DEFAULT,
+            f_hz=GRID_FREQ_HZ_DEFAULT,
+        )
+
     def _compute_step_control(self, t: float, Vdc: float, i1: np.ndarray, i2: np.ndarray, xi_vdc: float, theta: float):
         """Evaluate profiles and return instantaneous control variables for one time step."""
         # TODO [PERFIL_IRRADIANCIA]: Reemplazar con interpolador de DataFrame (tiempo vs G en W/m^2).
         G_t = _evaluate_profile("Microgrid.irradiance_profile", self.irradiance_profile, t)
         # TODO [PERFIL_TEMPERATURA]: Reemplazar con interpolador de DataFrame (tiempo vs T_c en C).
         T_c_t = _evaluate_profile("Microgrid.temperature_profile", self.temperature_profile, t)
-        # TODO [PERFIL_DEMANDA]: En baseline, load_profile representa carga local equivalente (no IEEE acoplado).
-        r_load_t = _positive_float(
-            f"Microgrid.load_profile(t={t!r})", _evaluate_profile("Microgrid.load_profile", self.load_profile, t)
-        )
+        load_t = self._load_at_time(t)
         Vdc_eff = max(Vdc, 0.0)
         Ipv = self.plant.pv_current(Vdc_eff, G_t, T_c_t)
-        v_pcc = self.plant.pcc_voltage(i2, r_load_t)
+        # The baseline controller does not use v_pcc to set v_inv/idc_inv.
+        # The true R-L PCC voltage is updated after di2/dt is known.
+        v_pcc = self.plant.pcc_voltage(i2, load_t.r_ohm)
         control = self.controller.compute_control(
             t=t,
             theta=theta,
@@ -266,7 +373,7 @@ class Microgrid:
             plant=self.plant,
             ipv=Ipv,
         )
-        return Ipv, v_pcc, control
+        return Ipv, load_t, control
 
     def system_dynamics(self, t: float, x):
         """Return ODE derivatives for baseline state vector."""
@@ -276,12 +383,15 @@ class Microgrid:
         i2 = np.array([x[7], x[8], x[9]])
         xi_vdc = x[10]
         theta = x[11]
-        Ipv, v_pcc, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
-        di1dt, dvcdt, di2dt = self.plant.lcl_derivatives(control.v_inv, v_pcc, i1, vc, i2)
+        Ipv, load_t, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        di1dt, dvcdt, di2dt, v_pcc = self.plant.lcl_derivatives_with_rl_load(
+            control.v_inv, i1, vc, i2, load_t
+        )
 
         # TODO [MODELO_BESS]: en baseline sin BESS activo se usa i_bess=0.0;
         # al integrar almacenamiento, usar dVdc=(Ipv+i_bess-Idc_inv)/Cdc.
         dVdc = self.plant.dc_link_derivative(Ipv, control.idc_inv)
+        control.p_pcc = float(np.dot(v_pcc, i2))
         self._last_p_bridge = control.p_bridge
         self._last_p_pcc = control.p_pcc
         self._last_p_cmd = control.p_cmd
@@ -306,10 +416,13 @@ class Microgrid:
         """Return p_bridge, p_pcc, idc_inv, p_cmd and m_ctrl for diagnostics."""
         Vdc = x[0]
         i1 = np.array([x[1], x[2], x[3]])
+        vc = np.array([x[4], x[5], x[6]])
         i2 = np.array([x[7], x[8], x[9]])
         xi_vdc = x[10]
         theta = x[11]
-        _, _, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        _, load_t, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        _, _, _, v_pcc = self.plant.lcl_derivatives_with_rl_load(control.v_inv, i1, vc, i2, load_t)
+        control.p_pcc = float(np.dot(v_pcc, i2))
         return control.p_bridge, control.p_pcc, control.idc_inv, control.p_cmd, control.m_ctrl
 
 
@@ -458,10 +571,12 @@ class MicrogridWithBESS(Microgrid):
         vrc_bess = x[13]
         zdeg_bess = x[14]
 
-        Ipv, v_pcc, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        Ipv, load_t, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess, soh_bess=soh_bess)
-        di1dt, dvcdt, di2dt = self.plant.lcl_derivatives(control.v_inv, v_pcc, i1, vc, i2)
+        di1dt, dvcdt, di2dt, v_pcc = self.plant.lcl_derivatives_with_rl_load(
+            control.v_inv, i1, vc, i2, load_t
+        )
         dVdc = self.plant.dc_link_derivative(Ipv, control.idc_inv, i_bess=i_bess)
         d_bess = self.bess.rhs(
             t=t,
@@ -478,6 +593,7 @@ class MicrogridWithBESS(Microgrid):
         )
 
         self._last_p_bridge = control.p_bridge
+        control.p_pcc = float(np.dot(v_pcc, i2))
         self._last_p_pcc = control.p_pcc
         self._last_p_cmd = control.p_cmd
         self._last_m_ctrl = control.m_ctrl
@@ -508,6 +624,7 @@ class MicrogridWithBESS(Microgrid):
         """Return key integrated diagnostics for thesis traceability."""
         Vdc = x[0]
         i1 = np.array([x[1], x[2], x[3]])
+        vc = np.array([x[4], x[5], x[6]])
         i2 = np.array([x[7], x[8], x[9]])
         xi_vdc = x[10]
         theta = x[11]
@@ -515,7 +632,9 @@ class MicrogridWithBESS(Microgrid):
         vrc_bess = x[13]
         zdeg_bess = x[14]
 
-        _, _, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        _, load_t, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        _, _, _, v_pcc = self.plant.lcl_derivatives_with_rl_load(control.v_inv, i1, vc, i2, load_t)
+        control.p_pcc = float(np.dot(v_pcc, i2))
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess, soh_bess=soh_bess)
         p_bess_dc = float(Vdc) * float(i_bess)
@@ -525,11 +644,6 @@ class MicrogridWithBESS(Microgrid):
             i_bess=i_bess,
             soh=soh_bess,
         )
-        r_load_t = _positive_float(
-            f"MicrogridWithBESS.load_profile(t={t!r})",
-            _evaluate_profile("Microgrid.load_profile", self.load_profile, t),
-        )
-        v_pcc = i2 * r_load_t
         p_load = float(np.dot(v_pcc, i2))
 
         return {

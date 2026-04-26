@@ -153,21 +153,57 @@ Decision sobre ajuste de parametros LCL:
 
 ## Modelo de carga de la microrred (baseline)
 
-El modelo actual de carga se conserva como un cierre electrico simple del lado
-AC. En `src/microgrid.py`, `HardwarePlant.pcc_voltage(i2, r_load)` calcula
-`v_pcc = i2 * r_load`, por lo que `Microgrid.load_profile` representa
-actualmente una resistencia equivalente `R_load(t)`. El perfil por defecto usa
-un escalon entre `r_load_1` y `r_load_2`; no representa todavia perfiles
-`P_load(t)` ni `Q_load(t)`.
+El modelo de carga de la microrred evoluciona desde el cierre puramente
+resistivo inicial hacia una carga agregada AC trifasica balanceada de
+impedancia constante R-L, con factor de potencia inductivo. En el baseline
+actual, `Microgrid.load_profile` representa potencia activa trifasica agregada
+`P_load(t)` para construir una impedancia R-L equivalente; no representa todavia
+un perfil horario medido ni una entrada independiente `Q_load(t)`.
+
+La carga nominal inicial se define como:
+
+- `P_load_nominal = 3000 W`.
+- `fp = 0.95` inductivo.
+- `V_ln_rms = 110 V`.
+- `f = 60 Hz`.
+- Escalon baseline: `P_load(t) = P_load_nominal*(1 +/- 0.20)`.
+
+Trazabilidad con el baseline resistivo anterior:
+
+- `R1 = 14.4 ohm` equivale aproximadamente a
+  `P1 = 3*V_ln_rms^2/R1 = 3*110^2/14.4 = 2520.8 W`.
+- `R2 = 9.6 ohm` equivale aproximadamente a
+  `P2 = 3*V_ln_rms^2/R2 = 3*110^2/9.6 = 3781.2 W`.
+- La nueva magnitud nominal de `3000 W` se adopta como valor intermedio
+  prudente y coherente con esas potencias previas.
+
+Para una carga serie R-L balanceada por fase, el modelo usa:
+
+- `phi = arccos(fp)`.
+- `Q_load = P_load*tan(phi)`, positiva para carga inductiva.
+- `|Z| = 3*V_ln_rms^2*fp/P_load`.
+- `R_load = |Z|*fp`.
+- `X_load = |Z|*sin(phi)`.
+- `L_load = X_load/(2*pi*f)`.
+
+La ecuacion de carga por fase es `v_pcc = R_load*i2 + L_load*di2/dt`. Para no
+agregar estados nuevos al vector dinamico, esta relacion se sustituye
+directamente en la ecuacion del inductor de salida del filtro LCL:
+
+- `di2/dt = (vc - (R2_LCL + R_load)*i2)/(L2_LCL + L_load)`.
+- `v_pcc = R_load*i2 + L_load*di2/dt`.
+
+Esta implementacion mantiene el orden del vector de estados y cambia solo el
+cierre local de la carga en el lado AC.
 
 ### Justificacion de representatividad
 
-La carga resistiva equivalente se adopta como aproximacion baseline para cerrar
-electricamente el PCC y evaluar una perturbacion basica de carga sin introducir
-complejidad adicional en esta etapa. Esta representacion es util para
-validaciones iniciales del acoplamiento PV, DC-link, inversor, filtro LCL y PCC,
-pero no sustituye una caracterizacion medida de demanda real ni debe presentarse
-como modelo final de carga de la microrred.
+La carga R-L equivalente se adopta como aproximacion baseline para cerrar
+electricamente el PCC y evaluar una perturbacion basica de carga activa/reactiva
+sin introducir complejidad adicional en esta etapa. Esta representacion es util
+para validaciones iniciales del acoplamiento PV, DC-link, inversor, filtro LCL y
+PCC, pero no sustituye una caracterizacion medida de demanda real ni debe
+presentarse como modelo final de carga de la microrred.
 
 El respaldo conceptual se limita a las ideas explicitas de las referencias
 revisadas:
@@ -194,12 +230,12 @@ revisadas:
   corriente constante y potencia constante. No se adoptan aqui sus parametros ni
   sus resultados.
 
-Como decision de tesis, la carga objetivo para etapas posteriores sera una carga
-agregada AC trifasica balanceada vista desde el PCC. Se representara
+Como decision de tesis, la carga objetivo para etapas posteriores sigue siendo
+una carga agregada AC trifasica balanceada vista desde el PCC. Se representara
 posteriormente mediante perfiles `P_load(t)` y `Q_load(t)`, donde `Q_load(t)`
-podra calcularse a partir de un factor de potencia constante. Esta decision es
-coherente con el uso de cargas agregadas en estudios de microrred y con la
-necesidad de mantener un modelo simple para validaciones iniciales.
+podra calcularse a partir de un factor de potencia constante o definirse desde
+datos disponibles. El baseline R-L actual queda como transicion simple hacia ese
+perfil agregado P-Q.
 
 Limitaciones del baseline actual:
 
@@ -212,10 +248,10 @@ Limitaciones del baseline actual:
 - No incluye variaciones estocasticas ni perfil horario real.
 - No debe presentarse como modelo final de carga real.
 
-Esta subtarea solo justifica la representatividad del baseline de carga. La
-implementacion de `P_load(t)`, `Q_load(t)`, magnitud nominal y perturbaciones
-queda para subtareas posteriores. El modelo resistivo actual se mantiene sin
-cambios por compatibilidad con las validaciones existentes.
+Esta subtarea define la magnitud nominal inicial y reemplaza el cierre
+puramente resistivo por una impedancia R-L balanceada. La implementacion de un
+perfil horario real `P_load(t), Q_load(t)`, con magnitudes medidas o escenarios
+de demanda mas detallados, queda para subtareas posteriores.
 
 ## DC-link (PV + BESS preliminar)
 
