@@ -1,8 +1,9 @@
-"""Validate nominal islanded steady operation without a load step.
+"""Validate islanded operation scenarios.
 
-This scenario uses the baseline Microgrid without BESS and forces a constant
-nominal R-L load. It checks finite states and practical non-growth in the final
-simulation windows; it does not write figures or outputs.
+This module is the consolidation point for the islanded-operation validation
+bucket. For now it includes only the nominal steady-operation scenario. Future
+functions can add the 20% load step, severe load change, no-BESS, and BESS
+support scenarios without creating one script per subtarea.
 """
 
 from __future__ import annotations
@@ -54,7 +55,8 @@ def _growth_ratio(signal: np.ndarray, mask_a: np.ndarray, mask_b: np.ndarray) ->
     return rms_b / max(rms_a, EPS)
 
 
-def main() -> int:
+def validate_steady_operation() -> str:
+    """Validate nominal islanded steady operation without load step or BESS."""
     status = "PASS"
     reasons: list[str] = []
 
@@ -153,15 +155,15 @@ def main() -> int:
             status = "REVIEW"
             reasons.append(f"{name} growth_ratio={value:.6f} > {GROWTH_LIMIT}")
 
-    print("validate_islanded_steady_operation")
+    print("scenario=steady_operation")
     print(f"status={status}")
     print(f"solver_success={solver_success}")
     print(f"states_finite={states_finite}")
-    print(f"bess_active=False")
+    print("bess_active=False")
     print(f"p_load_nominal_w={load.p_3ph_w:.6f}")
     print(f"q_load_nominal_var={load.q_3ph_var:.6f}")
     print(f"power_factor={load.power_factor:.6f}")
-    print(f"constant_load_profile=True")
+    print("constant_load_profile=True")
     print(f"Vdc_final_V={vdc_final:.6f}")
     print(f"p_load_positive={bool(load.p_3ph_w > 0.0)}")
     print(f"p_pcc_final_W={p_pcc_final:.6f}")
@@ -181,6 +183,11 @@ def main() -> int:
         "crecimiento en ventanas finales, no validacion experimental."
     )
 
+    return status
+
+
+def main() -> int:
+    status = validate_steady_operation()
     return 0 if status == "PASS" else 1
 
 
