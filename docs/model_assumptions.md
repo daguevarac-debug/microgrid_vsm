@@ -239,6 +239,22 @@ El objetivo de este escenario es verificar estabilidad numerica/practica del
 caso nominal aislado antes de introducir perturbaciones de carga o soporte BESS.
 No representa todavia una validacion experimental ni un perfil real de demanda.
 
+### Escenario con escalon de carga del 20 %
+
+El segundo escenario de operacion aislada aplica una perturbacion moderada de
+demanda sobre la carga R-L agregada:
+
+- Carga inicial `P_load = 3000 W`.
+- Carga final `P_load = 3600 W`, equivalente a `1.20*P_load_nominal`.
+- Factor de potencia constante `fp = 0.95` inductivo.
+- Sin BESS activo en esta subtarea.
+- Sin perfil horario real, ruido estocastico, desbalance, motores ni modelo ZIP
+  completo.
+
+El objetivo es verificar la respuesta dinamica practica ante una perturbacion
+moderada de demanda. Este escenario no representa un perfil medido ni un evento
+estocastico; queda como base para comparaciones posteriores con soporte BESS.
+
 ### Justificacion de representatividad
 
 La carga R-L equivalente se adopta como aproximacion baseline para cerrar
