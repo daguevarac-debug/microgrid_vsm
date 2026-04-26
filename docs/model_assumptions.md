@@ -255,6 +255,23 @@ El objetivo es verificar la respuesta dinamica practica ante una perturbacion
 moderada de demanda. Este escenario no representa un perfil medido ni un evento
 estocastico; queda como base para comparaciones posteriores con soporte BESS.
 
+### Escenario de cambio brusco de carga
+
+El tercer escenario de operacion aislada aplica una perturbacion severa de
+demanda sobre la carga R-L agregada:
+
+- Carga inicial `P_load = 3000 W`.
+- Carga final `P_load = 4200 W`, equivalente a `1.40*P_load_nominal`.
+- Incremento de carga del `40 %`.
+- Factor de potencia constante `fp = 0.95` inductivo.
+- Sin BESS activo en esta subtarea.
+- Sin perfil horario real, ruido estocastico, desbalance, motores ni modelo ZIP
+  completo.
+
+El objetivo es verificar la respuesta ante una perturbacion severa de demanda.
+Este escenario no representa todavia un perfil medido ni un evento estocastico;
+queda como caso de estres para comparaciones posteriores con soporte BESS.
+
 ### Justificacion de representatividad
 
 La carga R-L equivalente se adopta como aproximacion baseline para cerrar

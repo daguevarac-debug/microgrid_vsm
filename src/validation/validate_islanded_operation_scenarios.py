@@ -24,6 +24,7 @@ from config import (
     MICROGRID_LOAD_P_NOM_W_DEFAULT,
     MICROGRID_LOAD_POWER_FACTOR_DEFAULT,
     MICROGRID_LOAD_STEP_MODERATE_FRACTION_DEFAULT,
+    MICROGRID_LOAD_STEP_SEVERE_FRACTION_DEFAULT,
     MICROGRID_LOAD_STEP_TIME_S_DEFAULT,
     SIM_SOLVER_ATOL_DEFAULT,
     SIM_SOLVER_MAX_STEP_S_DEFAULT,
@@ -37,7 +38,8 @@ from microgrid import BalancedRLLoad, Microgrid
 
 EPS = 1e-12
 GROWTH_LIMIT = 1.2
-VDC_STEP_DELTA_LIMIT_PCT = 10.0
+VDC_STEP_20_DELTA_LIMIT_PCT = 10.0
+VDC_ABRUPT_STEP_DELTA_LIMIT_PCT = 15.0
 
 
 def _rms(signal: np.ndarray) -> float:
@@ -189,13 +191,18 @@ def validate_steady_operation() -> str:
     return status
 
 
-def validate_load_step_20() -> str:
-    """Validate islanded operation under the baseline 20% load step."""
+def _validate_load_step_scenario(
+    scenario_name: str,
+    step_fraction: float,
+    expected_pct: float,
+    delta_limit_pct: float,
+) -> str:
+    """Validate an islanded load-step scenario without BESS."""
     status = "PASS"
     reasons: list[str] = []
 
     p_pre = MICROGRID_LOAD_P_NOM_W_DEFAULT
-    p_post = MICROGRID_LOAD_P_NOM_W_DEFAULT * (1.0 + MICROGRID_LOAD_STEP_MODERATE_FRACTION_DEFAULT)
+    p_post = MICROGRID_LOAD_P_NOM_W_DEFAULT * (1.0 + step_fraction)
     t_step = MICROGRID_LOAD_STEP_TIME_S_DEFAULT
     load_pre = BalancedRLLoad.from_active_power(
         p_3ph_w=p_pre,
@@ -277,13 +284,13 @@ def validate_load_step_20() -> str:
     if not p_post > p_pre:
         status = "FAIL"
         reasons.append("post-step load is not greater than pre-step load")
-    if abs(load_step_pct - 20.0) > 1e-9:
+    if abs(load_step_pct - expected_pct) > 1e-9:
         status = "FAIL"
-        reasons.append(f"load_step_pct={load_step_pct:.6f} is not approximately 20%")
-    if not np.isfinite(delta_vdc_pct) or delta_vdc_pct > VDC_STEP_DELTA_LIMIT_PCT:
+        reasons.append(f"load_step_pct={load_step_pct:.6f} is not approximately {expected_pct:.1f}%")
+    if not np.isfinite(delta_vdc_pct) or delta_vdc_pct > delta_limit_pct:
         status = "FAIL"
         reasons.append(
-            f"delta_vdc_pct={delta_vdc_pct:.6f} > {VDC_STEP_DELTA_LIMIT_PCT:.2f}%"
+            f"delta_vdc_pct={delta_vdc_pct:.6f} > {delta_limit_pct:.2f}%"
         )
 
     t0 = float(sol.t[0])
@@ -315,7 +322,7 @@ def validate_load_step_20() -> str:
             status = "FAIL"
             reasons.append(f"{name} growth_ratio={value:.6f} > {GROWTH_LIMIT}")
 
-    print("scenario=load_step_20")
+    print(f"scenario={scenario_name}")
     print(f"status={status}")
     print(f"solver_success={solver_success}")
     print(f"states_finite={states_finite}")
@@ -331,7 +338,7 @@ def validate_load_step_20() -> str:
     print(f"vdc_final_v={vdc_final:.6f}")
     print(f"delta_vdc_abs_v={delta_vdc_abs:.6f}")
     print(f"delta_vdc_pct={delta_vdc_pct:.6f}")
-    print(f"delta_vdc_limit_pct={VDC_STEP_DELTA_LIMIT_PCT:.6f}")
+    print(f"delta_vdc_limit_pct={delta_limit_pct:.6f}")
     print(f"p_pcc_final_w={p_pcc_final:.6f}")
     print(f"p_bridge_final_w={p_bridge_final:.6f}")
     print(f"max_abs_i2_a={max_abs_i2:.6f}")
@@ -345,17 +352,38 @@ def validate_load_step_20() -> str:
             print(f"- {item}")
 
     print(
-        "note=Escalon de carga del 20%; delta_vdc_pct es un umbral interno "
+        f"note=Escalon de carga del {expected_pct:.0f}%; delta_vdc_pct es un umbral interno "
         "de validacion baseline, no un criterio normativo."
     )
 
     return status
 
 
+def validate_load_step_20() -> str:
+    """Validate islanded operation under the baseline 20% load step."""
+    return _validate_load_step_scenario(
+        scenario_name="load_step_20",
+        step_fraction=MICROGRID_LOAD_STEP_MODERATE_FRACTION_DEFAULT,
+        expected_pct=20.0,
+        delta_limit_pct=VDC_STEP_20_DELTA_LIMIT_PCT,
+    )
+
+
+def validate_abrupt_load_change() -> str:
+    """Validate islanded operation under the severe 40% load step."""
+    return _validate_load_step_scenario(
+        scenario_name="abrupt_load_change",
+        step_fraction=MICROGRID_LOAD_STEP_SEVERE_FRACTION_DEFAULT,
+        expected_pct=40.0,
+        delta_limit_pct=VDC_ABRUPT_STEP_DELTA_LIMIT_PCT,
+    )
+
+
 def main() -> int:
     statuses = [
         validate_steady_operation(),
         validate_load_step_20(),
+        validate_abrupt_load_change(),
     ]
     return 0 if all(status == "PASS" for status in statuses) else 1
 
