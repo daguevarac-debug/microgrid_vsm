@@ -263,16 +263,35 @@ podra calcularse a partir de un factor de potencia constante o definirse desde
 datos disponibles. El baseline R-L actual queda como transicion simple hacia ese
 perfil agregado P-Q.
 
-Limitaciones del baseline actual:
+### Simplificaciones vigentes del modelo de carga
 
-- No representa todavia una demanda medida.
-- No incluye desbalance de fases.
-- No incluye modelos ZIP completos.
-- No incluye motores de induccion.
-- No incluye cargas con interfaz de electronica de potencia.
-- No incluye armonicos.
-- No incluye variaciones estocasticas ni perfil horario real.
-- No debe presentarse como modelo final de carga real.
+El modelo de carga vigente se interpreta como una carga agregada equivalente
+vista desde el PCC, no como una representacion de equipos individuales. Sus
+simplificaciones activas son:
+
+- Se asume operacion AC trifasica balanceada.
+- Se usa una carga estatica de impedancia constante R-L.
+- Se mantiene `fp = 0.95` inductivo como factor de potencia constante.
+- Se usa `P_load_nominal = 3000 W`.
+- Se definen perturbaciones deterministicas nominal, `+20 %` y `+40 %`.
+- Durante las perturbaciones se conserva el mismo factor de potencia.
+- No se usa todavia un perfil horario real medido.
+- No se incluyen variaciones estocasticas.
+- No se incluye desbalance de fases.
+- No se incluye un modelo ZIP completo.
+- No se incluyen motores de induccion.
+- No se incluyen cargas con interfaz de electronica de potencia, como SMPS,
+  VFD o cargadores EV.
+- No se incluyen armonicos.
+- No se incluye dependencia explicita con frecuencia.
+- No representa todavia una caracterizacion medida de demanda real.
+- No sustituye una validacion experimental de carga.
+
+Estas simplificaciones se consideran aceptables para esta etapa porque permiten
+cerrar un baseline dinamico simple, aplicar perturbaciones de carga trazables y
+conservar compatibilidad con las validaciones existentes. Tambien dejan
+preparada la transicion posterior hacia perfiles `P_load(t)` y `Q_load(t)` mas
+realistas.
 
 Esta subtarea define la magnitud nominal inicial y reemplaza el cierre
 puramente resistivo por una impedancia R-L balanceada. La implementacion de un
