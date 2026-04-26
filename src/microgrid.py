@@ -33,7 +33,7 @@ from config import (
     MICROGRID_LOAD_POWER_FACTOR_DEFAULT,
     MICROGRID_LOAD_R1_OHM_DEFAULT,
     MICROGRID_LOAD_R2_OHM_DEFAULT,
-    MICROGRID_LOAD_STEP_FRACTION_DEFAULT,
+    MICROGRID_LOAD_STEP_MODERATE_FRACTION_DEFAULT,
     MICROGRID_LOAD_STEP_TIME_S_DEFAULT,
     MICROGRID_PV_ALPHA_ISC_A_PER_C_DEFAULT,
     MICROGRID_PV_ARRAY_PARALLEL_DEFAULT,
@@ -287,9 +287,9 @@ class Microgrid:
             "Microgrid.load_power_factor", MICROGRID_LOAD_POWER_FACTOR_DEFAULT
         )
         self.load_step_fraction = _fraction_float(
-            "Microgrid.load_step_fraction", MICROGRID_LOAD_STEP_FRACTION_DEFAULT
+            "Microgrid.load_step_fraction", MICROGRID_LOAD_STEP_MODERATE_FRACTION_DEFAULT
         )
-        self.p_load_1_w = self.p_load_nominal_w * (1.0 - self.load_step_fraction)
+        self.p_load_1_w = self.p_load_nominal_w
         self.p_load_2_w = self.p_load_nominal_w * (1.0 + self.load_step_fraction)
 
         self.irradiance_profile = irradiance_profile or (lambda t: MICROGRID_IRRADIANCE_W_PER_M2_DEFAULT)

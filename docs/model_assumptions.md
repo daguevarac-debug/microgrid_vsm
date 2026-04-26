@@ -166,7 +166,8 @@ La carga nominal inicial se define como:
 - `fp = 0.95` inductivo.
 - `V_ln_rms = 110 V`.
 - `f = 60 Hz`.
-- Escalon baseline: `P_load(t) = P_load_nominal*(1 +/- 0.20)`.
+- Escalon baseline: `P_load(t)` pasa de `1.00*P_load_nominal` a
+  `1.20*P_load_nominal`.
 
 Trazabilidad con el baseline resistivo anterior:
 
@@ -195,6 +196,31 @@ directamente en la ecuacion del inductor de salida del filtro LCL:
 
 Esta implementacion mantiene el orden del vector de estados y cambia solo el
 cierre local de la carga en el lado AC.
+
+### Perturbaciones de prueba de carga
+
+Para pruebas iniciales y futuras pruebas de operacion aislada se definen tres
+niveles simples de carga activa agregada:
+
+- Caso nominal: `P_load = 1.00*P_load_nominal = 3000 W`.
+- Escalon moderado: `P_load = 1.20*P_load_nominal = 3600 W`, equivalente a un
+  aumento de carga del `20 %`.
+- Cambio brusco: `P_load = 1.40*P_load_nominal = 4200 W`, equivalente a un
+  aumento severo de carga del `40 %`.
+
+En los tres casos se mantiene `fp = 0.95` inductivo y la potencia reactiva se
+calcula como:
+
+- `Q_load = P_load*tan(arccos(fp))`.
+
+Por tanto, cada nivel de carga conserva la representacion R-L equivalente y
+solo cambia la magnitud de la impedancia calculada. El caso baseline por
+defecto usa el escalon moderado: antes de `t_step`, la carga es nominal; despues
+de `t_step`, la carga aumenta al `120 %` de `P_load_nominal`.
+
+Estas perturbaciones son escenarios de prueba, no perfiles reales medidos. Los
+perfiles horarios, ruido estocastico, desbalance de fases, modelos ZIP completos
+y modelos de motores quedan fuera de esta subtarea.
 
 ### Justificacion de representatividad
 
