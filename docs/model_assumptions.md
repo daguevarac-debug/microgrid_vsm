@@ -222,6 +222,23 @@ Estas perturbaciones son escenarios de prueba, no perfiles reales medidos. Los
 perfiles horarios, ruido estocastico, desbalance de fases, modelos ZIP completos
 y modelos de motores quedan fuera de esta subtarea.
 
+### Escenario de operacion estable en regimen permanente
+
+El primer escenario de operacion aislada se define como caso nominal estable sin
+perturbacion de carga:
+
+- Carga constante `P_load = P_load_nominal = 3000 W`.
+- Factor de potencia constante `fp = 0.95` inductivo.
+- Representacion R-L balanceada equivalente.
+- Sin escalon de carga; no se usa el escalon moderado por defecto.
+- Sin BESS activo en esta subtarea.
+- Sin perfil horario real, ruido estocastico, cambio brusco, desbalance, motores
+  ni modelo ZIP completo.
+
+El objetivo de este escenario es verificar estabilidad numerica/practica del
+caso nominal aislado antes de introducir perturbaciones de carga o soporte BESS.
+No representa todavia una validacion experimental ni un perfil real de demanda.
+
 ### Justificacion de representatividad
 
 La carga R-L equivalente se adopta como aproximacion baseline para cerrar
