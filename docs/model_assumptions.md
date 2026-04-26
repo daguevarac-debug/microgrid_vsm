@@ -151,6 +151,72 @@ Decision sobre ajuste de parametros LCL:
 - Ajustes futuros podran realizarse si el analisis de control, `f_sw` o
   validaciones posteriores lo requieren.
 
+## Modelo de carga de la microrred (baseline)
+
+El modelo actual de carga se conserva como un cierre electrico simple del lado
+AC. En `src/microgrid.py`, `HardwarePlant.pcc_voltage(i2, r_load)` calcula
+`v_pcc = i2 * r_load`, por lo que `Microgrid.load_profile` representa
+actualmente una resistencia equivalente `R_load(t)`. El perfil por defecto usa
+un escalon entre `r_load_1` y `r_load_2`; no representa todavia perfiles
+`P_load(t)` ni `Q_load(t)`.
+
+### Justificacion de representatividad
+
+La carga resistiva equivalente se adopta como aproximacion baseline para cerrar
+electricamente el PCC y evaluar una perturbacion basica de carga sin introducir
+complejidad adicional en esta etapa. Esta representacion es util para
+validaciones iniciales del acoplamiento PV, DC-link, inversor, filtro LCL y PCC,
+pero no sustituye una caracterizacion medida de demanda real ni debe presentarse
+como modelo final de carga de la microrred.
+
+El respaldo conceptual se limita a las ideas explicitas de las referencias
+revisadas:
+
+- IEEE PES Task Force on Microgrid Dynamic Modeling (2023) reconoce que la
+  representacion de cargas es relevante para estudios de dinamica y estabilidad
+  de microrredes. Tambien clasifica los modelos de carga para estos estudios en
+  estaticos, dinamicos, compuestos y cargas con interfaz de electronica de
+  potencia; ademas, indica que es practica comun agregar tipos de carga
+  similares como cargas agregadas. La seleccion del enfoque de modelado depende
+  de la naturaleza del estudio de estabilidad, del numero de cargas y tamano de
+  la microrred, del tamano relativo de cada carga y de la disponibilidad de
+  datos.
+- Fachini et al. (2024) se usa solo como respaldo de que, en estudios de
+  microrred con PV, BESS y generacion convencional, pueden emplearse cargas
+  agregadas dentro de la microrred. Ese trabajo considera una carga agregada de
+  la microrred y agrega variaciones estocasticas y perfiles de carga para
+  pruebas de operacion en isla y resincronizacion. No se trasladan a este
+  repositorio su arquitectura MPC ni sus valores numericos.
+- Madjovski et al. (2024) se usa solo como respaldo de que el modelado de carga
+  es importante para estabilidad en sistemas de distribucion con generacion
+  renovable. Ese trabajo considera modelos estaticos, dinamicos y compuestos, y
+  presenta el modelo ZIP como modelo estatico que combina impedancia constante,
+  corriente constante y potencia constante. No se adoptan aqui sus parametros ni
+  sus resultados.
+
+Como decision de tesis, la carga objetivo para etapas posteriores sera una carga
+agregada AC trifasica balanceada vista desde el PCC. Se representara
+posteriormente mediante perfiles `P_load(t)` y `Q_load(t)`, donde `Q_load(t)`
+podra calcularse a partir de un factor de potencia constante. Esta decision es
+coherente con el uso de cargas agregadas en estudios de microrred y con la
+necesidad de mantener un modelo simple para validaciones iniciales.
+
+Limitaciones del baseline actual:
+
+- No representa todavia una demanda medida.
+- No incluye desbalance de fases.
+- No incluye modelos ZIP completos.
+- No incluye motores de induccion.
+- No incluye cargas con interfaz de electronica de potencia.
+- No incluye armonicos.
+- No incluye variaciones estocasticas ni perfil horario real.
+- No debe presentarse como modelo final de carga real.
+
+Esta subtarea solo justifica la representatividad del baseline de carga. La
+implementacion de `P_load(t)`, `Q_load(t)`, magnitud nominal y perturbaciones
+queda para subtareas posteriores. El modelo resistivo actual se mantiene sin
+cambios por compatibilidad con las validaciones existentes.
+
 ## DC-link (PV + BESS preliminar)
 
 Ecuacion dinamica usada en el baseline:
