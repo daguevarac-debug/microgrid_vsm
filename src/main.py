@@ -61,10 +61,7 @@ def run_baseline_simulation(model: Microgrid) -> dict[str, np.ndarray]:
     for k, tk in enumerate(t):
         xk = sol.y[:, k]
         p_bridge[k], p_pcc[k], _, _, _ = model.power_signals(tk, xk)
-        i2k = xk[7:10]
-        r_load_t = model.load_profile(tk)
-        v_pcc_k = i2k * r_load_t
-        p_load[k] = float(np.dot(v_pcc_k, i2k))
+        p_load[k] = float(model.load_profile(tk))
 
     return {
         "t": t,
@@ -192,7 +189,7 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
         sig = model.integrated_signals(tk, sol.y[:, k])
         p_bridge[k] = sig["p_bridge"]
         p_pcc[k] = sig["p_pcc"]
-        p_load[k] = sig["p_load"]
+        p_load[k] = float(model.load_profile(tk))
         i_bess[k] = sig["i_bess"]
         p_bess_dc[k] = sig["p_bess_dc"]
         soc_bess[k] = sig["soc_bess"]
