@@ -35,7 +35,7 @@ domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
 
 Quedan fuera de esta interfaz mínima: `Q_ref`, control `Q-V`, droop reactivo, FOVIC y lazos avanzados.
 
-## Estados internos
+## Estados del modelo/control
 
 El vector mínimo de estados internos del inversor grid-forming es:
 
@@ -59,9 +59,10 @@ domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
 
 No son estados internos del GFM: `P_ref` (referencia de control), `V_ref`/`v_ln_rms` (referencia de tensión), `m_ctrl`/`m_max` (índice o límite de modulación), `P_e` (medición o estimación de planta), `Vdc` (variable de planta/bus DC), `v_inv_abc` (señal manipulada hacia la planta), `freq_hz` (métrica derivada de `omega`), `power_imbalance = P_ref - P_e` (variable algebraica) ni `max_abs_frequency_deviation_hz` (métrica de validación).
 
-## Parámetros ajustables
+## Parámetros de sintonía futura
 
-Los parámetros mínimos configurables del bloque GFM para simulación y validación son:
+Los parámetros mínimos configurables del bloque GFM para simulación, validación
+aislada y sintonía futura en el Objetivo 2 son:
 
 1. `f_nom` [Hz] u `omega_ref` [rad/s]
    - Frecuencia nominal del inversor.
@@ -90,7 +91,17 @@ Los parámetros mínimos configurables del bloque GFM para simulación y validac
    - Límite o índice de modulación.
    - Restringe la tensión sintetizable según `Vdc`.
 
-Ajustar estos parámetros no debe cambiar la estructura del modelo. `M` y `D` modifican la respuesta transitoria de frecuencia; `V_ref` y `m_max` modifican la amplitud de la referencia de tensión sintetizada.
+Ajustar estos parámetros no debe cambiar la estructura del modelo. `M`/`inertia_m`
+y `D`/`damping_d` modifican la respuesta transitoria de frecuencia; `P_ref` define
+el equilibrio de potencia activa; `V_ref`/`v_ln_rms` y `m_max`/`m_ctrl` modifican
+la amplitud de la referencia de tensión sintetizada y su límite por bus DC. En el
+Objetivo 2 también podrán considerarse límites derivados del BESS/BMS, como
+corriente disponible, potencia disponible, `SoC` y `SoH`, para restringir la
+potencia inercial o la referencia activa.
+
+Estos parámetros son candidatos de sintonía futura. No constituyen todavía una
+estrategia VSG/FOVIC final ni implican que el control grid-forming esté integrado
+al modelo principal de microrred.
 
 No son parámetros ajustables del control GFM: `Vdc` (pertenece a la planta/bus DC), `P_e` (medición o estimación de planta), `theta` y `omega` (estados internos), `freq_hz`, `power_imbalance` y `max_abs_frequency_deviation_hz` (métricas derivadas).
 
@@ -125,6 +136,26 @@ Las salidas observables no deben confundirse con entradas manipulables. En esta 
 
 Esta documentación no activa control grid-forming ni cambia el baseline actual.
 
+## Variables de interés para control
+
+Para el diseño futuro del control en el Objetivo 2, las variables relevantes de
+la interfaz se agrupan de la siguiente forma:
+
+- Referencias o consignas: `P_ref` y `V_ref`/`v_ln_rms`.
+- Señal manipulada hacia la planta: `v_inv_abc`, limitada por `Vdc` y por
+  `m_max`/`m_ctrl`.
+- Mediciones o estimaciones de planta: `P_e`, `Vdc`, `i1_abc`, `i2_abc` y
+  `v_pcc_abc`.
+- Estados internos del control: `theta` y `omega`.
+- Métricas derivadas de diagnóstico: `freq_hz` y `power_imbalance`.
+- Variables del BESS/BMS para restricciones operativas futuras: `SoC`, `SoH`,
+  límites de corriente de carga/descarga y límites de potencia DC disponible.
+
+Estas variables permiten trazar qué información debe intercambiarse entre planta,
+controlador y BESS/BMS. Las métricas de frecuencia del bloque aislado sirven solo
+como diagnóstico preliminar y no deben interpretarse como métricas finales de
+desempeño de la tesis hasta que el GFM/VSG se acople a la planta completa.
+
 ## Preparación para el Objetivo 2
 
 Esta interfaz deja definidos los elementos mínimos para iniciar el Objetivo 2: determinar la estrategia de control de inercia virtual del inversor grid-forming con el sistema de gestión de baterías de segunda vida.
@@ -134,7 +165,7 @@ Elementos ya delimitados para el diseño:
 1. Entradas disponibles para el controlador: `P_ref`, `V_ref`/`v_ln_rms` y `m_max`/`m_ctrl`.
 2. Mediciones necesarias desde la planta: `P_e`, `Vdc`, `i1_abc`, `i2_abc`, `v_pcc_abc` e `idc_inv`.
 3. Estados internos disponibles: `theta` y `omega`.
-4. Parámetros ajustables: `f_nom`/`omega_ref`, `theta0`, `P_ref`, `V_ref`/`v_ln_rms`, `M`/`inertia_m`, `D`/`damping_d` y `m_max`/`m_ctrl`.
+4. Parámetros de sintonía futura: `f_nom`/`omega_ref`, `theta0`, `P_ref`, `V_ref`/`v_ln_rms`, `M`/`inertia_m`, `D`/`damping_d` y `m_max`/`m_ctrl`.
 5. Variables que deberán conectarse con el BESS/BMS: `SoC`, `SoH`, corriente máxima de carga/descarga, potencia máxima de carga/descarga y límites de operación segura del almacenamiento.
 
 Esta etapa no implementa todavía VSG completo, FOVIC ni gestión BESS/BMS. La interfaz queda documentada para que el Objetivo 2 pueda diseñar la estrategia de control sin redefinir la planta.
