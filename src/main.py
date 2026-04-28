@@ -179,6 +179,8 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
     p_bridge = np.zeros_like(t)
     p_pcc = np.zeros_like(t)
     p_load = np.zeros_like(t)
+    frequency_hz = np.zeros_like(t)
+    p_pv_dc = np.zeros_like(t)
     i_bess = np.zeros_like(t)
     p_bess_dc = np.zeros_like(t)
     soc_bess = np.zeros_like(t)
@@ -190,6 +192,12 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
         p_bridge[k] = sig["p_bridge"]
         p_pcc[k] = sig["p_pcc"]
         p_load[k] = float(model.load_profile(tk))
+        # Baseline grid-following frequency is fixed; this is not GFM/VSG dynamics.
+        frequency_hz[k] = float(model.controller.omega_ref / (2.0 * np.pi))
+        g_t = float(model.irradiance_profile(tk))
+        t_c_t = float(model.temperature_profile(tk))
+        ipv = model.plant.pv_current(max(float(vdc[k]), 0.0), g_t, t_c_t)
+        p_pv_dc[k] = float(vdc[k]) * float(ipv)
         i_bess[k] = sig["i_bess"]
         p_bess_dc[k] = sig["p_bess_dc"]
         soc_bess[k] = sig["soc_bess"]
@@ -202,6 +210,8 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
         "p_bridge": p_bridge,
         "p_pcc": p_pcc,
         "p_load": p_load,
+        "frequency_hz": frequency_hz,
+        "p_pv_dc": p_pv_dc,
         "i_bess": i_bess,
         "p_bess_dc": p_bess_dc,
         "soc_bess": soc_bess,
@@ -349,6 +359,38 @@ def save_bess_comparison_figures(
     plt.close(fig3)
 
 
+def save_complete_system_base_signals(signals: dict[str, np.ndarray], output_dir: Path) -> None:
+    """Save compact diagnostic signals for the complete PV+BESS baseline run."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    t = signals["t"]
+
+    fig, axes = plt.subplots(5, 1, figsize=(9, 10), sharex=True)
+    axes[0].plot(t, signals["Vdc"], label="Vdc")
+    axes[0].set_ylabel("V")
+
+    axes[1].plot(t, signals["frequency_hz"], label="frequency_hz", color="tab:purple")
+    axes[1].set_ylabel("Hz")
+
+    axes[2].plot(t, signals["p_pv_dc"] / 1000.0, label="p_pv_dc", color="tab:green")
+    axes[2].set_ylabel("kW")
+
+    axes[3].plot(t, signals["p_bess_dc"] / 1000.0, label="p_bess_dc", color="tab:orange")
+    axes[3].set_ylabel("kW")
+
+    axes[4].plot(t, signals["i_bess"], label="i_bess", color="tab:red")
+    axes[4].set_xlabel("t [s]")
+    axes[4].set_ylabel("A")
+
+    for ax in axes:
+        ax.grid(True)
+        ax.legend(loc="best")
+
+    fig.suptitle("Caso base completo: senales diagnosticas PV + DC-link + BESS")
+    fig.tight_layout()
+    fig.savefig(output_dir / "complete_system_base_signals.png", dpi=180, bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Run baseline simulation and optional first-step BESS-integrated simulation."
@@ -417,6 +459,12 @@ def main() -> None:
             f"soh_bess_final={signals_bess['soh_bess'][-1]:.6f} | "
             f"vt_bess_final={signals_bess['vt_bess'][-1]:.3f} V"
         )
+        try:
+            save_complete_system_base_signals(signals_bess, output_dir)
+            print("\nFigura diagnostica del caso base completo guardada en outputs/:")
+            print("  - complete_system_base_signals.png")
+        except Exception as exc:
+            print(f"\nwarning=No se pudo guardar figura diagnostica del caso base completo: {exc}")
 
 
 if __name__ == "__main__":
