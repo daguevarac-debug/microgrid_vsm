@@ -11,6 +11,37 @@ README corto y enfocado en ejecución/estado.
 - R0 aging: ley empírica simplificada, no copiada textualmente de literatura.
 - El BESS-SLB esta modelado y validado, y existe una integracion preliminar/conservadora al bus DC mediante `MicrogridWithBESS`.
 
+## Alcance del IEEE 33 en la tesis
+
+El sistema IEEE 33 se usa como red benchmark de distribucion para evaluar el
+efecto de una inyeccion equivalente de microrred en un sistema radial. El
+objetivo de esta parte de la tesis es validar el caso de estudio en red mediante
+la comparacion estatica entre el caso base del IEEE 33 y el caso con microrred
+actualizada.
+
+El acople implementado es secuencial one-way:
+
+1. Primero se simula la microrred local.
+2. Luego se calcula `p_ss_kw` como promedio estacionario de `p_pcc`.
+3. Despues se inyecta esa potencia como `sgen` estatico en el PCC del IEEE 33.
+
+El IEEE 33 no retroalimenta dinamicamente la microrred y no hay co-simulacion en
+tiempo real. Tampoco se modela explicitamente un transformador LV/MV entre la
+microrred y la red benchmark. El resultado debe interpretarse como
+postprocesamiento estatico de red, no como validacion final de estabilidad
+dinamica de red.
+
+En el caso actualizado, el BESS actua dentro de la microrred, acoplado
+preliminarmente al bus DC mediante `MicrogridWithBESS`. El BESS no se modela en
+pandapower como bateria independiente, carga, generador ni elemento `storage`
+separado. En el IEEE 33 solo se observa la potencia neta equivalente de la
+microrred en el PCC.
+
+El PCC usado es el Nodo 18 del IEEE 33 y el nivel de tension de la red se
+mantiene en `12.66 kV`. Este caso tampoco representa un acople dinamico
+GFM/VSG integrado al IEEE 33; el bloque GFM/VSG permanece como estructura
+minima aislada hasta su integracion explicita en una etapa posterior.
+
 ## Generador fotovoltaico (baseline actual)
 
 - Se usa el modelo equivalente de un diodo para representar el módulo fotovoltaico.
