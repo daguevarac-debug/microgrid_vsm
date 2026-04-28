@@ -76,6 +76,11 @@ class _IEEE33CouplingMixin:
         p_ss_kw = _finite_float("p_ss_kw", p_ss_kw)
         p_mw = p_ss_kw / 1000.0
         q_mvar = p_mw * np.tan(np.arccos(MICROGRID_PF_DEFAULT))
+        print(
+            "  Equivalente DG PCC: "
+            f"P_eq_mw={p_mw:.6f}, Q_eq_mvar={q_mvar:.6f}, "
+            f"fp={MICROGRID_PF_DEFAULT:.3f}, nodo_pcc={self.pcc_bus_idx + 1}"
+        )
 
         gen_idx = pp.create_sgen(
             self.net,
