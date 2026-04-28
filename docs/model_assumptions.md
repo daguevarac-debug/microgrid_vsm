@@ -3,6 +3,34 @@
 Este documento consolida los supuestos activos del baseline para mantener el
 README corto y enfocado en ejecución/estado.
 
+## Resumen académico de supuestos del baseline
+
+Los supuestos de este documento delimitan el alcance del modelo físico-matemático
+y dinámico usado en la Actividad 1.3. El modelo corresponde a un baseline trazable
+para una microrred PV + BESS-SLB, orientado a estudiar coherencia eléctrica y
+operación preliminar del conjunto PV + BESS-SLB + bus DC + inversor + filtro LCL
++ carga/PCC. No representa todavía una validación experimental, un diseño óptimo
+final ni una estrategia grid-forming/VSG completamente integrada.
+
+- Temperatura constante: no se implementa un modelo térmico dinámico. La
+  temperatura se trata como condición asumida o entrada de los submodelos que la
+  requieren.
+- Modelo promediado: la dinámica del convertidor se representa sin conmutación
+  PWM explícita ni armónicos de alta frecuencia.
+- Carga simplificada: la carga se modela como una carga trifásica agregada,
+  balanceada y de tipo R-L; no se incluye un modelo ZIP completo ni perfiles
+  reales medidos de demanda.
+- Degradación de primer orden: el SoH, la capacidad efectiva y la resistencia
+  interna del BESS-SLB se representan mediante leyes simplificadas, sin modelo
+  electroquímico detallado.
+- Alcance de validez: el baseline es adecuado para validación práctica interna y
+  análisis preliminar de coherencia dinámica del sistema implementado, no para
+  certificar desempeño experimental ni optimización final.
+- Limitaciones conocidas: siguen pendientes la integración final del BESS con
+  convertidor DC/DC y BMS detallados, el control grid-forming/VSG acoplado a la
+  planta completa, la estrategia final de inercia virtual y la validación formal
+  con escenarios experimentales o perfiles medidos.
+
 ## BESS-SLB
 
 - Modelo térmico: no implementado (temperatura constante asumida).
