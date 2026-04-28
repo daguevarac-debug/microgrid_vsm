@@ -35,6 +35,7 @@ Not yet implemented:
 
 Current partial integration status:
 - First-step/conservative BESS coupling to the DC-link exists through `MicrogridWithBESS`.
+- Activity 1.3 now includes diagnostic complete-system baseline records, no-BESS vs preliminary-BESS comparison, and SoH scenario comparison. These remain baseline/preliminary diagnostics, not final DC/DC+BMS or GFM/VSG validation.
 
 ## Main engineering intent
 This codebase is part of a research thesis. Changes must preserve scientific traceability, physical consistency, and future extensibility.
@@ -89,6 +90,12 @@ These equations are validated and must not be modified:
 - `p_bess_dc = Vdc * i_bess`
 - `p_bess_dc > 0` means BESS delivers power to the DC bus.
 - `p_bess_dc < 0` means BESS absorbs power from the DC bus.
+- When interpreting plots, `p_bess_dc < 0` means the BESS is absorbing power from the DC bus, not providing active support.
+
+### Diagnostic plotting conventions
+- In `src/main.py`, `load_profile(t)` is active demanded power in W, not a resistance. Diagnostic `p_load` traces must use `float(model.load_profile(tk))`.
+- In the main baseline/grid-following model, `frequency_hz = omega_ref/(2*pi)` is a fixed reference record. It is not GFM/VSG frequency dynamics and must not be used as a final support metric.
+- `complete_system_base_signals.png` is a diagnostic figure for the preliminary complete-system baseline (`Vdc`, fixed `frequency_hz`, `p_pv_dc`, `p_bess_dc`, `i_bess`).
 
 ### Operational support limits
 - `i_bess_max_nominal = 66 A` as 1C nominal reference.
@@ -223,6 +230,14 @@ python src/main.py --with-bess                         # local PV microgrid with
 python src/main.py --compare-bess                      # no-BESS vs preliminary BESS comparison
 python src/ieee33_main.py                              # IEEE 33 coupling
 ```
+
+## Practical validation scope
+- Do not run every heavy validation for each Planner subtask.
+- For documentation-only changes, do not run simulations.
+- For diagnostic/plotting-only changes in `src/main.py`, run at least `python src/main.py --with-bess`.
+- For no-BESS vs preliminary-BESS comparison changes, run `python src/main.py --compare-bess`.
+- For SoH comparison changes, run `python src/validation/compare_bess_soh_scenarios.py`.
+- Reserve `python src/validation/validate_islanded_operation_scenarios.py` for card/bucket closure or non-trivial behavioral changes.
 
 ## When asked to validate a change
 Report using:

@@ -86,6 +86,19 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 | `validate_bess_soc_operational_limits.py` | SoC, corriente, potencia y disponibilidad por SoH | PASS |
 | `compare_bess_soh_scenarios.py` | SoH 1.00, 0.70 y nominal; REVIEW interpretativo por escala | REVIEW |
 
+## Actividad 1.3: diagnosticos del sistema completo
+- `python src/main.py --with-bess`: simula el caso base completo preliminar PV + DC-link + inversor + LCL + BESS + carga y registra `Vdc`, `frequency_hz`, `p_pv_dc`, `p_bess_dc` e `i_bess`.
+- Salida diagnostica principal: `outputs/complete_system_base_signals.png`.
+- En este baseline, `frequency_hz = omega_ref/(2*pi)` es fija por el controlador grid-following; no representa todavia dinamica GFM/VSG.
+- `p_load` en las figuras de `src/main.py` representa potencia activa demandada `[W]` desde `load_profile(t)`, no resistencia.
+- `python src/main.py --compare-bess`: compara sin BESS vs con BESS preliminar. Salidas esperadas: `compare_vdc_bess.png`, `compare_bess_signals.png`, `compare_power_bess.png`.
+- Metricas recientes de referencia para la comparacion: sin BESS `max_drop_pre ~= 14.549 V`; con BESS `max_drop_pre ~= 3.111 V`; `t_recovery_s = nan` en ambos casos; `i_bess_mean` post-escalon `~= -0.921 A`; `p_bess_dc_mean` post-escalon `~= -314.981 W`.
+- Interpretacion: en ese escenario el BESS modifica el punto de operacion del bus DC y absorbe potencia (`p_bess_dc < 0`); no debe presentarse como prueba final de soporte activo.
+- `python src/validation/compare_bess_soh_scenarios.py`: compara SoH `1.00`, `0.70` y nominal `~= 0.668182`.
+- Salidas SoH: `outputs/validation/bess_soh_scenarios/bess_soh_scenarios_summary.csv`, `bess_soh_scenarios_vdc.png`, `bess_soh_scenarios_power.png`, `bess_soh_scenarios_current.png`.
+- Interpretacion SoH: la disponibilidad de corriente/potencia disminuye con el SoH; las curvas dinamicas quedan casi superpuestas porque el escenario no satura limites del BESS.
+- Estas comparaciones son baseline/preliminares y no reemplazan validacion final con DC/DC detallado, BMS final ni control GFM/VSG.
+
 ## Validaciones básicas de DC-link
 - Existe integración preliminar/conservadora del BESS al bus DC mediante `MicrogridWithBESS`.
 - Ecuación verificada: `dVdc/dt = (ipv + i_bess - idc_inv)/Cdc`.
@@ -181,6 +194,7 @@ microgrid_vsm/
 python src/main.py
 python src/main.py --with-bess      # simulacion local con BESS preliminar
 python src/main.py --compare-bess   # comparacion sin BESS vs con BESS
+python src/validation/compare_bess_soh_scenarios.py  # comparacion por SoH
 
 # Estudio de acople secuencial con IEEE 33
 python src/ieee33_main.py
@@ -228,6 +242,13 @@ Salida esperada:
 - `outputs/validation/braco_fig5b_sl_1c/` con figura y CSV (si no hay bloqueo de escritura).
 - `outputs/validation/braco_fig5b_sl_1p5c/` con figura y CSV (si no hay bloqueo de escritura).
 - `outputs/validation/braco_fig5b_sensitivity/` con `sensitivity_runs.csv`, `sensitivity_summary.csv` y `mape_sensitivity_span.png`.
+
+Salidas diagnosticas de Actividad 1.3:
+- `outputs/complete_system_base_signals.png`.
+- `outputs/compare_vdc_bess.png`.
+- `outputs/compare_bess_signals.png`.
+- `outputs/compare_power_bess.png`.
+- `outputs/validation/bess_soh_scenarios/bess_soh_scenarios_summary.csv`.
 
 ## Instrucciones básicas de ejecución
 1. Crear y activar un entorno virtual de Python.
