@@ -14,6 +14,8 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 - Dinámica del bus DC (DC-link).
 - Modelo del filtro LCL integrado y validado en etapa baseline (ver `docs/model_assumptions.md`).
 - Fuente inversora y control baseline tipo grid-following con PI.
+- Modelo de carga agregado AC trifasico balanceado tipo R-L de impedancia constante.
+- Carga nominal `P_load_nominal = 3 kW`, `fp = 0.95` inductivo, con perturbaciones nominal, `+20 %` y `+40 %`.
 - Simulación dinámica local del sistema de microrred.
 - Acople secuencial one-way al sistema IEEE 33 en el PCC.
 
@@ -99,6 +101,10 @@ El objetivo del baseline es mantener una base técnicamente consistente, trazabl
 - Resultado actual: `PASS`.
 - Esta validación no es una demostración formal de estabilidad ni reemplaza el análisis futuro de control/grid-forming.
 
+## Validaciones de carga y escenarios aislados
+- `src/validation/validate_microgrid_rl_load.py`: verifica carga R-L balanceada, `P_load_nominal = 3 kW`, `fp = 0.95` inductivo y perturbaciones nominal/`+20 %`/`+40 %`. Resultado actual: `PASS`.
+- `src/validation/validate_islanded_operation_scenarios.py`: consolida escenarios aislados `steady_operation`, `load_step_20`, `abrupt_load_change` y `bess_vs_no_bess`. Resultado actual: `PASS`.
+
 ## Estado de validación FV
 - Módulo de referencia: `LONGi LR7-54HJD-500M`.
 - Variables comparadas: `Vmpp`, `Impp`, `Isc`.
@@ -152,6 +158,8 @@ microgrid_vsm/
 │       ├── validate_bess_step3.py   # validación degradación
 │       ├── validate_excel_load.py   # validación carga Excel
 │       ├── validate_pv_stc_fit.py   # validación STC del modelo FV contra datasheet
+│       ├── validate_microgrid_rl_load.py              # validacion carga R-L agregada
+│       ├── validate_islanded_operation_scenarios.py   # escenarios aislados de carga/BESS
 │       ├── test_grid_forming_frequency_dynamics.py       # pruebas unitarias GFM mínimo
 │       ├── validate_grid_forming_step_response.py        # escalón de carga GFM aislado
 │       ├── validate_grid_forming_islanded_operation.py   # operación aislada GFM
@@ -189,6 +197,8 @@ python src/validation/compare_bess_soh_scenarios.py            # escenarios de S
 python src/validation/validate_pv_stc_fit.py       # validación STC del modelo FV contra datasheet
 python -m unittest discover -s src/validation -p "test_dclink_dynamics.py" -v  # pruebas básicas DC-link
 python src/validation/validate_lcl_no_unphysical_oscillations.py  # validación práctica de estados LCL
+python src/validation/validate_microgrid_rl_load.py                # validacion carga R-L agregada
+python src/validation/validate_islanded_operation_scenarios.py     # escenarios aislados de carga/BESS
 
 # Validaciones GFM mínimas aisladas (no acopladas a Microgrid)
 python src/validation/test_grid_forming_frequency_dynamics.py
@@ -239,6 +249,8 @@ Los supuestos simplificados vigentes del baseline se documentan en:
 - El GFM actual **no** debe presentarse como controlador final ni como estrategia de inercia virtual ya implementada.
 - El GFM actual **no** reemplaza todavía el baseline grid-following del modelo principal.
 - El BESS-SLB esta **modelado y validado** y cuenta con **acople preliminar al bus DC** (`MicrogridWithBESS`), restricciones operativas y disponibilidad dependiente de SoH; todavia no incluye DC/DC detallado, BMS final ni control grid-forming final.
+- El modelo de carga R-L y los escenarios aislados son baseline de validacion interna; no representan perfil horario real medido, ZIP completo, cargas no lineales, desbalance ni validacion experimental.
+- La comparacion con/sin BESS en escenarios aislados no debe interpretarse todavia como validacion final de soporte dinamico del BESS ni de estrategia VSG/FOVIC.
 - La frecuencia no debe interpretarse como metrica final de soporte mientras el modelo principal siga en baseline/grid-following.
 - El `REVIEW` por escala `Vdc/vt_bess` es una advertencia interpretativa por falta de escalamiento explicito del banco o DC/DC detallado; no es falla numerica por si mismo.
 - No se debe presentar código scaffold o planificado como contribución final implementada.

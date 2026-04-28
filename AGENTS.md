@@ -10,6 +10,10 @@ Current implemented scope:
 - inverter source and baseline control (grid-following PI)
 - local dynamic simulation
 - sequential one-way coupling to IEEE 33 at the PCC
+- **Aggregated balanced AC R-L load model**
+- **Nominal 3 kW load with 0.95 lagging power factor**
+- **Load perturbations**: nominal, +20%, and +40%
+- **Consolidated islanded operation scenario validation**
 - **BESS-SLB Thevenin 1RC dynamic model** with OCV/R1/C1 lookup tables
 - **First-order degradation model** (z_deg throughput, SoH linear fade, R0 aging)
 - **Excel characterization loader** for OCV/R1/C1 from experimental/literature data
@@ -55,6 +59,8 @@ This codebase is part of a research thesis. Changes must preserve scientific tra
 17. Do not remove SoH-dependent support limits unless explicitly requested.
 18. Do not interpret frequency metrics as final support metrics until GFM/VSG is integrated.
 19. Do not treat `REVIEW` due to `Vdc/vt_bess` scale as numerical failure.
+20. Do not change the R-L load model, nominal load parameters, or load perturbations without updating `docs/model_assumptions.md` and running the load/scenario validations.
+21. Do not create one new validation script per islanded scenario; prefer consolidating them in `src/validation/validate_islanded_operation_scenarios.py`.
 
 ## BESS-SLB mandatory conventions
 
@@ -181,6 +187,8 @@ Contains validation scripts:
 - `validate_bess_step2.py` — 1RC dynamic validation (SoC, V_rc, V_terminal)
 - `validate_bess_step3.py` — degradation validation (z_deg, SoH, Q_eff, R0)
 - `validate_excel_load.py` — Excel characterization loading smoke test
+- `validate_microgrid_rl_load.py` — aggregated balanced R-L load validation
+- `validate_islanded_operation_scenarios.py` — consolidated islanded load/BESS scenario validation
 - `validate_lcl_no_unphysical_oscillations.py` — practical check of no non-physical oscillations in LCL states
 - `test_grid_forming_frequency_dynamics.py` — isolated GFM unit checks
 - `validate_grid_forming_islanded_operation.py` — isolated islanded GFM operation
@@ -203,6 +211,8 @@ python src/validation/validate_bess_integrated_nominal.py
 python src/validation/validate_bess_soc_operational_limits.py
 python src/validation/compare_bess_soh_scenarios.py
 python src/validation/validate_lcl_no_unphysical_oscillations.py  # practical LCL check
+python src/validation/validate_microgrid_rl_load.py
+python src/validation/validate_islanded_operation_scenarios.py
 python src/validation/test_grid_forming_frequency_dynamics.py
 python src/validation/validate_grid_forming_islanded_operation.py
 python src/validation/validate_grid_forming_voltage_regulation.py
@@ -233,6 +243,8 @@ If a request is ambiguous, choose the most conservative interpretation and avoid
 Do not present scaffold code as a completed contribution.
 Do not describe baseline grid-following behavior as grid-forming.
 Do not imply full BESS+PV+inverter integration when only preliminary DC-link coupling is implemented.
+Do not present islanded load scenarios as experimental validation of real measured demand.
+Do not present the with/without BESS comparison as final proof of dynamic improvement; the BESS remains preliminarily coupled at the DC-link.
 The current GFM work is an isolated minimal model suitable as a base for Objective 2.
 It is not the final VSG/FOVIC controller.
 It is not yet coupled with the complete PV+BESS+DC-link+LCL+PCC plant.
