@@ -43,6 +43,8 @@ def main() -> None:
         v_base=v_base,
         v_mg=v_mg,
         p_ss_kw=p_ss_kw,
+        res_line_base=res_line_base,
+        res_line_mg=res_line_mg,
         estado_lineas_base=estado_lineas_base,
         estado_lineas_mg=estado_lineas_mg,
         etiqueta_estado_lineas=etiqueta_estado_lineas,

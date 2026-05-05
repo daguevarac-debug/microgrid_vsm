@@ -28,16 +28,71 @@ def select_line_metric(
     raise ValueError("No se encontro una metrica valida para comparar el estado de lineas.")
 
 
+def build_ieee33_comparison_table(
+    pcc_bus_num: int,
+    p_ss_kw: float,
+    v_base: pd.Series,
+    v_mg: pd.Series,
+    res_line_base: pd.DataFrame,
+    res_line_mg: pd.DataFrame,
+    line_metric_base: np.ndarray,
+    line_metric_mg: np.ndarray,
+    line_metric_key: str,
+) -> pd.DataFrame:
+    """Build quantitative IEEE 33 comparison table for the reporting layer."""
+    losses_base_kw = float(res_line_base["pl_mw"].sum() * 1000.0)
+    losses_mg_kw = float(res_line_mg["pl_mw"].sum() * 1000.0)
+    losses_reduction_kw = losses_base_kw - losses_mg_kw
+    losses_reduction_pct = 100.0 * losses_reduction_kw / max(losses_base_kw, 1e-9)
+    line_metric_column = (
+        "Loading_max_pct" if line_metric_key == "loading_percent" else f"{line_metric_key}_max"
+    )
+
+    rows = [
+        {
+            "Caso": "Sin microrred",
+            "Nodo PCC": pcc_bus_num,
+            "P_inyectada_kW": 0.0,
+            "V_min_pu": float(v_base.min()),
+            "Nodo_V_min": int(v_base.idxmin() + 1),
+            "V_max_pu": float(v_base.max()),
+            "Nodo_V_max": int(v_base.idxmax() + 1),
+            "Perdidas_activas_kW": losses_base_kw,
+            "Reduccion_perdidas_kW": 0.0,
+            "Reduccion_perdidas_pct": 0.0,
+            "Nodos_menor_0_95_pu": int((v_base < 0.95).sum()),
+            line_metric_column: float(np.max(line_metric_base)),
+        },
+        {
+            "Caso": f"Con microrred nodo {pcc_bus_num}",
+            "Nodo PCC": pcc_bus_num,
+            "P_inyectada_kW": float(p_ss_kw),
+            "V_min_pu": float(v_mg.min()),
+            "Nodo_V_min": int(v_mg.idxmin() + 1),
+            "V_max_pu": float(v_mg.max()),
+            "Nodo_V_max": int(v_mg.idxmax() + 1),
+            "Perdidas_activas_kW": losses_mg_kw,
+            "Reduccion_perdidas_kW": losses_reduction_kw,
+            "Reduccion_perdidas_pct": losses_reduction_pct,
+            "Nodos_menor_0_95_pu": int((v_mg < 0.95).sum()),
+            line_metric_column: float(np.max(line_metric_mg)),
+        },
+    ]
+    return pd.DataFrame(rows)
+
+
 def print_ieee33_report(
     pcc_bus_num: int,
     p_ss_kw: float,
     v_base: pd.Series,
     v_mg: pd.Series,
+    res_line_base: pd.DataFrame,
+    res_line_mg: pd.DataFrame,
     line_metric_base: np.ndarray,
     line_metric_mg: np.ndarray,
     line_metric_label: str,
     line_metric_key: str,
-) -> None:
+) -> pd.DataFrame:
     """Print static IEEE 33 comparison using one-way sequential coupling."""
     print("\n" + "=" * 55)
     print("  PASO 2: Flujo de carga IEEE 33 - Postproceso estatico (one-way sequential coupling)")
@@ -65,4 +120,18 @@ def print_ieee33_report(
         f"  Valor maximo en lineas : {line_metric_base.max():.3f} -> "
         f"{line_metric_mg.max():.3f} (sin->con baseline)"
     )
+    comparison_table = build_ieee33_comparison_table(
+        pcc_bus_num=pcc_bus_num,
+        p_ss_kw=p_ss_kw,
+        v_base=v_base,
+        v_mg=v_mg,
+        res_line_base=res_line_base,
+        res_line_mg=res_line_mg,
+        line_metric_base=line_metric_base,
+        line_metric_mg=line_metric_mg,
+        line_metric_key=line_metric_key,
+    )
+    print("\n  Tabla comparativa IEEE 33:")
+    print(comparison_table.to_string(index=False))
     print("=" * 55)
+    return comparison_table

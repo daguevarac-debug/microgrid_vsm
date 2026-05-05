@@ -108,22 +108,28 @@ class _IEEE33CouplingMixin:
         v_base: pd.Series,
         v_mg: pd.Series,
         p_ss_kw: float,
+        res_line_base: pd.DataFrame,
+        res_line_mg: pd.DataFrame,
         estado_lineas_base: np.ndarray,
         estado_lineas_mg: np.ndarray,
         etiqueta_estado_lineas: str,
         metrica_lineas: str,
     ) -> None:
         """Imprimir reporte de comparacion sin/con microrred."""
-        print_ieee33_report(
+        tabla = print_ieee33_report(
             pcc_bus_num=self.pcc_bus_idx + 1,
             p_ss_kw=p_ss_kw,
             v_base=v_base,
             v_mg=v_mg,
+            res_line_base=res_line_base,
+            res_line_mg=res_line_mg,
             line_metric_base=estado_lineas_base,
             line_metric_mg=estado_lineas_mg,
             line_metric_label=etiqueta_estado_lineas,
             line_metric_key=metrica_lineas,
         )
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        tabla.to_csv(self.output_dir / "ieee33_comparacion_cuantitativa.csv", index=False)
 
     def graficar(
         self,

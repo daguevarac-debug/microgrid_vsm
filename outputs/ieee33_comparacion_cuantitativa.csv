@@ -1,0 +1,3 @@
+Caso,Nodo PCC,P_inyectada_kW,V_min_pu,Nodo_V_min,V_max_pu,Nodo_V_max,Perdidas_activas_kW,Reduccion_perdidas_kW,Reduccion_perdidas_pct,Nodos_menor_0_95_pu,Loading_max_pct
+Sin microrred,18,0.0,0.9037688490554027,18,1.0,1,211.0068220079741,0.0,0.0,21,52.71922222701377
+Con microrred nodo 18,18,3.3572346797084114,0.9040673055369621,18,1.0,1,210.45310784194675,0.5537141660273619,0.26241529101198285,21,52.67890529727518
