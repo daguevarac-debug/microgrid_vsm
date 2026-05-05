@@ -116,13 +116,14 @@ class _IEEE33CouplingMixin:
         metrica_lineas: str,
     ) -> None:
         """Imprimir reporte de comparacion sin/con microrred."""
-        tabla = print_ieee33_report(
+        tabla, lineas_criticas, resumen_perdidas = print_ieee33_report(
             pcc_bus_num=self.pcc_bus_idx + 1,
             p_ss_kw=p_ss_kw,
             v_base=v_base,
             v_mg=v_mg,
             res_line_base=res_line_base,
             res_line_mg=res_line_mg,
+            ramas=self.line_branches(),
             line_metric_base=estado_lineas_base,
             line_metric_mg=estado_lineas_mg,
             line_metric_label=etiqueta_estado_lineas,
@@ -130,6 +131,18 @@ class _IEEE33CouplingMixin:
         )
         self.output_dir.mkdir(parents=True, exist_ok=True)
         tabla.to_csv(self.output_dir / "ieee33_comparacion_cuantitativa.csv", index=False)
+        lineas_criticas.to_csv(
+            self.output_dir / "ieee33_lineas_criticas.csv",
+            index=False,
+            sep=";",
+            decimal=",",
+        )
+        resumen_perdidas.to_csv(
+            self.output_dir / "ieee33_resumen_perdidas.csv",
+            index=False,
+            sep=";",
+            decimal=",",
+        )
 
     def graficar(
         self,
