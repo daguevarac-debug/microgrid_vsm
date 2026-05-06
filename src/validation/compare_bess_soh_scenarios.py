@@ -16,6 +16,7 @@ import sys
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 from scipy.integrate import solve_ivp
 
@@ -218,6 +219,10 @@ def _save_figures(results: dict[str, dict[str, np.ndarray]]) -> list[str]:
             axes[0].plot(data["t"], data["soc_bess"], label=label)
             axes[1].plot(data["t"], data["soh_bess"], label=label)
         axes[0].set_ylabel("SoC [-]")
+        axes[0].ticklabel_format(axis="y", style="plain", useOffset=False)
+        axes[0].yaxis.set_major_formatter(
+            FuncFormatter(lambda value, _position: f"{value:.6f}".replace(".", ","))
+        )
         axes[1].set_xlabel("t [s]")
         axes[1].set_ylabel("SoH [-]")
         for ax in axes:
