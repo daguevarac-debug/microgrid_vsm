@@ -211,6 +211,25 @@ def _save_figures(results: dict[str, dict[str, np.ndarray]]) -> list[str]:
         except Exception as exc:
             warnings.append(f"warning=No se pudo guardar {filename}: {exc}")
             plt.close("all")
+    soc_soh_filename = "bess_soh_scenarios_soc_soh.png"
+    try:
+        fig, axes = plt.subplots(2, 1, sharex=True)
+        for label, data in results.items():
+            axes[0].plot(data["t"], data["soc_bess"], label=label)
+            axes[1].plot(data["t"], data["soh_bess"], label=label)
+        axes[0].set_ylabel("SoC [-]")
+        axes[1].set_xlabel("t [s]")
+        axes[1].set_ylabel("SoH [-]")
+        for ax in axes:
+            ax.grid(True)
+            ax.legend(loc="best")
+        fig.suptitle("Escenarios de degradación BESS-SLB: SoC(t) y SoH(t)")
+        fig.savefig(OUTPUT_DIR / soc_soh_filename, dpi=180, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Figura guardada: {soc_soh_filename}")
+    except Exception as exc:
+        warnings.append(f"warning=No se pudo guardar {soc_soh_filename}: {exc}")
+        plt.close("all")
     return warnings
 
 
