@@ -46,8 +46,8 @@ PROCESS_STEPS = [
         "process",
     ),
     (
-        "Simulación dinámica local",
-        "Condición nominal, perturbaciones y escenarios de comparación",
+        "Simulación dinámica local y escenarios",
+        "Caso nominal, perturbaciones, con/sin BESS y escenarios de SoH",
         "process",
     ),
     (
@@ -72,7 +72,7 @@ PROCESS_STEPS = [
     ),
     (
         "Flujo de carga comparativo",
-        "Sin microrred vs. con microrred",
+        "Sin microrred vs. con microrred en red de referencia",
         "process",
     ),
     (
