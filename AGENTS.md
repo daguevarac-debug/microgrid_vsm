@@ -62,6 +62,43 @@ This codebase is part of a research thesis. Changes must preserve scientific tra
 19. Do not treat `REVIEW` due to `Vdc/vt_bess` scale as numerical failure.
 20. Do not change the R-L load model, nominal load parameters, or load perturbations without updating `docs/model_assumptions.md` and running the load/scenario validations.
 21. Do not create one new validation script per islanded scenario; prefer consolidating them in `src/validation/validate_islanded_operation_scenarios.py`.
+22. Before any Objective 2 code change, preserve the controller-specific state mappings defined below. Never add, remove, shift, or reinterpret a state without updating initialization, dynamics, diagnostics, documentation, and validations in the same change.
+23. Do not infer the meaning of `x[10]` from vector length. In baseline/grid-following mode `x[10] = xi_vdc`; in GFM/VSG mode `x[10] = omega`. The active controller or explicit state-layout object must determine the interpretation.
+24. Do not add `omega` as an extra state while retaining `xi_vdc` in the initial VSG implementation. The selected GFM vector replaces `xi_vdc` with `omega`; keeping both would create a separate 16-state hybrid architecture that requires a new explicit decision.
+25. Do not use a nested or second `solve_ivp` for `GridFormingFrequencyDynamics`. Plant, `omega`, `theta`, and BESS states must be integrated by one global solver when GFM integration is explicitly authorized.
+
+## Protected state vector mappings for Objective 2
+
+These orders are protected until an explicit architecture change is approved:
+
+```text
+Baseline/grid-following without BESS, 12 states:
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, xi_vdc, theta]
+
+GFM/VSG without BESS, 12 states:
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, omega, theta]
+
+Baseline/grid-following with BESS, 15 states:
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, xi_vdc, theta,
+ soc_bess, vrc_bess, zdeg_bess]
+
+GFM/VSG with BESS, 15 states:
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, omega, theta,
+ soc_bess, vrc_bess, zdeg_bess]
+```
+
+Additional protections:
+- `x[0:10]` keeps the same plant-state meaning in both modes.
+- `x[11]` remains `theta` in both modes.
+- BESS states remain at `x[12]`, `x[13]`, and `x[14]` in both 15-state modes.
+- GFM initial conditions must use `x[10] = omega_ref` and `x[11] = theta0`.
+- Baseline initial conditions must keep `x[10] = xi_vdc0` and `x[11] = theta0`.
+- Existing baseline validations must remain baseline regressions unless explicitly extended to a separate GFM mode.
+- `validate_islanded_operation_scenarios.py` and `compare_bess_soh_scenarios.py` must not be silently converted from baseline validation to GFM validation.
 
 ## BESS-SLB mandatory conventions
 
@@ -132,7 +169,9 @@ Avoid:
 
 ## Baseline validation checklist
 After any non-trivial edit, verify:
-- state vector order is unchanged
+- the controller-specific state mapping is explicit and unchanged for unaffected modes
+- `x[10]` has the correct meaning for the active controller
+- GFM uses `omega(0) = omega_ref`; baseline uses the existing `xi_vdc` initialization
 - physical equations are unchanged unless requested
 - control signal flow is unchanged unless requested
 - public imports still work
@@ -166,6 +205,8 @@ Contains traceability and thesis-scope documentation.
 - `model_assumptions.md` — baseline model assumptions and internal validation criteria.
 - `grid_forming_minimal_structure.md` — mathematical structure of the minimal GFM block.
 - `grid_forming_plant_control_interface.md` — plant-control interface for transition to Objective 2.
+- `obj2_scope.md` — Objective 2 control-selection and plant-interface decisions.
+- `activity_2_1_scope.md` — Activity 2.1 minimum formulation, state order, and done criteria.
 
 ### `bess/` (BESS-SLB package)
 Contains the second-life battery model:
