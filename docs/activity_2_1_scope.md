@@ -53,6 +53,42 @@ x_gfm_bess = x_gfm + [soc_bess, vrc_bess, zdeg_bess]
 
 La formulación también deberá fijar que `P_ref_eff` es una referencia activa ya limitada por la capa que corresponda. En la Actividad 2.1 podrá emplearse una referencia fija o una limitación mínima coherente con la potencia disponible, pero no deberá presentarse todavía como protección final del BESS-SLB.
 
+## Decisión de integración temporal de `omega`
+
+`omega` formará parte del vector principal integrado por `Microgrid.system_dynamics`. `GridFormingFrequencyDynamics` podrá conservarse como subbloque de software encargado de evaluar `dtheta/dt` y `domega/dt`, pero no tendrá una llamada independiente a `solve_ivp` ni mantendrá una trayectoria temporal separada.
+
+La razón es que la frecuencia y la planta eléctrica están acopladas en ambos sentidos dentro del mismo instante de simulación:
+
+```text
+omega -> theta -> v_inv_abc -> estados LCL -> P_e -> domega/dt
+```
+
+Si el bloque GFM se resolviera mediante otro `solve_ivp`, sería necesario sincronizar dos integradores, interpolar señales y decidir cuál de los dos avanza primero. Ese esquema introduciría retardo numérico o acoplamiento secuencial y ya no representaría una sola ODE continua. También dificultaría reproducir los pasos aceptados o rechazados por el integrador adaptativo.
+
+La arquitectura seleccionada será:
+
+```text
+Un único solve_ivp
+    -> llama Microgrid.system_dynamics(t, x)
+    -> Microgrid extrae omega y theta del vector global
+    -> calcula P_e con la planta en el mismo estado x
+    -> llama GridFormingFrequencyDynamics para obtener dtheta/dt y domega/dt
+    -> devuelve todas las derivadas juntas
+```
+
+De este modo, `GridFormingFrequencyDynamics` será un subbloque matemático, pero sus estados pertenecerán al sistema global. El subbloque no deberá modificar memoria interna ni integrar por su cuenta.
+
+El baseline grid-following mantendrá su interpretación actual de `x[10] = xi_vdc` y `x[11] = theta`. El modo GFM tendrá un mapeo explícito distinto: `x[10] = omega` y `x[11] = theta`. La implementación deberá distinguir ambos modos de forma visible mediante funciones de inicialización, nombres o clases específicas; no deberá reinterpretar silenciosamente el mismo vector sin indicar el controlador activo.
+
+Las condiciones iniciales del modo GFM serán:
+
+```text
+omega(0) = omega_ref
+theta(0) = theta0
+```
+
+Esta decisión aplica también a `MicrogridWithBESS`: `omega` y `theta` permanecerán en el vector principal, seguidos por `soc_bess`, `vrc_bess` y `zdeg_bess`. No habrá un integrador separado para la batería ni para la dinámica GFM.
+
 ## Interfaz mínima del controlador
 
 El controlador GFM deberá implementar `InverterControllerBase` o una interfaz compatible explícitamente documentada. Deberá recibir como mínimo `theta`, `omega`, `Vdc`, `P_e`, la referencia activa efectiva y los parámetros necesarios de la planta para modular la tensión y calcular el intercambio DC/AC.
@@ -69,6 +105,7 @@ La formulación se declarará cerrada únicamente cuando se cumplan simultáneam
 |---|---|
 | La ecuación de `domega/dt` es única y no contiene `s^mu` | Ecuación documentada con signos y unidades |
 | El orden del vector de estados está fijado | Definición explícita de los vectores de 12 y 15 posiciones |
+| La integración temporal está fijada | Un único `solve_ivp` integra planta, `omega`, `theta` y BESS |
 | `P_e` tiene una definición única | Cálculo en el PCC con la tensión R-L completa |
 | Las entradas y salidas del controlador están fijadas | Firma o contrato documentado |
 | Las condiciones iniciales están definidas | `omega(0) = omega_ref` y `theta(0) = theta0` |
@@ -85,7 +122,7 @@ La Actividad 2.1 se considerará terminada solo cuando el controlador GFM mínim
 | Resultado mínimo | Criterio de aceptación |
 |---|---|
 | Controlador GFM integrado | `Microgrid.system_dynamics` puede ejecutar el modo GFM sin usar la dinámica fija del `GridFollowingController` |
-| Estados GFM integrados | `omega` y `theta` pertenecen al vector resuelto por `solve_ivp`; no existe memoria dinámica oculta |
+| Estados GFM integrados | `omega` y `theta` pertenecen al vector resuelto por el único `solve_ivp`; no existe memoria dinámica oculta ni integrador anidado |
 | Potencia eléctrica coherente | `P_e` usa la tensión PCC R-L completa y la corriente `i2_abc` |
 | Modulación funcional | `v_inv_abc` se genera desde `theta`, `V_ref`, `Vdc` y el límite de modulación |
 | Intercambio DC/AC conservado | `idc_inv` mantiene la convención y la ecuación validada del enlace DC |
