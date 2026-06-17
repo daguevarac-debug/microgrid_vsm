@@ -175,6 +175,40 @@ domega/dt = (P_ref_eff - P_e + delta_P_FOVIC
 
 La extensión FOVIC solo se implementará después de que la swing clásica esté integrada y validada. Deberá demostrar una mejora medible frente a la línea base en nadir de frecuencia, RoCoF, tiempo de establecimiento y exigencia de potencia o energía del BESS. Si la mejora no compensa el aumento de estados, parámetros y complejidad numérica, la estrategia final permanecerá como VSG clásico supervisado.
 
+### Punto de entrada futuro para FOVIC
+
+La evaluación detallada de compatibilidad se encuentra en `docs/fovic_reuse_evaluation.md`. Su conclusión es que `FOVICInverter.compute_delta_P_ESS()` no debe llamarse directamente desde `GFMController`, porque actualiza estados privados mediante Euler explícito y requiere un `dt` externo. `FOVICInverter` permanecerá sin cambios como prototipo de investigación mientras se valida el VSG clásico.
+
+El punto de entrada aprobado para una futura extensión será un subsistema de derivadas sin memoria oculta, con una interfaz conceptual equivalente a:
+
+```text
+fovic_rhs(t, x_fovic, delta_f, bess_limits)
+    -> dx_fovic_dt, delta_P_FOVIC_limited
+```
+
+con:
+
+```text
+x_fovic = [x_oust_0, ..., x_oust_2N, x_dc, x_bess_filter]
+delta_f = (omega - omega_ref) / (2*pi)
+```
+
+La futura ruta de señales será:
+
+```text
+Microgrid.system_dynamics
+    -> extrae x_fovic del vector global
+    -> calcula delta_f desde omega
+    -> obtiene límites de carga y descarga de la capa supervisora BESS-SLB
+    -> evalúa fovic_rhs sin modificar memoria interna
+    -> recibe dx_fovic_dt y delta_P_FOVIC_limited
+    -> incorpora delta_P_FOVIC_limited en la ecuación swing
+```
+
+Todos los estados FOVIC deberán integrarse con el mismo `solve_ivp` de la planta. La función no recibirá `dt`, no ejecutará Euler interno y no sustituirá los estados físicos `soc_bess`, `vrc_bess` y `zdeg_bess`. La incorporación de `x_fovic` al vector global requerirá una decisión arquitectónica posterior, actualización de `AGENTS.md`, condiciones iniciales, funciones de posprocesamiento y pruebas de regresión.
+
+No se creará todavía un `FOVICController` ni se modificará la firma pública de `GFMController`. La extensión solo avanzará después de completar la validación del VSG clásico y demostrar que el beneficio medido justifica el aumento de estados y parámetros.
+
 ### Decisión cerrada para implementación
 
 ```text
@@ -182,6 +216,7 @@ Primera versión: swing clásica reducida
 Término fraccionario s^mu: no incluido
 Protección BESS-SLB: aplicada sobre P_ref_eff en una capa separada
 FOVIC: extensión comparativa posterior, no requisito de la primera integración
+Punto de entrada futuro: fovic_rhs con estados explícitos y sin dt externo
 ```
 
 ## Criterios para la integración posterior
@@ -194,4 +229,4 @@ La futura implementación basada en `GridFormingFrequencyDynamics` deberá conse
 
 ## Estado de esta definición
 
-La interfaz, la base arquitectónica y la forma inicial de la ecuación de frecuencia quedan documentadas, pero no implementadas. El baseline continúa usando `GridFollowingController`; `GridFormingFrequencyDynamics` permanece aislado y la regla 12 de `AGENTS.md` sigue vigente. Cualquier modificación posterior de la firma de `compute_control`, del vector de estados, del cálculo de `v_pcc_abc` o de la integración de estados GFM deberá realizarse en una subtarea específica, con actualización de pruebas y trazabilidad documental.
+La primera integración mantiene el VSG clásico como estrategia vigente y conserva el baseline grid-following como referencia. `FOVICInverter` no está conectado a `Microgrid.system_dynamics` y permanece como extensión comparativa futura. Su eventual incorporación deberá seguir el punto de entrada `fovic_rhs` definido en este documento y los requisitos de refactorización registrados en `docs/fovic_reuse_evaluation.md`.
