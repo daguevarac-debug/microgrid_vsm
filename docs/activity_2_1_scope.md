@@ -53,6 +53,65 @@ x_gfm_bess = x_gfm + [soc_bess, vrc_bess, zdeg_bess]
 
 La formulación también deberá fijar que `P_ref_eff` es una referencia activa ya limitada por la capa que corresponda. En la Actividad 2.1 podrá emplearse una referencia fija o una limitación mínima coherente con la potencia disponible, pero no deberá presentarse todavía como protección final del BESS-SLB.
 
+## Verificación contra `MicrogridWithBESS.initial_state_with_bess()`
+
+La lista propuesta con `xi_vdc`, `theta` y `omega` simultáneamente no contiene 15 estados, sino 16:
+
+```text
+1 Vdc
++ 3 i1
++ 3 vc
++ 3 i2
++ 1 xi_vdc
++ 1 theta
++ 1 omega
++ 3 estados BESS
+= 16 estados
+```
+
+Ese vector correspondería a una arquitectura híbrida que conserva el integrador PI grid-following y añade la frecuencia dinámica GFM. No es el alcance inicial seleccionado para la Actividad 2.1.
+
+El vector objetivo correcto para el modo GFM con BESS tendrá 15 estados:
+
+```text
+x_gfm_bess = [
+    Vdc,                       # x[0]
+    i1_a, i1_b, i1_c,         # x[1:4]
+    vc_a, vc_b, vc_c,         # x[4:7]
+    i2_a, i2_b, i2_c,         # x[7:10]
+    omega,                     # x[10]
+    theta,                     # x[11]
+    soc_bess,                  # x[12]
+    vrc_bess,                  # x[13]
+    zdeg_bess,                 # x[14]
+]
+```
+
+La función actual `MicrogridWithBESS.initial_state_with_bess()` ya devuelve 15 valores, pero todavía con la semántica del baseline grid-following:
+
+```text
+x_baseline_bess = [
+    Vdc,
+    i1_a, i1_b, i1_c,
+    vc_a, vc_b, vc_c,
+    i2_a, i2_b, i2_c,
+    xi_vdc,
+    theta,
+    soc_bess,
+    vrc_bess,
+    zdeg_bess,
+]
+```
+
+La longitud actual coincide con el objetivo GFM, pero `x[10]` aún se inicializa en cero como `xi_vdc`; no contiene `omega_ref`. La futura implementación deberá introducir una inicialización explícita para modo GFM con:
+
+```text
+x[10] = omega_ref
+x[11] = theta0
+```
+
+No debe modificarse silenciosamente `initial_state_with_bess()` de forma que rompa el baseline grid-following. La solución deberá diferenciar la inicialización según el controlador activo o proporcionar una función específica para el modo GFM.
+
 ## Decisión de integración temporal de `omega`
 
 `omega` formará parte del vector principal integrado por `Microgrid.system_dynamics`. `GridFormingFrequencyDynamics` podrá conservarse como subbloque de software encargado de evaluar `dtheta/dt` y `domega/dt`, pero no tendrá una llamada independiente a `solve_ivp` ni mantendrá una trayectoria temporal separada.
