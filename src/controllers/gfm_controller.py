@@ -56,16 +56,16 @@ class GFMController(InverterControllerBase):
 
     The method signature intentionally matches ``GridFollowingController`` so
     the controller can be introduced without changing the current plant-control
-    call boundary in this subtask. Under the protected GFM state mapping,
-    ``xi_vdc`` carries ``omega = x[10]`` and the returned
-    ``d_xi_vdc_dt`` carries ``domega/dt``. A later integration subtask must make
-    the active state layout explicit in ``Microgrid`` before this controller is
-    connected to the main ODE.
+    call boundary. Under the protected GFM state mapping, ``xi_vdc`` in the
+    compatibility signature carries ``omega = x[10]`` and the returned
+    ``d_xi_vdc_dt`` carries ``domega/dt``.
 
     The supplied ``v_pcc`` must be the complete R-L PCC voltage when the class
-    is integrated. The legacy resistive approximation is not sufficient for the
-    final GFM active-power feedback.
+    is fully integrated. The legacy resistive approximation is not sufficient
+    for the final GFM active-power feedback.
     """
+
+    controller_state_name = "omega"
 
     def __init__(
         self,
@@ -105,6 +105,10 @@ class GFMController(InverterControllerBase):
         """Nominal angular frequency used by the reduced swing equation."""
         return self.frequency_dynamics.omega_ref
 
+    def initial_controller_state(self) -> float:
+        """Return omega_ref for the protected GFM state x[10]."""
+        return self.omega_ref
+
     def compute_control(
         self,
         t: float,
@@ -120,8 +124,7 @@ class GFMController(InverterControllerBase):
         """Return GFM voltage synthesis, power exchange and angular derivatives."""
         t = _finite_float("GFMController.t", t)
         theta = _finite_float("GFMController.theta", theta)
-        # Transitional compatibility mapping required by the current base
-        # contract: in GFM mode x[10] is omega, not the GFL PI state xi_vdc.
+        # Compatibility mapping: in GFM mode x[10] is omega, not xi_vdc.
         omega = _finite_float("GFMController.omega", xi_vdc)
         vdc_eff = _nonnegative_float("GFMController.vdc_eff", vdc_eff)
         ipv = _finite_float("GFMController.ipv", ipv)
