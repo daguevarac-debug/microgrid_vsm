@@ -68,8 +68,18 @@ class GridFollowingController(InverterControllerBase):
 
     @property
     def omega_ref(self) -> float:
-        """Fixed angular frequency in baseline mode."""
+        """Fixed angular-frequency reference in baseline mode."""
         return self.modulator.omega
+
+    @property
+    def omega(self) -> float:
+        """Return the constant baseline angular frequency."""
+        return self.omega_ref
+
+    @property
+    def d_omega_dt(self) -> float:
+        """Return zero because baseline frequency is not a dynamic state."""
+        return 0.0
 
     def compute_control(
         self,
@@ -94,7 +104,7 @@ class GridFollowingController(InverterControllerBase):
         else:
             xi_dot = vdc_error
 
-        d_theta_dt = self.omega_ref
+        d_theta_dt = self.omega
         pref_scale = max(min(self.p_ref, p_available), 1.0)
         m_ctrl = self.m_base * float(np.clip(p_cmd / pref_scale, 0.0, 1.0))
 
