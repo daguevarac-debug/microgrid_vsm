@@ -38,7 +38,7 @@ class TestMicrogridControllerStateMapping(unittest.TestCase):
     def test_grid_following_keeps_fixed_omega_without_reinterpreting_xi_vdc(self) -> None:
         controller = GridFollowingController(
             vdc_ref=400.0,
-            p_ref=0.0,
+            p_ref=1.0,
             kp_vdc=0.0,
             ki_vdc=0.0,
         )
