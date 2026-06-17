@@ -118,8 +118,7 @@ class GFMController(InverterControllerBase):
         ipv: float,
     ) -> ControlOutput:
         """Return GFM voltage synthesis, power exchange and angular derivatives."""
-        del t
-
+        t = _finite_float("GFMController.t", t)
         theta = _finite_float("GFMController.theta", theta)
         # Transitional compatibility mapping required by the current base
         # contract: in GFM mode x[10] is omega, not the GFL PI state xi_vdc.
@@ -134,9 +133,9 @@ class GFMController(InverterControllerBase):
         p_ref_eff = float(np.clip(self.p_ref, 0.0, p_available))
         p_e = float(np.dot(v_pcc, i2))
 
-        d_theta_dt = self.frequency_dynamics.theta_derivative(theta, omega)
-        d_omega_dt = self.frequency_dynamics.omega_derivative(
-            omega=omega,
+        d_theta_dt, d_omega_dt = self.frequency_dynamics.rhs(
+            t=t,
+            x=[theta, omega],
             p_e=p_e,
             p_ref=p_ref_eff,
         )
