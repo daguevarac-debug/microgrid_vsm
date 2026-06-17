@@ -1,0 +1,110 @@
+from __future__ import annotations
+
+import sys
+import unittest
+from pathlib import Path
+from types import SimpleNamespace
+
+import numpy as np
+
+# Allow direct execution from repository root or from this file location.
+THIS_FILE = Path(__file__).resolve()
+SRC_DIR = THIS_FILE.parents[1]
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from controllers.gfm_controller import GFMController
+
+
+class TestGFMController(unittest.TestCase):
+    """Unit checks for the minimum GFM controller frequency response."""
+
+    def setUp(self) -> None:
+        self.plant = SimpleNamespace(
+            eta=1.0,
+            v_uvlo=100.0,
+            dcp=SimpleNamespace(Vmin=1.0),
+        )
+        self.vdc_eff = 400.0
+        self.ipv = 10.0
+        self.i1 = np.zeros(3)
+
+    @staticmethod
+    def _pcc_vectors_for_power(power_w: float) -> tuple[np.ndarray, np.ndarray]:
+        """Return finite phase vectors whose dot product equals power_w."""
+        v_pcc = np.full(3, 100.0)
+        i2 = np.full(3, power_w / 300.0)
+        return v_pcc, i2
+
+    def _compute_output(
+        self,
+        controller: GFMController,
+        omega: float,
+        p_e: float,
+    ):
+        v_pcc, i2 = self._pcc_vectors_for_power(p_e)
+        return controller.compute_control(
+            t=0.0,
+            theta=0.0,
+            xi_vdc=omega,
+            vdc_eff=self.vdc_eff,
+            v_pcc=v_pcc,
+            i1=self.i1,
+            i2=i2,
+            plant=self.plant,
+            ipv=self.ipv,
+        )
+
+    def test_power_equilibrium_gives_zero_frequency_derivative(self) -> None:
+        controller = GFMController(
+            p_ref=1000.0,
+            inertia_m=2.0,
+            damping_d=5.0,
+        )
+
+        output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=1000.0,
+        )
+
+        self.assertAlmostEqual(output.p_pcc, 1000.0)
+        self.assertAlmostEqual(output.p_cmd, 1000.0)
+        self.assertAlmostEqual(output.d_xi_vdc_dt, 0.0)
+
+    def test_excess_electrical_power_causes_frequency_drop(self) -> None:
+        controller = GFMController(
+            p_ref=1000.0,
+            inertia_m=2.0,
+            damping_d=5.0,
+        )
+
+        output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=1200.0,
+        )
+
+        self.assertLess(output.d_xi_vdc_dt, 0.0)
+
+    def test_positive_damping_recovers_frequency_below_reference(self) -> None:
+        controller = GFMController(
+            p_ref=1000.0,
+            inertia_m=2.0,
+            damping_d=5.0,
+        )
+        omega = controller.omega_ref - 1.0
+
+        output = self._compute_output(
+            controller=controller,
+            omega=omega,
+            p_e=1000.0,
+        )
+
+        expected_domega_dt = controller.frequency_dynamics.damping_d / controller.frequency_dynamics.inertia_m
+        self.assertGreater(output.d_xi_vdc_dt, 0.0)
+        self.assertAlmostEqual(output.d_xi_vdc_dt, expected_domega_dt)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
