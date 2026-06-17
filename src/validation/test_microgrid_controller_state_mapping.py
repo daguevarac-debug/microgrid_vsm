@@ -64,6 +64,25 @@ class TestMicrogridControllerStateMapping(unittest.TestCase):
         self.assertAlmostEqual(derivatives[10], 0.0)
         self.assertAlmostEqual(derivatives[11], controller.omega_ref)
 
+    def test_compute_step_control_passes_omega_and_returns_domega_dt(self) -> None:
+        inertia_m = 2.0
+        damping_d = 5.0
+        controller = GFMController(
+            p_ref=0.0,
+            inertia_m=inertia_m,
+            damping_d=damping_d,
+        )
+        model = self._build_model(controller=controller)
+        x0 = model.initial_state()
+        omega = controller.omega_ref - 1.0
+        x0[10] = omega
+
+        derivatives = model.system_dynamics(t=0.0, x=x0)
+
+        expected_domega_dt = damping_d / inertia_m
+        self.assertAlmostEqual(derivatives[10], expected_domega_dt)
+        self.assertAlmostEqual(derivatives[11], omega)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
