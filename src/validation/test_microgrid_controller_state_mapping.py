@@ -12,6 +12,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from controllers.gfm_controller import GFMController
+from controllers.grid_following import GridFollowingController
 from microgrid import Microgrid
 
 
@@ -33,6 +34,24 @@ class TestMicrogridControllerStateMapping(unittest.TestCase):
         self.assertEqual(model.controller_state_name, "xi_vdc")
         self.assertEqual(x0[10], 0.0)
         self.assertEqual(x0[11], model.controller.modulator.theta0)
+
+    def test_grid_following_keeps_fixed_omega_without_reinterpreting_xi_vdc(self) -> None:
+        controller = GridFollowingController(
+            vdc_ref=400.0,
+            p_ref=1000.0,
+            kp_vdc=4.0,
+            ki_vdc=30.0,
+        )
+        model = self._build_model(controller=controller)
+        x = model.initial_state(vdc0=controller.vdc_ref + 1.0)
+        x[10] = 0.2
+
+        derivatives = model.system_dynamics(t=0.0, x=x)
+
+        self.assertEqual(controller.omega, controller.omega_ref)
+        self.assertEqual(controller.d_omega_dt, 0.0)
+        self.assertAlmostEqual(derivatives[11], controller.omega_ref)
+        self.assertAlmostEqual(derivatives[10], 1.0)
 
     def test_gfm_replaces_xi_vdc_with_omega_at_x10(self) -> None:
         controller = GFMController(
