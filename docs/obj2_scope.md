@@ -118,14 +118,80 @@ FOVICInverter: comparador o extensión posterior, previa refactorización
 
 Esta decisión no elimina la revisión futura de control droop, FOVIC u otras variantes. Tampoco fija aún los valores de `J`, `M`, `D`, `P_ref`, límites de potencia inercial ni criterios cuantitativos de sintonía.
 
+## Forma seleccionada para la dinámica de frecuencia
+
+La primera implementación usará la ecuación swing clásica reducida en el dominio de potencia. No se incluirá el operador fraccionario `s^mu` de Nour et al. (2023) en esta etapa. La dinámica que deberá implementarse es:
+
+```text
+dtheta/dt = omega
+
+domega/dt = (P_ref_eff - P_e - D_omega*(omega - omega_ref)) / M_omega
+```
+
+con:
+
+```text
+P_ref_eff = referencia activa después de aplicar los límites de potencia del sistema y del BESS-SLB
+P_e       = potencia activa estimada en el PCC
+D_omega   = coeficiente de amortiguamiento en el dominio potencia-frecuencia
+M_omega   = coeficiente de inercia efectiva en el dominio potencia-frecuencia
+```
+
+La convención de signos será:
+
+```text
+P_ref_eff - P_e > 0  -> domega/dt > 0, salvo el efecto del amortiguamiento
+P_ref_eff - P_e < 0  -> domega/dt < 0, salvo el efecto del amortiguamiento
+```
+
+Esta forma coincide con la estructura ya implementada en `GridFormingFrequencyDynamics` y evita mezclar potencia y par mecánico sin declarar la conversión. Si se desea relacionar el parámetro efectivo con un momento de inercia virtual `J`, podrá emplearse la aproximación alrededor de la frecuencia nominal:
+
+```text
+M_omega = J * omega_ref
+```
+
+De esta manera, la ecuación procede de la forma mecánica clásica:
+
+```text
+J*domega/dt = T_ref - T_e - D_T*(omega - omega_ref)
+```
+
+usando `P = T*omega` y aproximando la conversión par-potencia alrededor de `omega_ref`. En el código y en los resultados de la primera implementación se mantendrá `M_omega` como parámetro efectivo, salvo que una subtarea posterior establezca una parametrización física completa en términos de `J`.
+
+La referencia `P_ref_eff` no representa por sí sola una protección de batería. Su valor deberá ser calculado por una capa supervisora separada que considere, como mínimo, SoC, SoH, corriente disponible y potencia disponible. El núcleo swing solo recibirá la referencia ya limitada. Esto mantiene separadas la dinámica de frecuencia y la protección del almacenamiento.
+
+### Tratamiento del término fraccionario
+
+El término fraccionario no se añadirá directamente dentro de `domega/dt` en la implementación inicial. En Nour et al. (2023), el operador `s^mu` forma parte de una trayectoria auxiliar que genera una contribución de potencia del ESS a partir de la desviación de frecuencia. En una extensión futura, su efecto deberá representarse mediante estados adicionales y una potencia auxiliar explícita:
+
+```text
+delta_P_FOVIC = salida realizable del bloque fraccionario y de los filtros DC/BESS
+
+domega/dt = (P_ref_eff - P_e + delta_P_FOVIC
+              - D_omega*(omega - omega_ref)) / M_omega
+```
+
+`delta_P_FOVIC` deberá saturarse con los límites de carga y descarga antes de entrar en la ecuación. No se permitirá escribir `s^mu` como un término algebraico dentro de la función ODE, porque un operador fraccionario necesita memoria y una realización numérica explícita.
+
+La extensión FOVIC solo se implementará después de que la swing clásica esté integrada y validada. Deberá demostrar una mejora medible frente a la línea base en nadir de frecuencia, RoCoF, tiempo de establecimiento y exigencia de potencia o energía del BESS. Si la mejora no compensa el aumento de estados, parámetros y complejidad numérica, la estrategia final permanecerá como VSG clásico supervisado.
+
+### Decisión cerrada para implementación
+
+```text
+Primera versión: swing clásica reducida
+Término fraccionario s^mu: no incluido
+Protección BESS-SLB: aplicada sobre P_ref_eff en una capa separada
+FOVIC: extensión comparativa posterior, no requisito de la primera integración
+```
+
 ## Criterios para la integración posterior
 
 La implementación futura deberá mantener separadas tres responsabilidades. `HardwarePlant` conservará las ecuaciones físicas; `Microgrid` ensamblará estados y calculará mediciones algebraicas como `v_pcc_abc` y `P_e`; el controlador GFM producirá la dinámica de `theta` y `omega`, la referencia de tensión y las señales de actuación. Esta separación evita que el controlador reconstruya por su cuenta la física del filtro o de la carga.
 
-Antes de conectar el GFM a `Microgrid.system_dynamics`, deberá verificarse que `P_e` usa la tensión PCC R-L completa, que su convención de signo coincide con `P_ref - P_e`, que no se introduce un nuevo estado innecesario y que la medición no depende del valor aproximado empleado actualmente por el baseline grid-following.
+Antes de conectar el GFM a `Microgrid.system_dynamics`, deberá verificarse que `P_e` usa la tensión PCC R-L completa, que su convención de signo coincide con `P_ref_eff - P_e`, que no se introduce un nuevo estado innecesario y que la medición no depende del valor aproximado empleado actualmente por el baseline grid-following.
 
 La futura implementación basada en `GridFormingFrequencyDynamics` deberá conservar la compatibilidad con `InverterControllerBase`, exponer explícitamente las derivadas de los estados GFM y mantener las restricciones del BESS fuera del núcleo swing. No se conectará `FOVICInverter` a `Microgrid.system_dynamics` mientras sus estados dinámicos permanezcan ocultos y actualizados internamente.
 
 ## Estado de esta definición
 
-La interfaz y la base arquitectónica inicial quedan documentadas, pero no implementadas. El baseline continúa usando `GridFollowingController`; `GridFormingFrequencyDynamics` permanece aislado y la regla 12 de `AGENTS.md` sigue vigente. Cualquier modificación posterior de la firma de `compute_control`, del vector de estados, del cálculo de `v_pcc_abc` o de la integración de estados GFM deberá realizarse en una subtarea específica, con actualización de pruebas y trazabilidad documental.
+La interfaz, la base arquitectónica y la forma inicial de la ecuación de frecuencia quedan documentadas, pero no implementadas. El baseline continúa usando `GridFollowingController`; `GridFormingFrequencyDynamics` permanece aislado y la regla 12 de `AGENTS.md` sigue vigente. Cualquier modificación posterior de la firma de `compute_control`, del vector de estados, del cálculo de `v_pcc_abc` o de la integración de estados GFM deberá realizarse en una subtarea específica, con actualización de pruebas y trazabilidad documental.
