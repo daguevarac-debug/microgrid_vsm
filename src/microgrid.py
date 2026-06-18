@@ -582,6 +582,19 @@ class MicrogridWithBESS(Microgrid):
         p_available = self.vdc_ref * i_available
         return min(self.p_bess_max_w, p_available)
 
+    def _available_p_bess_support_w(
+        self,
+        soc_bess: float,
+        soh_bess: float | None = None,
+    ) -> float:
+        """Return BESS DC power available for discharge support."""
+        soc_eval = _finite_float("soc_bess", soc_bess)
+        if soc_eval < 0.0 or soc_eval > 1.0:
+            raise ValueError(f"soc_bess must be within [0, 1], got {soc_eval}.")
+        if soc_eval <= self.bess.soc_min:
+            return 0.0
+        return self._available_p_bess_max_w(soh_bess)
+
     def _compute_i_bess(self, Vdc: float, soc_bess: float, soh_bess: float | None = None) -> float:
         """Simple proportional DC-link support with SoC, SoH, current and power limits."""
         Vdc = _finite_float("Vdc", Vdc)
@@ -615,7 +628,10 @@ class MicrogridWithBESS(Microgrid):
 
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
-        p_bess_dc_max_available = self._available_p_bess_max_w(soh_bess)
+        p_bess_dc_max_available = self._available_p_bess_support_w(
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+        )
         Ipv, load_t, control = self._compute_step_control(
             t,
             Vdc,
@@ -689,7 +705,10 @@ class MicrogridWithBESS(Microgrid):
 
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
-        p_bess_dc_max_available = self._available_p_bess_max_w(soh_bess)
+        p_bess_dc_max_available = self._available_p_bess_support_w(
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+        )
         _, load_t, control = self._compute_step_control(
             t,
             Vdc,
