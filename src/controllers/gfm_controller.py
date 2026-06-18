@@ -98,9 +98,11 @@ class GFMController(InverterControllerBase):
     is fully integrated. The legacy resistive approximation is not sufficient
     for the final GFM active-power feedback.
 
-    When BESS supervision is active, its DC-side power limit is converted to
-    the AC side with ``plant.eta`` and added to the available PV power before
-    saturating ``p_ref_eff``.
+    When BESS supervision is active, the adopted SoH policy keeps the nominal
+    virtual inertia ``inertia_m`` unchanged. Battery aging instead reduces the
+    available inertial-support power through ``p_bess_dc_max_available``,
+    calculated by the external BESS supervision layer. This DC-side limit is
+    converted to the AC side with ``plant.eta`` before limiting ``p_ref_eff``.
     """
 
     controller_state_name = "omega"
@@ -182,13 +184,32 @@ class GFMController(InverterControllerBase):
         )
 
         p_pv_ac_available = max(vdc_eff * ipv * plant.eta, 0.0)
-        p_bess_ac_available = (
+
+        # Adopted SoH policy:
+        # - Keep the nominal virtual inertia M unchanged.
+        # - Degrade the realizable inertial-support power through the
+        #   SoH-dependent BESS power limit supplied by the BMS layer.
+        p_inertia_dc_max_available = (
             0.0
             if p_bess_dc_max_available is None
-            else float(p_bess_dc_max_available) * plant.eta
+            else float(p_bess_dc_max_available)
+        )
+        p_inertia_ac_max_available = (
+            p_inertia_dc_max_available * plant.eta
+        )
+        p_inertia_ac_requested = max(
+            self.p_ref - p_pv_ac_available,
+            0.0,
+        )
+        p_inertia_ac_effective = min(
+            p_inertia_ac_requested,
+            p_inertia_ac_max_available,
         )
         p_ref_eff = float(
-            min(self.p_ref, p_pv_ac_available + p_bess_ac_available)
+            min(
+                self.p_ref,
+                p_pv_ac_available + p_inertia_ac_effective,
+            )
         )
         p_e = float(np.dot(v_pcc, i2))
 

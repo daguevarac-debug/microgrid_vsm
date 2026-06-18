@@ -59,10 +59,13 @@ class TestGFMController(unittest.TestCase):
         )
 
     @staticmethod
-    def _bess_supervision(p_bess_dc_max_available: float) -> dict[str, float]:
+    def _bess_supervision(
+        p_bess_dc_max_available: float,
+        soh_bess: float = 0.80,
+    ) -> dict[str, float]:
         return {
             "soc_bess": 0.60,
-            "soh_bess": 0.80,
+            "soh_bess": soh_bess,
             "i_bess_max_available": 20.0,
             "p_bess_dc_max_available": p_bess_dc_max_available,
         }
@@ -154,6 +157,40 @@ class TestGFMController(unittest.TestCase):
         )
 
         self.assertAlmostEqual(output.p_cmd, 4000.0)
+
+    def test_soh_degrades_support_power_without_changing_inertia(self) -> None:
+        self.plant.eta = 0.90
+        controller = GFMController(
+            p_ref=5000.0,
+            inertia_m=2.0,
+        )
+
+        high_soh_output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=0.0,
+            bess_supervision=self._bess_supervision(
+                p_bess_dc_max_available=1000.0,
+                soh_bess=1.0,
+            ),
+        )
+        low_soh_output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=0.0,
+            bess_supervision=self._bess_supervision(
+                p_bess_dc_max_available=500.0,
+                soh_bess=0.5,
+            ),
+        )
+
+        self.assertAlmostEqual(high_soh_output.p_cmd, 4500.0)
+        self.assertAlmostEqual(low_soh_output.p_cmd, 4050.0)
+        self.assertLess(low_soh_output.p_cmd, high_soh_output.p_cmd)
+        self.assertAlmostEqual(
+            controller.frequency_dynamics.inertia_m,
+            2.0,
+        )
 
     def test_zero_bess_power_limit_matches_pv_only_case(self) -> None:
         self.plant.eta = 0.90

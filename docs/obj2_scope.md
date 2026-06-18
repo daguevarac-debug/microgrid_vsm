@@ -219,6 +219,65 @@ FOVIC: extensión comparativa posterior, no requisito de la primera integración
 Punto de entrada futuro: fovic_rhs con estados explícitos y sin dt externo
 ```
 
+## Gestión de SoH en la respuesta inercial
+
+Para la primera implementación del VSG se adopta una reducción de la potencia
+de soporte disponible y no una modificación automática del coeficiente de
+inercia virtual. La política queda definida como:
+
+```text
+M_efectivo = M_nominal
+
+P_inertia,dc,max = p_bess_dc_max_available(SoH, SoC)
+
+P_inertia,ac,max = eta * P_inertia,dc,max
+```
+
+La potencia de soporte solicitada al BESS se interpreta, en esta etapa, como la
+parte de la referencia activa que no puede cubrir la fuente fotovoltaica:
+
+```text
+delta_P_bess_requested = max(P_ref - P_pv,ac,available, 0)
+
+delta_P_bess_effective =
+    min(delta_P_bess_requested, P_inertia,ac,max)
+
+P_ref_eff =
+    min(P_ref, P_pv,ac,available + delta_P_bess_effective)
+```
+
+El límite `p_bess_dc_max_available` es calculado por la capa supervisora del
+BESS y disminuye con el SoH porque la corriente disponible se reduce con el
+envejecimiento. También se hace cero cuando el SoC alcanza o cae por debajo de
+`soc_min`.
+
+No se adopta inicialmente:
+
+```text
+M_efectivo = M_nominal * SoH
+```
+
+porque disminuir `M` modifica directamente el denominador de la ecuación swing
+y puede aumentar la rapidez de cambio de frecuencia para un mismo desequilibrio
+de potencia. Esto mezclaría el envejecimiento de la batería con la dinámica
+interna del VSG.
+
+La estrategia seleccionada mantiene separado el núcleo de frecuencia de la
+protección del almacenamiento:
+
+```text
+Núcleo VSG:
+    M permanece nominal
+
+Capa BESS/BMS:
+    limita la potencia de soporte según SoH, SoC, corriente y potencia
+```
+
+Esta implementación todavía no representa un lazo independiente de potencia
+inercial basado directamente en RoCoF. La potencia de soporte corresponde a la
+fracción de `P_ref` que el PV no puede cubrir y que el BESS puede entregar de
+forma realizable.
+
 ## Criterios para la integración posterior
 
 La implementación futura deberá mantener separadas tres responsabilidades. `HardwarePlant` conservará las ecuaciones físicas; `Microgrid` ensamblará estados y calculará mediciones algebraicas como `v_pcc_abc` y `P_e`; el controlador GFM producirá la dinámica de `theta` y `omega`, la referencia de tensión y las señales de actuación. Esta separación evita que el controlador reconstruya por su cuenta la física del filtro o de la carga.

@@ -113,6 +113,32 @@ class TestBESSControllerInterface(unittest.TestCase):
         self.assertGreater(np.linalg.norm(controller.last_output.v_inv), 0.0)
         self.assertGreater(controller.last_output.p_cmd, 0.0)
 
+    def test_lower_soh_reduces_available_inertial_support_power(self) -> None:
+        controller = RecordingGFMController(
+            p_ref=1e9,
+            inertia_m=2.0,
+        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            model = MicrogridWithBESS(controller=controller)
+
+        soc_bess = model.bess.soc_initial
+        p_available_new = model._available_p_bess_support_w(
+            soc_bess=soc_bess,
+            soh_bess=1.0,
+        )
+        p_available_aged = model._available_p_bess_support_w(
+            soc_bess=soc_bess,
+            soh_bess=0.5,
+        )
+
+        self.assertGreater(p_available_new, p_available_aged)
+        self.assertGreater(p_available_aged, 0.0)
+        self.assertAlmostEqual(
+            controller.frequency_dynamics.inertia_m,
+            2.0,
+        )
+
     def test_gfm_rejects_partial_bess_supervision_interface(self) -> None:
         controller = GFMController(p_ref=0.0)
         plant = type(
