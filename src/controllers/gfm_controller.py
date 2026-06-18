@@ -51,6 +51,40 @@ def _phase_vector(name: str, value) -> np.ndarray:
     return out
 
 
+def _validate_bess_supervision_inputs(
+    soc_bess: float | None,
+    soh_bess: float | None,
+    i_bess_max_available: float | None,
+    p_bess_dc_max_available: float | None,
+) -> None:
+    """Validate the optional BESS/BMS interface without applying limits yet."""
+    values = {
+        "soc_bess": soc_bess,
+        "soh_bess": soh_bess,
+        "i_bess_max_available": i_bess_max_available,
+        "p_bess_dc_max_available": p_bess_dc_max_available,
+    }
+    if all(value is None for value in values.values()):
+        return
+
+    missing = [name for name, value in values.items() if value is None]
+    if missing:
+        raise ValueError(
+            "BESS supervision inputs must be provided together; missing: "
+            + ", ".join(missing)
+            + "."
+        )
+
+    soc = _finite_float("GFMController.soc_bess", soc_bess)
+    soh = _finite_float("GFMController.soh_bess", soh_bess)
+    if not 0.0 <= soc <= 1.0:
+        raise ValueError(f"GFMController.soc_bess must be within [0, 1], got {soc}.")
+    if not 0.0 <= soh <= 1.0:
+        raise ValueError(f"GFMController.soh_bess must be within [0, 1], got {soh}.")
+    _nonnegative_float("GFMController.i_bess_max_available", i_bess_max_available)
+    _nonnegative_float("GFMController.p_bess_dc_max_available", p_bess_dc_max_available)
+
+
 class GFMController(InverterControllerBase):
     """Minimum classical GFM controller using reduced swing dynamics.
 
@@ -63,6 +97,10 @@ class GFMController(InverterControllerBase):
     The supplied ``v_pcc`` must be the complete R-L PCC voltage when the class
     is fully integrated. The legacy resistive approximation is not sufficient
     for the final GFM active-power feedback.
+
+    The optional BESS supervision values are transported through this interface
+    for Activity 2.2. This subtask validates their contract but deliberately does
+    not yet use them to modify ``p_ref_eff``.
     """
 
     controller_state_name = "omega"
@@ -120,6 +158,11 @@ class GFMController(InverterControllerBase):
         i2: np.ndarray,
         plant: HardwarePlant,
         ipv: float,
+        *,
+        soc_bess: float | None = None,
+        soh_bess: float | None = None,
+        i_bess_max_available: float | None = None,
+        p_bess_dc_max_available: float | None = None,
     ) -> ControlOutput:
         """Return GFM voltage synthesis, power exchange and angular derivatives."""
         t = _finite_float("GFMController.t", t)
@@ -131,6 +174,12 @@ class GFMController(InverterControllerBase):
         v_pcc = _phase_vector("GFMController.v_pcc", v_pcc)
         i1 = _phase_vector("GFMController.i1", i1)
         i2 = _phase_vector("GFMController.i2", i2)
+        _validate_bess_supervision_inputs(
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+            i_bess_max_available=i_bess_max_available,
+            p_bess_dc_max_available=p_bess_dc_max_available,
+        )
 
         p_available = max(vdc_eff * ipv * plant.eta, 0.0)
         p_ref_eff = float(np.clip(self.p_ref, 0.0, p_available))

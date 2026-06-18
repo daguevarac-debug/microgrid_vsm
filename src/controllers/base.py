@@ -72,5 +72,15 @@ class InverterControllerBase(ABC):
         i2: np.ndarray,
         plant: HardwarePlant,
         ipv: float,
+        *,
+        soc_bess: float | None = None,
+        soh_bess: float | None = None,
+        i_bess_max_available: float | None = None,
+        p_bess_dc_max_available: float | None = None,
     ) -> ControlOutput:
-        """Return control action and auxiliary powers for integration/postprocessing."""
+        """Return control action and auxiliary powers for integration/postprocessing.
+
+        BESS supervision inputs are optional for controller modes and plant
+        configurations without storage. When storage is active, the four values
+        must be supplied together by ``MicrogridWithBESS``.
+        """
