@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+
 def _finite_float(name: str, value) -> float:
     if isinstance(value, bool) or not isinstance(value, Real):
         raise ValueError(f"{name} must be a finite real number, got {value!r}.")
@@ -51,7 +52,13 @@ class ControlOutput:
 
 
 class InverterControllerBase(ABC):
-    """Interface for baseline inverter controllers."""
+    """Interface for inverter controllers sharing the current plant contract."""
+
+    controller_state_name = "xi_vdc"
+
+    def initial_controller_state(self) -> float:
+        """Return the value stored at x[10] for this controller mode."""
+        return 0.0
 
     @abstractmethod
     def compute_control(

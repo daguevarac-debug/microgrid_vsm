@@ -245,7 +245,7 @@ class HardwarePlant:
 # ---------------------------------------------------------------------------
 
 class Microgrid:
-    """Compose plant and baseline controller for the averaged dynamic model."""
+    """Compose the plant with a controller-specific 12-state layout."""
 
     def __init__(
         self,
@@ -336,6 +336,41 @@ class Microgrid:
         self._last_p_cmd = 0.0
         self._last_m_ctrl = 0.0
 
+    @property
+    def controller_state_name(self) -> str:
+        """Return the controller-dependent meaning of x[10]."""
+        return self.controller.controller_state_name
+
+    def initial_state(self, vdc0: float = SIM_VDC0_V_DEFAULT) -> list[float]:
+        """Return the 12-state initial vector for the active controller mode.
+
+        Grid-following uses x[10] = xi_vdc0 = 0. Grid-forming uses
+        x[10] = omega_ref. In both modes x[11] = theta0.
+        """
+        vdc0 = _finite_float("vdc0", vdc0)
+        controller_state0 = _finite_float(
+            f"{type(self.controller).__name__}.initial_controller_state",
+            self.controller.initial_controller_state(),
+        )
+        theta0 = _finite_float(
+            f"{type(self.controller).__name__}.theta0",
+            getattr(getattr(self.controller, "modulator", None), "theta0", 0.0),
+        )
+        return [
+            vdc0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            controller_state0,
+            theta0,
+        ]
+
     def _load_at_time(self, t: float) -> BalancedRLLoad:
         """Evaluate active-power load profile and convert it to R-L parameters."""
         # TODO [PERFIL_DEMANDA]: En baseline, load_profile representa potencia
@@ -350,7 +385,15 @@ class Microgrid:
             f_hz=GRID_FREQ_HZ_DEFAULT,
         )
 
-    def _compute_step_control(self, t: float, Vdc: float, i1: np.ndarray, i2: np.ndarray, xi_vdc: float, theta: float):
+    def _compute_step_control(
+        self,
+        t: float,
+        Vdc: float,
+        i1: np.ndarray,
+        i2: np.ndarray,
+        controller_state: float,
+        theta: float,
+    ):
         """Evaluate profiles and return instantaneous control variables for one time step."""
         # TODO [PERFIL_IRRADIANCIA]: Reemplazar con interpolador de DataFrame (tiempo vs G en W/m^2).
         G_t = _evaluate_profile("Microgrid.irradiance_profile", self.irradiance_profile, t)
@@ -365,7 +408,7 @@ class Microgrid:
         control = self.controller.compute_control(
             t=t,
             theta=theta,
-            xi_vdc=xi_vdc,
+            xi_vdc=controller_state,
             vdc_eff=Vdc_eff,
             v_pcc=v_pcc,
             i1=i1,
@@ -376,14 +419,16 @@ class Microgrid:
         return Ipv, load_t, control
 
     def system_dynamics(self, t: float, x):
-        """Return ODE derivatives for baseline state vector."""
+        """Return ODE derivatives for the active 12-state controller layout."""
         Vdc = x[0]
         i1 = np.array([x[1], x[2], x[3]])
         vc = np.array([x[4], x[5], x[6]])
         i2 = np.array([x[7], x[8], x[9]])
-        xi_vdc = x[10]
+        controller_state = x[10]
         theta = x[11]
-        Ipv, load_t, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        Ipv, load_t, control = self._compute_step_control(
+            t, Vdc, i1, i2, controller_state, theta
+        )
         di1dt, dvcdt, di2dt, v_pcc = self.plant.lcl_derivatives_with_rl_load(
             control.v_inv, i1, vc, i2, load_t
         )
@@ -418,9 +463,11 @@ class Microgrid:
         i1 = np.array([x[1], x[2], x[3]])
         vc = np.array([x[4], x[5], x[6]])
         i2 = np.array([x[7], x[8], x[9]])
-        xi_vdc = x[10]
+        controller_state = x[10]
         theta = x[11]
-        _, load_t, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        _, load_t, control = self._compute_step_control(
+            t, Vdc, i1, i2, controller_state, theta
+        )
         _, _, _, v_pcc = self.plant.lcl_derivatives_with_rl_load(control.v_inv, i1, vc, i2, load_t)
         control.p_pcc = float(np.dot(v_pcc, i2))
         return control.p_bridge, control.p_pcc, control.idc_inv, control.p_cmd, control.m_ctrl
@@ -504,22 +551,8 @@ class MicrogridWithBESS(Microgrid):
         )
 
     def initial_state_with_bess(self, vdc0: float = SIM_VDC0_V_DEFAULT) -> list[float]:
-        """Return baseline initial state augmented with BESS dynamic states."""
-        vdc0 = _finite_float("vdc0", vdc0)
-        base_state = [
-            vdc0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            getattr(getattr(self.controller, "modulator", None), "theta0", 0.0),
-        ]
+        """Return controller-specific initial state augmented with BESS states."""
+        base_state = self.initial_state(vdc0=vdc0)
         return base_state + self.bess.initial_state_with_degradation(
             soc=self.bess.soc_initial,
             v_rc=0.0,
@@ -560,18 +593,20 @@ class MicrogridWithBESS(Microgrid):
         return i_bess_sat
 
     def system_dynamics(self, t: float, x):
-        """Return ODE derivatives for integrated baseline + BESS state vector."""
+        """Return ODE derivatives for controller-specific + BESS state vector."""
         Vdc = x[0]
         i1 = np.array([x[1], x[2], x[3]])
         vc = np.array([x[4], x[5], x[6]])
         i2 = np.array([x[7], x[8], x[9]])
-        xi_vdc = x[10]
+        controller_state = x[10]
         theta = x[11]
         soc_bess = x[12]
         vrc_bess = x[13]
         zdeg_bess = x[14]
 
-        Ipv, load_t, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        Ipv, load_t, control = self._compute_step_control(
+            t, Vdc, i1, i2, controller_state, theta
+        )
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess, soh_bess=soh_bess)
         di1dt, dvcdt, di2dt, v_pcc = self.plant.lcl_derivatives_with_rl_load(
@@ -626,13 +661,15 @@ class MicrogridWithBESS(Microgrid):
         i1 = np.array([x[1], x[2], x[3]])
         vc = np.array([x[4], x[5], x[6]])
         i2 = np.array([x[7], x[8], x[9]])
-        xi_vdc = x[10]
+        controller_state = x[10]
         theta = x[11]
         soc_bess = x[12]
         vrc_bess = x[13]
         zdeg_bess = x[14]
 
-        _, load_t, control = self._compute_step_control(t, Vdc, i1, i2, xi_vdc, theta)
+        _, load_t, control = self._compute_step_control(
+            t, Vdc, i1, i2, controller_state, theta
+        )
         _, _, _, v_pcc = self.plant.lcl_derivatives_with_rl_load(control.v_inv, i1, vc, i2, load_t)
         control.p_pcc = float(np.dot(v_pcc, i2))
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
