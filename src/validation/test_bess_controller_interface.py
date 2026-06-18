@@ -139,6 +139,114 @@ class TestBESSControllerInterface(unittest.TestCase):
             2.0,
         )
 
+    def test_system_dynamics_uses_current_zdeg_for_control_limits(self) -> None:
+        controller = RecordingGFMController(
+            p_ref=1e9,
+            inertia_m=2.0,
+        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            model = MicrogridWithBESS(controller=controller)
+
+        self.assertGreater(model.bess.k_deg, 0.0)
+        self.assertGreater(model.bess.soh_init_case, model.bess.soh_min)
+
+        x_less_aged = model.initial_state_with_bess()
+        x_more_aged = list(x_less_aged)
+        soh_drop = 0.5 * (model.bess.soh_init_case - model.bess.soh_min)
+        x_more_aged[14] = soh_drop / model.bess.k_deg
+
+        model.system_dynamics(t=0.0, x=x_less_aged)
+        less_aged_inputs = dict(controller.last_bess_inputs)
+        less_aged_p_cmd = controller.last_output.p_cmd
+
+        model.system_dynamics(t=0.0, x=x_more_aged)
+        more_aged_inputs = dict(controller.last_bess_inputs)
+        more_aged_p_cmd = controller.last_output.p_cmd
+
+        self.assertAlmostEqual(
+            less_aged_inputs["soh_bess"],
+            model.bess.soh_from_z_deg(x_less_aged[14]),
+        )
+        self.assertAlmostEqual(
+            more_aged_inputs["soh_bess"],
+            model.bess.soh_from_z_deg(x_more_aged[14]),
+        )
+        self.assertLess(
+            more_aged_inputs["soh_bess"],
+            less_aged_inputs["soh_bess"],
+        )
+        self.assertLess(
+            more_aged_inputs["i_bess_max_available"],
+            less_aged_inputs["i_bess_max_available"],
+        )
+        self.assertLess(
+            more_aged_inputs["p_bess_dc_max_available"],
+            less_aged_inputs["p_bess_dc_max_available"],
+        )
+        self.assertLess(more_aged_p_cmd, less_aged_p_cmd)
+        self.assertAlmostEqual(
+            controller.frequency_dynamics.inertia_m,
+            2.0,
+        )
+
+    def test_integrated_signals_uses_current_zdeg_for_control_limits(self) -> None:
+        controller = RecordingGFMController(
+            p_ref=1e9,
+            inertia_m=2.0,
+        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            model = MicrogridWithBESS(controller=controller)
+
+        self.assertGreater(model.bess.k_deg, 0.0)
+        self.assertGreater(model.bess.soh_init_case, model.bess.soh_min)
+
+        x_less_aged = model.initial_state_with_bess()
+        x_more_aged = list(x_less_aged)
+        soh_drop = 0.5 * (model.bess.soh_init_case - model.bess.soh_min)
+        x_more_aged[14] = soh_drop / model.bess.k_deg
+
+        less_aged_signals = model.integrated_signals(t=0.0, x=x_less_aged)
+        less_aged_inputs = dict(controller.last_bess_inputs)
+        less_aged_p_cmd = controller.last_output.p_cmd
+
+        more_aged_signals = model.integrated_signals(t=0.0, x=x_more_aged)
+        more_aged_inputs = dict(controller.last_bess_inputs)
+        more_aged_p_cmd = controller.last_output.p_cmd
+
+        for signals, inputs in (
+            (less_aged_signals, less_aged_inputs),
+            (more_aged_signals, more_aged_inputs),
+        ):
+            self.assertAlmostEqual(signals["soh_bess"], inputs["soh_bess"])
+            self.assertAlmostEqual(
+                signals["i_bess_max_available"],
+                inputs["i_bess_max_available"],
+            )
+            self.assertAlmostEqual(
+                signals["p_bess_dc_max_available"],
+                inputs["p_bess_dc_max_available"],
+            )
+
+        self.assertLess(
+            more_aged_signals["soh_bess"],
+            less_aged_signals["soh_bess"],
+        )
+        self.assertLess(
+            more_aged_signals["i_bess_max_available"],
+            less_aged_signals["i_bess_max_available"],
+        )
+        self.assertLess(
+            more_aged_signals["p_bess_dc_max_available"],
+            less_aged_signals["p_bess_dc_max_available"],
+        )
+        self.assertLess(more_aged_p_cmd, less_aged_p_cmd)
+        self.assertAlmostEqual(
+            controller.frequency_dynamics.inertia_m,
+            2.0,
+        )
+
     def test_gfm_rejects_partial_bess_supervision_interface(self) -> None:
         controller = GFMController(p_ref=0.0)
         plant = type(
