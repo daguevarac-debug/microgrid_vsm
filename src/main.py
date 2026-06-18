@@ -45,6 +45,8 @@ def run_baseline_simulation(model: Microgrid) -> dict[str, np.ndarray]:
     p_bridge = np.zeros_like(t)
     p_pcc = np.zeros_like(t)
     p_load = np.zeros_like(t)
+    # GFM frequency is dynamic because x[10] stores omega; non-GFM
+    # controllers retain the fixed omega_ref fallback for compatibility.
     if isinstance(model.controller, GFMController):
         frequency_hz = sol.y[10] / (2.0 * np.pi)
     else:
@@ -172,6 +174,8 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
     p_bridge = np.zeros_like(t)
     p_pcc = np.zeros_like(t)
     p_load = np.zeros_like(t)
+    # GFM frequency is dynamic because x[10] stores omega; non-GFM
+    # controllers retain the fixed omega_ref fallback for compatibility.
     if isinstance(model.controller, GFMController):
         frequency_hz = sol.y[10] / (2.0 * np.pi)
     else:
