@@ -1,0 +1,3 @@
+case,max_frequency_drop_hz,t_recovery_s,vdc_min,p_bess_dc_mean_post_step
+sin_bess,0.9227214300959901,nan,340.0,0.0
+con_bess,0.0,0.05516505038493247,340.0,-2927.320161638347
