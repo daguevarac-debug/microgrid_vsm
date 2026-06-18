@@ -1,6 +1,7 @@
 """Entry point for dynamic baseline simulation and result plots."""
 
 import argparse
+import csv
 from pathlib import Path
 
 import matplotlib
@@ -246,6 +247,35 @@ def _vdc_metrics(t: np.ndarray, vdc: np.ndarray, vdc_ref: float, t_step: float) 
         "t_recovery_s": t_recovery,
     }
 
+def _frequency_metrics(
+    t: np.ndarray,
+    frequency_hz: np.ndarray,
+    t_step: float,
+) -> dict[str, float]:
+    """Compute frequency-drop metrics around the load step."""
+    pre_mask = t < t_step
+    post_mask = t >= t_step
+
+    frequency_pre_step_hz = (
+        float(frequency_hz[pre_mask][-1])
+        if np.any(pre_mask)
+        else float(frequency_hz[0])
+    )
+    frequency_post_step_hz = (
+        frequency_hz[post_mask]
+        if np.any(post_mask)
+        else frequency_hz
+    )
+    frequency_min_post_step_hz = float(np.min(frequency_post_step_hz))
+
+    return {
+        "frequency_pre_step_hz": frequency_pre_step_hz,
+        "frequency_min_post_step_hz": frequency_min_post_step_hz,
+        "max_frequency_drop_hz": max(
+            frequency_pre_step_hz - frequency_min_post_step_hz,
+            0.0,
+        ),
+    }
 
 def run_bess_comparison() -> dict[str, dict[str, np.ndarray] | dict[str, float]]:
     """Run comparable no-BESS vs with-BESS simulations and return key metrics."""
@@ -268,6 +298,21 @@ def run_bess_comparison() -> dict[str, dict[str, np.ndarray] | dict[str, float]]
         vdc_ref=model_bess.vdc_ref,
         t_step=model_bess.t_step,
     )
+
+    metrics_base.update(
+    _frequency_metrics(
+        t=base["t"],
+        frequency_hz=base["frequency_hz"],
+        t_step=model_base.t_step,
+    )
+)
+    metrics_bess.update(
+    _frequency_metrics(
+        t=with_bess["t"],
+        frequency_hz=with_bess["frequency_hz"],
+        t_step=model_bess.t_step,
+    )
+)
 
     # Physical-coherence check around load-step window.
     t0 = model_bess.t_step
@@ -354,6 +399,49 @@ def save_bess_comparison_figures(
     plt.close(fig3)
 
 
+def save_bess_comparison_metrics(
+    comparison: dict[str, dict[str, np.ndarray] | dict[str, float]],
+    output_dir: Path,
+) -> Path:
+    """Save GFM no-BESS vs BESS summary metrics as CSV."""
+    metrics_dir = output_dir / "validation" / "gfm_bess_comparison"
+    metrics_dir.mkdir(parents=True, exist_ok=True)
+    csv_path = metrics_dir / "gfm_bess_comparison_summary.csv"
+
+    metrics_base = comparison["metrics_baseline"]
+    metrics_bess = comparison["metrics_with_bess"]
+    fieldnames = [
+        "case",
+        "max_frequency_drop_hz",
+        "t_recovery_s",
+        "vdc_min",
+        "p_bess_dc_mean_post_step",
+    ]
+    rows = [
+        {
+            "case": "sin_bess",
+            "max_frequency_drop_hz": metrics_base["max_frequency_drop_hz"],
+            "t_recovery_s": metrics_base["t_recovery_s"],
+            "vdc_min": metrics_base["vdc_min"],
+            "p_bess_dc_mean_post_step": 0.0,
+        },
+        {
+            "case": "con_bess",
+            "max_frequency_drop_hz": metrics_bess["max_frequency_drop_hz"],
+            "t_recovery_s": metrics_bess["t_recovery_s"],
+            "vdc_min": metrics_bess["vdc_min"],
+            "p_bess_dc_mean_post_step": comparison["p_bess_dc_step_mean"],
+        },
+    ]
+
+    with csv_path.open("w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    return csv_path
+
+
 def save_complete_system_base_signals(signals: dict[str, np.ndarray], output_dir: Path) -> None:
     """Save compact diagnostic signals for the complete PV+BESS baseline run."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -418,8 +506,22 @@ def main() -> None:
             f"vdc_final={m1['vdc_final']:.3f}, max_drop_pre={m1['max_drop_from_pre']:.3f}, "
             f"t_recovery_s={m1['t_recovery_s']:.6f}"
         )
+        print(
+            f"  Caida maxima frecuencia sin BESS: {m0['max_frequency_drop_hz']:.6f} Hz"
+        )
+        print(
+            f"  Caida maxima frecuencia con BESS: {m1['max_frequency_drop_hz']:.6f} Hz"
+        )
         print(f"  i_bess_mean en ventana post-escalon: {comparison['i_bess_step_mean']:.6f} A")
         print(f"  p_bess_dc_mean en ventana post-escalon: {comparison['p_bess_dc_step_mean']:.6f} W")
+        try:
+            csv_path = save_bess_comparison_metrics(
+                comparison=comparison,
+                output_dir=output_dir,
+            )
+            print(f"\nCSV comparativo guardado en {csv_path}:")
+        except Exception as exc:
+            print(f"\nwarning=No se pudo guardar CSV comparativo: {exc}")
         try:
             save_bess_comparison_figures(
                 comparison=comparison,
