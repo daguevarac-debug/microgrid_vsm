@@ -38,7 +38,42 @@ final ni una estrategia grid-forming/VSG completamente integrada.
 - OCV/R1/C1: datos interpolados desde tabla; no incluye histéresis.
 - R0 aging: ley empírica simplificada, no copiada textualmente de literatura.
 - El BESS-SLB esta modelado y validado, y existe una integracion preliminar/conservadora al bus DC mediante `MicrogridWithBESS`.
+### Simplificaciones vigentes del BMS
 
+El BMS implementado en esta etapa es una capa de supervision reducida para
+estudios dinamicos de nivel sistema. No representa un BMS comercial completo.
+
+Funciones incluidas actualmente:
+
+- Usa `soc_bess` y `soh_bess` como variables de supervision.
+- Bloquea la descarga cuando `soc_bess <= soc_min`.
+- Bloquea la carga cuando `soc_bess >= soc_max`.
+- Reduce la corriente disponible conforme disminuye el SoH:
+  `i_bess_max_available = i_bess_max_nominal * SoH`.
+- Reduce la potencia disponible conforme disminuye el SoH.
+- Entrega al controlador GFM los limites disponibles de corriente y potencia.
+- Mantiene limites conservadores de SoC, corriente y potencia.
+
+Simplificaciones y funciones no implementadas:
+
+- No se modela de forma detallada el convertidor bidireccional DC/DC.
+- No se incluyen conmutacion, lazos internos de corriente o tension, perdidas,
+  retardos ni saturaciones dinamicas del convertidor DC/DC.
+- No existe un modelo termico dinamico de celdas, modulos o banco.
+- No se calculan calentamiento, refrigeracion ni temperatura interna.
+- No se aplica reduccion de potencia por temperatura.
+- No se incluyen protecciones por sobretemperatura o baja temperatura.
+- No se modelan diferencias entre celdas ni balanceo activo o pasivo.
+- No se incluyen contactores, precarga, aislamiento electrico ni deteccion de
+  fallas internas.
+- No se modelan incertidumbres o errores en la estimacion de SoC y SoH.
+- No se incluyen mapas finales de corriente permitida en funcion de SoC,
+  temperatura, tasa C o condiciones del fabricante.
+
+Por tanto, esta capa debe interpretarse como una supervision operacional
+simplificada que protege el baseline mediante limites conservadores. No debe
+presentarse como un BMS final, una logica certificada de seguridad ni una
+representacion detallada del hardware de potencia.
 ## Alcance del IEEE 33 en la tesis
 
 El sistema IEEE 33 se usa como red benchmark de distribucion para evaluar el
