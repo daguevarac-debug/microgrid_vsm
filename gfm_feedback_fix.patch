@@ -9,7 +9,7 @@ diff --git a/src/microgrid.py b/src/microgrid.py
          i2: np.ndarray,
          controller_state: float,
          theta: float,
-@@ -406,9 +407,16 @@ class Microgrid:
+@@ -406,9 +407,15 @@ class Microgrid:
          load_t = self._load_at_time(t)
          Vdc_eff = max(Vdc, 0.0)
          Ipv = self.plant.pv_current(Vdc_eff, G_t, T_c_t)
@@ -28,7 +28,7 @@ diff --git a/src/microgrid.py b/src/microgrid.py
          control = self.controller.compute_control(
              t=t,
              theta=theta,
-@@ -438,7 +446,7 @@ class Microgrid:
+@@ -438,7 +445,7 @@ class Microgrid:
          controller_state = x[10]
          theta = x[11]
          Ipv, load_t, control = self._compute_step_control(
@@ -37,7 +37,7 @@ diff --git a/src/microgrid.py b/src/microgrid.py
          )
          di1dt, dvcdt, di2dt, v_pcc = self.plant.lcl_derivatives_with_rl_load(
              control.v_inv, i1, vc, i2, load_t
-@@ -477,7 +485,7 @@ class Microgrid:
+@@ -477,7 +484,7 @@ class Microgrid:
          controller_state = x[10]
          theta = x[11]
          _, load_t, control = self._compute_step_control(
@@ -46,7 +46,7 @@ diff --git a/src/microgrid.py b/src/microgrid.py
          )
          _, _, _, v_pcc = self.plant.lcl_derivatives_with_rl_load(control.v_inv, i1, vc, i2, load_t)
          control.p_pcc = float(np.dot(v_pcc, i2))
-@@ -636,6 +644,7 @@ class MicrogridWithBESS(Microgrid):
+@@ -636,6 +643,7 @@ class MicrogridWithBESS(Microgrid):
              t,
              Vdc,
              i1,
@@ -54,7 +54,7 @@ diff --git a/src/microgrid.py b/src/microgrid.py
              i2,
              controller_state,
              theta,
-@@ -713,6 +722,7 @@ class MicrogridWithBESS(Microgrid):
+@@ -713,6 +721,7 @@ class MicrogridWithBESS(Microgrid):
              t,
              Vdc,
              i1,
