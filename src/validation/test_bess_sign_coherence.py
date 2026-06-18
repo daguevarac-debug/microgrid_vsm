@@ -44,6 +44,12 @@ class TestBESSSignCoherence(unittest.TestCase):
 
         soh_bess = model.bess.soh_from_z_deg(zdeg_bess)
         i_bess_max_available = model._available_i_bess_max(soh_bess)
+        i_bess = model._compute_i_bess(
+            Vdc=vdc,
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+        )
+        p_bess_dc = vdc * i_bess
         p_bess_dc_max_available = model._available_p_bess_support_w(
             soc_bess=soc_bess,
             soh_bess=soh_bess,
@@ -60,15 +66,10 @@ class TestBESSSignCoherence(unittest.TestCase):
             soh_bess=soh_bess,
             i_bess_max_available=i_bess_max_available,
             p_bess_dc_max_available=p_bess_dc_max_available,
+            p_bess_dc_actual=p_bess_dc,
         )
 
         p_pv_ac_available = max(vdc * ipv * model.plant.eta, 0.0)
-        i_bess = model._compute_i_bess(
-            Vdc=vdc,
-            soc_bess=soc_bess,
-            soh_bess=soh_bess,
-        )
-        p_bess_dc = vdc * i_bess
 
         d_bess = model.bess.rhs(
             t=0.0,
@@ -93,6 +94,85 @@ class TestBESSSignCoherence(unittest.TestCase):
         self.assertGreater(p_bess_dc, 0.0)
         self.assertLess(d_bess[0], 0.0)
         self.assertGreater(dvdc_with_bess, dvdc_without_bess)
+
+    def test_charging_bess_reduces_gfm_net_available_power(self) -> None:
+        model = self.model
+        vdc = model.vdc_ref + 1.0
+        x = model.initial_state_with_bess(vdc0=vdc)
+
+        i1 = np.zeros(3)
+        i2 = np.zeros(3)
+        controller_state = x[10]
+        theta = x[11]
+        soc_bess = x[12]
+        soh_bess = model.bess.soh_from_z_deg(x[14])
+        i_bess = model._compute_i_bess(
+            Vdc=vdc,
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+        )
+        p_bess_dc = vdc * i_bess
+        i_bess_max_available = model._available_i_bess_max(soh_bess)
+        p_bess_dc_max_available = model._available_p_bess_support_w(
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+        )
+
+        ipv, _, control = model._compute_step_control(
+            t=0.0,
+            Vdc=vdc,
+            i1=i1,
+            i2=i2,
+            controller_state=controller_state,
+            theta=theta,
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+            i_bess_max_available=i_bess_max_available,
+            p_bess_dc_max_available=p_bess_dc_max_available,
+            p_bess_dc_actual=p_bess_dc,
+        )
+
+        p_pv_ac_available = max(vdc * ipv * model.plant.eta, 0.0)
+        expected_p_cmd = min(
+            model.controller.p_ref,
+            max((vdc * ipv + p_bess_dc) * model.plant.eta, 0.0),
+        )
+
+        self.assertLess(i_bess, 0.0)
+        self.assertLess(p_bess_dc, 0.0)
+        self.assertLess(control.p_cmd, p_pv_ac_available)
+        self.assertAlmostEqual(control.p_cmd, expected_p_cmd)
+
+    def test_zero_bess_power_matches_pv_only_available_power(self) -> None:
+        model = self.model
+        vdc = model.vdc_ref
+        x = model.initial_state_with_bess(vdc0=vdc)
+        soh_bess = model.bess.soh_from_z_deg(x[14])
+        i_bess = model._compute_i_bess(
+            Vdc=vdc,
+            soc_bess=x[12],
+            soh_bess=soh_bess,
+        )
+        p_bess_dc = vdc * i_bess
+        ipv, _, control = model._compute_step_control(
+            t=0.0,
+            Vdc=vdc,
+            i1=np.zeros(3),
+            i2=np.zeros(3),
+            controller_state=x[10],
+            theta=x[11],
+            soc_bess=x[12],
+            soh_bess=soh_bess,
+            i_bess_max_available=model._available_i_bess_max(soh_bess),
+            p_bess_dc_max_available=model._available_p_bess_support_w(
+                soc_bess=x[12],
+                soh_bess=soh_bess,
+            ),
+            p_bess_dc_actual=p_bess_dc,
+        )
+
+        self.assertAlmostEqual(i_bess, 0.0)
+        self.assertAlmostEqual(control.p_cmd, max(vdc * ipv * model.plant.eta, 0.0))
 
 
 if __name__ == "__main__":

@@ -38,10 +38,10 @@ class TestGFMPCCFeedback(unittest.TestCase):
             0.0,
             vdc,
             i1,
-            vc,
             i2,
             omega,
             theta,
+            vc=vc,
         )
 
         di2dt = (

@@ -97,8 +97,9 @@ class GridFollowingController(InverterControllerBase):
         soh_bess: float | None = None,
         i_bess_max_available: float | None = None,
         p_bess_dc_max_available: float | None = None,
+        p_bess_dc_actual: float | None = None,
     ) -> ControlOutput:
-        del t, soc_bess, soh_bess, i_bess_max_available, p_bess_dc_max_available
+        del t, soc_bess, soh_bess, i_bess_max_available, p_bess_dc_max_available, p_bess_dc_actual
         vdc_error = vdc_eff - self.vdc_ref
         p_unsat = self.p_ref + self.kp_vdc * vdc_error + self.ki_vdc * xi_vdc
         p_available = max(vdc_eff * ipv * plant.eta, 0.0)

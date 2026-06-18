@@ -61,14 +61,18 @@ class TestGFMController(unittest.TestCase):
     @staticmethod
     def _bess_supervision(
         p_bess_dc_max_available: float,
+        p_bess_dc_actual: float | None = None,
         soh_bess: float = 0.80,
     ) -> dict[str, float]:
-        return {
+        inputs = {
             "soc_bess": 0.60,
             "soh_bess": soh_bess,
             "i_bess_max_available": 20.0,
             "p_bess_dc_max_available": p_bess_dc_max_available,
         }
+        if p_bess_dc_actual is not None:
+            inputs["p_bess_dc_actual"] = p_bess_dc_actual
+        return inputs
 
     def test_power_equilibrium_gives_zero_frequency_derivative(self) -> None:
         controller = GFMController(
@@ -140,7 +144,10 @@ class TestGFMController(unittest.TestCase):
             controller=controller,
             omega=controller.omega_ref,
             p_e=0.0,
-            bess_supervision=self._bess_supervision(1000.0),
+            bess_supervision=self._bess_supervision(
+                p_bess_dc_max_available=1000.0,
+                p_bess_dc_actual=1000.0,
+            ),
         )
 
         self.assertAlmostEqual(output.p_cmd, 4500.0)
@@ -153,7 +160,10 @@ class TestGFMController(unittest.TestCase):
             controller=controller,
             omega=controller.omega_ref,
             p_e=0.0,
-            bess_supervision=self._bess_supervision(1000.0),
+            bess_supervision=self._bess_supervision(
+                p_bess_dc_max_available=1000.0,
+                p_bess_dc_actual=1000.0,
+            ),
         )
 
         self.assertAlmostEqual(output.p_cmd, 4000.0)
@@ -171,6 +181,7 @@ class TestGFMController(unittest.TestCase):
             p_e=0.0,
             bess_supervision=self._bess_supervision(
                 p_bess_dc_max_available=1000.0,
+                p_bess_dc_actual=1000.0,
                 soh_bess=1.0,
             ),
         )
@@ -180,6 +191,7 @@ class TestGFMController(unittest.TestCase):
             p_e=0.0,
             bess_supervision=self._bess_supervision(
                 p_bess_dc_max_available=500.0,
+                p_bess_dc_actual=1000.0,
                 soh_bess=0.5,
             ),
         )
@@ -201,6 +213,54 @@ class TestGFMController(unittest.TestCase):
             omega=controller.omega_ref,
             p_e=0.0,
             bess_supervision=self._bess_supervision(0.0),
+        )
+
+        self.assertAlmostEqual(output.p_cmd, 3600.0)
+
+    def test_signed_bess_charge_reduces_net_available_power(self) -> None:
+        self.plant.eta = 0.90
+        controller = GFMController(p_ref=5000.0)
+
+        output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=0.0,
+            bess_supervision=self._bess_supervision(
+                p_bess_dc_max_available=1000.0,
+                p_bess_dc_actual=-500.0,
+            ),
+        )
+
+        self.assertAlmostEqual(output.p_cmd, 3150.0)
+
+    def test_positive_bess_discharge_is_limited_by_bms_power(self) -> None:
+        self.plant.eta = 0.90
+        controller = GFMController(p_ref=5000.0)
+
+        output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=0.0,
+            bess_supervision=self._bess_supervision(
+                p_bess_dc_max_available=1000.0,
+                p_bess_dc_actual=1500.0,
+            ),
+        )
+
+        self.assertAlmostEqual(output.p_cmd, 4500.0)
+
+    def test_zero_signed_bess_power_matches_pv_only_case(self) -> None:
+        self.plant.eta = 0.90
+        controller = GFMController(p_ref=5000.0)
+
+        output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=0.0,
+            bess_supervision=self._bess_supervision(
+                p_bess_dc_max_available=1000.0,
+                p_bess_dc_actual=0.0,
+            ),
         )
 
         self.assertAlmostEqual(output.p_cmd, 3600.0)

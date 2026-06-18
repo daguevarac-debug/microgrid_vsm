@@ -42,9 +42,10 @@ def _baseline_pv_power(base: dict[str, np.ndarray]) -> np.ndarray:
     return p_pv_dc
 
 
-def save_gfm_bess_comparison_figure() -> Path:
+def save_gfm_bess_comparison_figure(
+    comparison: dict[str, dict[str, np.ndarray] | dict[str, float]],
+) -> Path:
     """Save a five-panel diagnostic figure for both GFM comparison cases."""
-    comparison = run_bess_comparison()
     base = comparison["baseline"]
     bess = comparison["with_bess"]
     p_pv_dc_base = _baseline_pv_power(base)
@@ -87,8 +88,8 @@ def save_gfm_bess_comparison_figure() -> Path:
 
 
 def main() -> None:
-    output_path = save_gfm_bess_comparison_figure()
     comparison = run_bess_comparison()
+    output_path = save_gfm_bess_comparison_figure(comparison)
     base_span_hz = float(np.ptp(comparison["baseline"]["frequency_hz"]))
     bess_span_hz = float(np.ptp(comparison["with_bess"]["frequency_hz"]))
 
