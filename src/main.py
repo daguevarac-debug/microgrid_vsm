@@ -11,7 +11,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from config import (
-    GRID_THETA0_RAD_DEFAULT,
     MICROGRID_TEMPERATURE_C_DEFAULT,
     PV_CURVE_IRRADIANCE_LEVELS_W_PER_M2,
     SIM_SOLVER_ATOL_DEFAULT,
@@ -21,26 +20,14 @@ from config import (
     SIM_T_START_S_DEFAULT,
     SIM_VDC0_V_DEFAULT,
 )
+from controllers.gfm_controller import GFMController
 from microgrid import Microgrid, MicrogridWithBESS
 
 
 def run_baseline_simulation(model: Microgrid) -> dict[str, np.ndarray]:
     """Run baseline dynamic simulation and return signals for plotting."""
     t_span = (SIM_T_START_S_DEFAULT, SIM_T_END_S_DEFAULT)
-    y0 = [
-        SIM_VDC0_V_DEFAULT,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        GRID_THETA0_RAD_DEFAULT,
-    ]
+    y0 = model.initial_state(vdc0=SIM_VDC0_V_DEFAULT)
 
     sol = solve_ivp(
         model.system_dynamics,
@@ -57,6 +44,10 @@ def run_baseline_simulation(model: Microgrid) -> dict[str, np.ndarray]:
     p_bridge = np.zeros_like(t)
     p_pcc = np.zeros_like(t)
     p_load = np.zeros_like(t)
+    if isinstance(model.controller, GFMController):
+        frequency_hz = sol.y[10] / (2.0 * np.pi)
+    else:
+        frequency_hz = np.full_like(t, float(model.controller.omega_ref / (2.0 * np.pi)))
 
     for k, tk in enumerate(t):
         xk = sol.y[:, k]
@@ -72,6 +63,7 @@ def run_baseline_simulation(model: Microgrid) -> dict[str, np.ndarray]:
         "p_bridge": p_bridge,
         "p_pcc": p_pcc,
         "p_load": p_load,
+        "frequency_hz": frequency_hz,
     }
 
 
@@ -179,7 +171,10 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
     p_bridge = np.zeros_like(t)
     p_pcc = np.zeros_like(t)
     p_load = np.zeros_like(t)
-    frequency_hz = np.zeros_like(t)
+    if isinstance(model.controller, GFMController):
+        frequency_hz = sol.y[10] / (2.0 * np.pi)
+    else:
+        frequency_hz = np.full_like(t, float(model.controller.omega_ref / (2.0 * np.pi)))
     p_pv_dc = np.zeros_like(t)
     i_bess = np.zeros_like(t)
     p_bess_dc = np.zeros_like(t)
@@ -192,8 +187,6 @@ def run_bess_integrated_simulation(model: MicrogridWithBESS) -> dict[str, np.nda
         p_bridge[k] = sig["p_bridge"]
         p_pcc[k] = sig["p_pcc"]
         p_load[k] = float(model.load_profile(tk))
-        # Baseline grid-following frequency is fixed; this is not GFM/VSG dynamics.
-        frequency_hz[k] = float(model.controller.omega_ref / (2.0 * np.pi))
         g_t = float(model.irradiance_profile(tk))
         t_c_t = float(model.temperature_profile(tk))
         ipv = model.plant.pv_current(max(float(vdc[k]), 0.0), g_t, t_c_t)
@@ -256,8 +249,10 @@ def _vdc_metrics(t: np.ndarray, vdc: np.ndarray, vdc_ref: float, t_step: float) 
 
 def run_bess_comparison() -> dict[str, dict[str, np.ndarray] | dict[str, float]]:
     """Run comparable no-BESS vs with-BESS simulations and return key metrics."""
-    model_base = Microgrid()
-    model_bess = MicrogridWithBESS()
+    reference_model = Microgrid()
+    p_ref = min(reference_model.P_ref_nominal, reference_model.p_available_ref)
+    model_base = Microgrid(controller=GFMController(p_ref=p_ref))
+    model_bess = MicrogridWithBESS(controller=GFMController(p_ref=p_ref))
     base = run_baseline_simulation(model_base)
     with_bess = run_bess_integrated_simulation(model_bess)
 
