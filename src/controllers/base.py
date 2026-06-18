@@ -77,6 +77,7 @@ class InverterControllerBase(ABC):
         soh_bess: float | None = None,
         i_bess_max_available: float | None = None,
         p_bess_dc_max_available: float | None = None,
+        p_bess_dc_actual: float | None = None,
     ) -> ControlOutput:
         """Return control action and auxiliary powers for integration/postprocessing.
 

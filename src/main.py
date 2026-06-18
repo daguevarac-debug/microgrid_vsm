@@ -251,6 +251,7 @@ def _vdc_metrics(t: np.ndarray, vdc: np.ndarray, vdc_ref: float, t_step: float) 
         "t_recovery_s": t_recovery,
     }
 
+
 def _frequency_metrics(
     t: np.ndarray,
     frequency_hz: np.ndarray,
@@ -281,12 +282,20 @@ def _frequency_metrics(
         ),
     }
 
+
 def run_bess_comparison() -> dict[str, dict[str, np.ndarray] | dict[str, float]]:
     """Run comparable no-BESS vs with-BESS simulations and return key metrics."""
     reference_model = Microgrid()
     p_ref = min(reference_model.P_ref_nominal, reference_model.p_available_ref)
-    model_base = Microgrid(controller=GFMController(p_ref=p_ref))
-    model_bess = MicrogridWithBESS(controller=GFMController(p_ref=p_ref))
+    # Common damped GFM parameters for a fair diagnostic comparison.
+    # These values match the existing reduced GFM validation case.
+    gfm_kwargs = {
+        "p_ref": p_ref,
+        "inertia_m": 2.0,
+        "damping_d": 50.0,
+    }
+    model_base = Microgrid(controller=GFMController(**gfm_kwargs))
+    model_bess = MicrogridWithBESS(controller=GFMController(**gfm_kwargs))
     base = run_baseline_simulation(model_base)
     with_bess = run_bess_integrated_simulation(model_bess)
 
@@ -304,19 +313,19 @@ def run_bess_comparison() -> dict[str, dict[str, np.ndarray] | dict[str, float]]
     )
 
     metrics_base.update(
-    _frequency_metrics(
-        t=base["t"],
-        frequency_hz=base["frequency_hz"],
-        t_step=model_base.t_step,
+        _frequency_metrics(
+            t=base["t"],
+            frequency_hz=base["frequency_hz"],
+            t_step=model_base.t_step,
+        )
     )
-)
     metrics_bess.update(
-    _frequency_metrics(
-        t=with_bess["t"],
-        frequency_hz=with_bess["frequency_hz"],
-        t_step=model_bess.t_step,
+        _frequency_metrics(
+            t=with_bess["t"],
+            frequency_hz=with_bess["frequency_hz"],
+            t_step=model_bess.t_step,
+        )
     )
-)
 
     # Physical-coherence check around load-step window.
     t0 = model_bess.t_step

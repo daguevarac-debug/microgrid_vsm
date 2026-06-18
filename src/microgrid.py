@@ -394,10 +394,12 @@ class Microgrid:
         controller_state: float,
         theta: float,
         *,
+        vc: np.ndarray | None = None,
         soc_bess: float | None = None,
         soh_bess: float | None = None,
         i_bess_max_available: float | None = None,
         p_bess_dc_max_available: float | None = None,
+        p_bess_dc_actual: float | None = None,
     ):
         """Evaluate profiles and return instantaneous control variables for one time step."""
         # TODO [PERFIL_IRRADIANCIA]: Reemplazar con interpolador de DataFrame (tiempo vs G en W/m^2).
@@ -407,9 +409,17 @@ class Microgrid:
         load_t = self._load_at_time(t)
         Vdc_eff = max(Vdc, 0.0)
         Ipv = self.plant.pv_current(Vdc_eff, G_t, T_c_t)
-        # The baseline controller does not use v_pcc to set v_inv/idc_inv.
-        # The true R-L PCC voltage is updated after di2/dt is known.
-        v_pcc = self.plant.pcc_voltage(i2, load_t.r_ohm)
+        i2 = np.asarray(i2, dtype=float)
+        if vc is None:
+            # Compatibility fallback for direct helper calls.
+            v_pcc = self.plant.pcc_voltage(i2, load_t.r_ohm)
+        else:
+            # Full simulations feed the complete R-L PCC voltage to the GFM.
+            vc = np.asarray(vc, dtype=float)
+            di2dt = (
+                vc - (self.lcl.R2 + load_t.r_ohm) * i2
+            ) / (self.lcl.L2 + load_t.l_h)
+            v_pcc = load_t.r_ohm * i2 + load_t.l_h * di2dt
         control = self.controller.compute_control(
             t=t,
             theta=theta,
@@ -424,6 +434,7 @@ class Microgrid:
             soh_bess=soh_bess,
             i_bess_max_available=i_bess_max_available,
             p_bess_dc_max_available=p_bess_dc_max_available,
+            p_bess_dc_actual=p_bess_dc_actual,
         )
         return Ipv, load_t, control
 
@@ -436,7 +447,7 @@ class Microgrid:
         controller_state = x[10]
         theta = x[11]
         Ipv, load_t, control = self._compute_step_control(
-            t, Vdc, i1, i2, controller_state, theta
+            t, Vdc, i1, i2, controller_state, theta, vc=vc
         )
         di1dt, dvcdt, di2dt, v_pcc = self.plant.lcl_derivatives_with_rl_load(
             control.v_inv, i1, vc, i2, load_t
@@ -475,7 +486,7 @@ class Microgrid:
         controller_state = x[10]
         theta = x[11]
         _, load_t, control = self._compute_step_control(
-            t, Vdc, i1, i2, controller_state, theta
+            t, Vdc, i1, i2, controller_state, theta, vc=vc
         )
         _, _, _, v_pcc = self.plant.lcl_derivatives_with_rl_load(control.v_inv, i1, vc, i2, load_t)
         control.p_pcc = float(np.dot(v_pcc, i2))
@@ -628,6 +639,12 @@ class MicrogridWithBESS(Microgrid):
 
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
+        i_bess = self._compute_i_bess(
+            Vdc=Vdc,
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+        )
+        p_bess_dc_actual = float(Vdc) * float(i_bess)
         p_bess_dc_max_available = self._available_p_bess_support_w(
             soc_bess=soc_bess,
             soh_bess=soh_bess,
@@ -639,12 +656,13 @@ class MicrogridWithBESS(Microgrid):
             i2,
             controller_state,
             theta,
+            vc=vc,
             soc_bess=soc_bess,
             soh_bess=soh_bess,
             i_bess_max_available=i_bess_max_available,
             p_bess_dc_max_available=p_bess_dc_max_available,
+            p_bess_dc_actual=p_bess_dc_actual,
         )
-        i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess, soh_bess=soh_bess)
         di1dt, dvcdt, di2dt, v_pcc = self.plant.lcl_derivatives_with_rl_load(
             control.v_inv, i1, vc, i2, load_t
         )
@@ -705,6 +723,12 @@ class MicrogridWithBESS(Microgrid):
 
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
+        i_bess = self._compute_i_bess(
+            Vdc=Vdc,
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+        )
+        p_bess_dc_actual = float(Vdc) * float(i_bess)
         p_bess_dc_max_available = self._available_p_bess_support_w(
             soc_bess=soc_bess,
             soh_bess=soh_bess,
@@ -716,14 +740,15 @@ class MicrogridWithBESS(Microgrid):
             i2,
             controller_state,
             theta,
+            vc=vc,
             soc_bess=soc_bess,
             soh_bess=soh_bess,
             i_bess_max_available=i_bess_max_available,
             p_bess_dc_max_available=p_bess_dc_max_available,
+            p_bess_dc_actual=p_bess_dc_actual,
         )
         _, _, _, v_pcc = self.plant.lcl_derivatives_with_rl_load(control.v_inv, i1, vc, i2, load_t)
         control.p_pcc = float(np.dot(v_pcc, i2))
-        i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess, soh_bess=soh_bess)
         p_bess_dc = float(Vdc) * float(i_bess)
         vt_bess = self.bess.terminal_voltage(
             soc=soc_bess,

@@ -28,6 +28,7 @@ class RecordingGFMController(GFMController):
             "soh_bess": kwargs.get("soh_bess"),
             "i_bess_max_available": kwargs.get("i_bess_max_available"),
             "p_bess_dc_max_available": kwargs.get("p_bess_dc_max_available"),
+            "p_bess_dc_actual": kwargs.get("p_bess_dc_actual"),
         }
         self.last_output = super().compute_control(*args, **kwargs)
         return self.last_output
@@ -55,6 +56,7 @@ class TestBESSControllerInterface(unittest.TestCase):
             controller.last_bess_inputs["p_bess_dc_max_available"],
             model._available_p_bess_max_w(expected_soh),
         )
+        self.assertAlmostEqual(controller.last_bess_inputs["p_bess_dc_actual"], 0.0)
 
     def test_soc_at_or_below_min_blocks_bess_support_power(self) -> None:
         controller = RecordingGFMController(p_ref=1000.0)
@@ -152,6 +154,7 @@ class TestBESSControllerInterface(unittest.TestCase):
         self.assertGreater(model.bess.soh_init_case, model.bess.soh_min)
 
         x_less_aged = model.initial_state_with_bess()
+        x_less_aged[0] = model.vdc_ref - 100.0
         x_more_aged = list(x_less_aged)
         soh_drop = 0.5 * (model.bess.soh_init_case - model.bess.soh_min)
         x_more_aged[14] = soh_drop / model.bess.k_deg
@@ -203,6 +206,7 @@ class TestBESSControllerInterface(unittest.TestCase):
         self.assertGreater(model.bess.soh_init_case, model.bess.soh_min)
 
         x_less_aged = model.initial_state_with_bess()
+        x_less_aged[0] = model.vdc_ref - 100.0
         x_more_aged = list(x_less_aged)
         soh_drop = 0.5 * (model.bess.soh_init_case - model.bess.soh_min)
         x_more_aged[14] = soh_drop / model.bess.k_deg
@@ -228,6 +232,7 @@ class TestBESSControllerInterface(unittest.TestCase):
                 signals["p_bess_dc_max_available"],
                 inputs["p_bess_dc_max_available"],
             )
+            self.assertAlmostEqual(signals["p_bess_dc"], inputs["p_bess_dc_actual"])
 
         self.assertLess(
             more_aged_signals["soh_bess"],
