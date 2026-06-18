@@ -41,6 +41,8 @@ class TestGFMController(unittest.TestCase):
         controller: GFMController,
         omega: float,
         p_e: float,
+        *,
+        bess_supervision: dict[str, float] | None = None,
     ):
         v_pcc, i2 = self._pcc_vectors_for_power(p_e)
         return controller.compute_control(
@@ -53,7 +55,17 @@ class TestGFMController(unittest.TestCase):
             i2=i2,
             plant=self.plant,
             ipv=self.ipv,
+            **(bess_supervision or {}),
         )
+
+    @staticmethod
+    def _bess_supervision(p_bess_dc_max_available: float) -> dict[str, float]:
+        return {
+            "soc_bess": 0.60,
+            "soh_bess": 0.80,
+            "i_bess_max_available": 20.0,
+            "p_bess_dc_max_available": p_bess_dc_max_available,
+        }
 
     def test_power_equilibrium_gives_zero_frequency_derivative(self) -> None:
         controller = GFMController(
@@ -104,6 +116,57 @@ class TestGFMController(unittest.TestCase):
         expected_domega_dt = controller.frequency_dynamics.damping_d / controller.frequency_dynamics.inertia_m
         self.assertGreater(output.d_xi_vdc_dt, 0.0)
         self.assertAlmostEqual(output.d_xi_vdc_dt, expected_domega_dt)
+
+    def test_without_bess_reference_is_limited_to_available_pv_power(self) -> None:
+        self.plant.eta = 0.90
+        controller = GFMController(p_ref=5000.0)
+
+        output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=0.0,
+        )
+
+        self.assertAlmostEqual(output.p_cmd, 3600.0)
+
+    def test_bess_dc_limit_is_converted_to_ac_and_added_to_pv(self) -> None:
+        self.plant.eta = 0.90
+        controller = GFMController(p_ref=5000.0)
+
+        output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=0.0,
+            bess_supervision=self._bess_supervision(1000.0),
+        )
+
+        self.assertAlmostEqual(output.p_cmd, 4500.0)
+
+    def test_nominal_reference_remains_upper_bound_with_bess(self) -> None:
+        self.plant.eta = 0.90
+        controller = GFMController(p_ref=4000.0)
+
+        output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=0.0,
+            bess_supervision=self._bess_supervision(1000.0),
+        )
+
+        self.assertAlmostEqual(output.p_cmd, 4000.0)
+
+    def test_zero_bess_power_limit_matches_pv_only_case(self) -> None:
+        self.plant.eta = 0.90
+        controller = GFMController(p_ref=5000.0)
+
+        output = self._compute_output(
+            controller=controller,
+            omega=controller.omega_ref,
+            p_e=0.0,
+            bess_supervision=self._bess_supervision(0.0),
+        )
+
+        self.assertAlmostEqual(output.p_cmd, 3600.0)
 
 
 if __name__ == "__main__":

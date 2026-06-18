@@ -57,7 +57,7 @@ def _validate_bess_supervision_inputs(
     i_bess_max_available: float | None,
     p_bess_dc_max_available: float | None,
 ) -> None:
-    """Validate the optional BESS/BMS interface without applying limits yet."""
+    """Validate the optional BESS/BMS supervision interface."""
     values = {
         "soc_bess": soc_bess,
         "soh_bess": soh_bess,
@@ -98,9 +98,9 @@ class GFMController(InverterControllerBase):
     is fully integrated. The legacy resistive approximation is not sufficient
     for the final GFM active-power feedback.
 
-    The optional BESS supervision values are transported through this interface
-    for Activity 2.2. This subtask validates their contract but deliberately does
-    not yet use them to modify ``p_ref_eff``.
+    When BESS supervision is active, its DC-side power limit is converted to
+    the AC side with ``plant.eta`` and added to the available PV power before
+    saturating ``p_ref_eff``.
     """
 
     controller_state_name = "omega"
@@ -181,8 +181,15 @@ class GFMController(InverterControllerBase):
             p_bess_dc_max_available=p_bess_dc_max_available,
         )
 
-        p_available = max(vdc_eff * ipv * plant.eta, 0.0)
-        p_ref_eff = float(np.clip(self.p_ref, 0.0, p_available))
+        p_pv_ac_available = max(vdc_eff * ipv * plant.eta, 0.0)
+        p_bess_ac_available = (
+            0.0
+            if p_bess_dc_max_available is None
+            else float(p_bess_dc_max_available) * plant.eta
+        )
+        p_ref_eff = float(
+            min(self.p_ref, p_pv_ac_available + p_bess_ac_available)
+        )
         p_e = float(np.dot(v_pcc, i2))
 
         d_theta_dt, d_omega_dt = self.frequency_dynamics.rhs(
