@@ -393,6 +393,11 @@ class Microgrid:
         i2: np.ndarray,
         controller_state: float,
         theta: float,
+        *,
+        soc_bess: float | None = None,
+        soh_bess: float | None = None,
+        i_bess_max_available: float | None = None,
+        p_bess_dc_max_available: float | None = None,
     ):
         """Evaluate profiles and return instantaneous control variables for one time step."""
         # TODO [PERFIL_IRRADIANCIA]: Reemplazar con interpolador de DataFrame (tiempo vs G en W/m^2).
@@ -415,6 +420,10 @@ class Microgrid:
             i2=i2,
             plant=self.plant,
             ipv=Ipv,
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+            i_bess_max_available=i_bess_max_available,
+            p_bess_dc_max_available=p_bess_dc_max_available,
         )
         return Ipv, load_t, control
 
@@ -604,10 +613,21 @@ class MicrogridWithBESS(Microgrid):
         vrc_bess = x[13]
         zdeg_bess = x[14]
 
-        Ipv, load_t, control = self._compute_step_control(
-            t, Vdc, i1, i2, controller_state, theta
-        )
         soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        i_bess_max_available = self._available_i_bess_max(soh_bess)
+        p_bess_dc_max_available = self._available_p_bess_max_w(soh_bess)
+        Ipv, load_t, control = self._compute_step_control(
+            t,
+            Vdc,
+            i1,
+            i2,
+            controller_state,
+            theta,
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+            i_bess_max_available=i_bess_max_available,
+            p_bess_dc_max_available=p_bess_dc_max_available,
+        )
         i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess, soh_bess=soh_bess)
         di1dt, dvcdt, di2dt, v_pcc = self.plant.lcl_derivatives_with_rl_load(
             control.v_inv, i1, vc, i2, load_t
@@ -667,12 +687,23 @@ class MicrogridWithBESS(Microgrid):
         vrc_bess = x[13]
         zdeg_bess = x[14]
 
+        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        i_bess_max_available = self._available_i_bess_max(soh_bess)
+        p_bess_dc_max_available = self._available_p_bess_max_w(soh_bess)
         _, load_t, control = self._compute_step_control(
-            t, Vdc, i1, i2, controller_state, theta
+            t,
+            Vdc,
+            i1,
+            i2,
+            controller_state,
+            theta,
+            soc_bess=soc_bess,
+            soh_bess=soh_bess,
+            i_bess_max_available=i_bess_max_available,
+            p_bess_dc_max_available=p_bess_dc_max_available,
         )
         _, _, _, v_pcc = self.plant.lcl_derivatives_with_rl_load(control.v_inv, i1, vc, i2, load_t)
         control.p_pcc = float(np.dot(v_pcc, i2))
-        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
         i_bess = self._compute_i_bess(Vdc=Vdc, soc_bess=soc_bess, soh_bess=soh_bess)
         p_bess_dc = float(Vdc) * float(i_bess)
         vt_bess = self.bess.terminal_voltage(
@@ -691,8 +722,8 @@ class MicrogridWithBESS(Microgrid):
             "i_bess": float(i_bess),
             "p_bess_dc": p_bess_dc,
             "p_bess_dc_max": float(self.p_bess_max_w),
-            "i_bess_max_available": float(self._available_i_bess_max(soh_bess)),
-            "p_bess_dc_max_available": float(self._available_p_bess_max_w(soh_bess)),
+            "i_bess_max_available": float(i_bess_max_available),
+            "p_bess_dc_max_available": float(p_bess_dc_max_available),
             "soc_bess": float(soc_bess),
             "vt_bess": float(vt_bess),
             "soh_bess": float(soh_bess),
