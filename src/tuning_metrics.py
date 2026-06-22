@@ -267,7 +267,7 @@ def bess_stress_metrics(
         "p_bess_peak_abs_w": float(np.max(np.abs(p_post))),
         "p_bess_max_discharge_w": float(np.max(p_post)),
         "p_bess_max_charge_w": float(np.min(p_post)),
-        "bess_energy_throughput_wh": float(np.trapz(np.abs(p_post), t_post) / 3600.0),
+        "bess_energy_throughput_wh": float(np.trapezoid(np.abs(p_post), t_post) / 3600.0),
     }
 
     if soc is not None:
