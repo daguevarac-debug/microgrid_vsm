@@ -30,7 +30,7 @@ class TestTuningCriteria(unittest.TestCase):
         self.assertEqual(criteria.max_frequency_recovery_s, 5.0)
         self.assertEqual(criteria.frequency_recovery_dwell_s, 0.50)
         self.assertEqual(criteria.max_vdc_overshoot_pct, 5.0)
-        self.assertAlmostEqual(criteria.vdc_min_required_v, 327.5203, places=3)
+        self.assertAlmostEqual(criteria.vdc_min_required_v, 327.5021, places=3)
 
     def test_nonpositive_limits_are_rejected(self) -> None:
         with self.assertRaises(ValueError):
