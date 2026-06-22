@@ -14,6 +14,19 @@ from typing import Any
 
 import numpy as np
 
+from config import (
+    GRID_FREQ_HZ_DEFAULT,
+    GRID_V_LN_RMS_DEFAULT,
+    INVERTER_MODULATION_INDEX_MAX_DEFAULT,
+    SIM_VDC0_V_DEFAULT,
+    TUNING_FREQUENCY_RECOVERY_BAND_HZ_DEFAULT,
+    TUNING_FREQUENCY_RECOVERY_DWELL_S_DEFAULT,
+    TUNING_MAX_FREQUENCY_DROP_HZ_DEFAULT,
+    TUNING_MAX_FREQUENCY_RECOVERY_S_DEFAULT,
+    TUNING_MAX_VDC_OVERSHOOT_PCT_DEFAULT,
+    TUNING_PRE_STEP_WINDOW_S_DEFAULT,
+)
+
 
 @dataclass(frozen=True)
 class TuningCriteria:
@@ -25,17 +38,17 @@ class TuningCriteria:
     must also be respected before a tuning candidate can be selected.
     """
 
-    nominal_frequency_hz: float = 60.0
-    max_frequency_drop_hz: float = 0.50
-    frequency_recovery_band_hz: float = 0.10
-    max_frequency_recovery_s: float = 5.0
-    frequency_recovery_dwell_s: float = 0.50
-    pre_step_window_s: float = 0.10
+    nominal_frequency_hz: float = GRID_FREQ_HZ_DEFAULT
+    max_frequency_drop_hz: float = TUNING_MAX_FREQUENCY_DROP_HZ_DEFAULT
+    frequency_recovery_band_hz: float = TUNING_FREQUENCY_RECOVERY_BAND_HZ_DEFAULT
+    max_frequency_recovery_s: float = TUNING_MAX_FREQUENCY_RECOVERY_S_DEFAULT
+    frequency_recovery_dwell_s: float = TUNING_FREQUENCY_RECOVERY_DWELL_S_DEFAULT
+    pre_step_window_s: float = TUNING_PRE_STEP_WINDOW_S_DEFAULT
 
-    vdc_reference_v: float = 340.0
-    max_vdc_overshoot_pct: float = 5.0
-    ac_phase_voltage_rms_v: float = 110.0
-    modulation_index_max: float = 0.95
+    vdc_reference_v: float = SIM_VDC0_V_DEFAULT
+    max_vdc_overshoot_pct: float = TUNING_MAX_VDC_OVERSHOOT_PCT_DEFAULT
+    ac_phase_voltage_rms_v: float = GRID_V_LN_RMS_DEFAULT
+    modulation_index_max: float = INVERTER_MODULATION_INDEX_MAX_DEFAULT
 
     def __post_init__(self) -> None:
         strictly_positive = {
