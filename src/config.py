@@ -210,7 +210,10 @@ TUNING_FREQUENCY_RECOVERY_BAND_HZ_DEFAULT = 0.10
 TUNING_MAX_FREQUENCY_RECOVERY_S_DEFAULT = 5.0
 TUNING_FREQUENCY_RECOVERY_DWELL_S_DEFAULT = 0.50
 TUNING_PRE_STEP_WINDOW_S_DEFAULT = 0.10
+# Legacy diagnostic relative to the nominal 340 V reference.
 TUNING_MAX_VDC_OVERSHOOT_PCT_DEFAULT = 5.0
+# Acceptance criterion for the event-induced excursion around the pre-step point.
+TUNING_MAX_VDC_EVENT_DEVIATION_PCT_DEFAULT = 5.0
 
 
 def validate_default_dc_bus_consistency(
