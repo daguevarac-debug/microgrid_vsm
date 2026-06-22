@@ -30,11 +30,14 @@ class TestTuningCriteria(unittest.TestCase):
         self.assertEqual(criteria.max_frequency_recovery_s, 5.0)
         self.assertEqual(criteria.frequency_recovery_dwell_s, 0.50)
         self.assertEqual(criteria.max_vdc_overshoot_pct, 5.0)
+        self.assertEqual(criteria.max_vdc_event_deviation_pct, 5.0)
         self.assertAlmostEqual(criteria.vdc_min_required_v, 327.5021, places=3)
 
     def test_nonpositive_limits_are_rejected(self) -> None:
         with self.assertRaises(ValueError):
             TuningCriteria(max_frequency_drop_hz=0.0)
+        with self.assertRaises(ValueError):
+            TuningCriteria(max_vdc_event_deviation_pct=0.0)
 
 
 class TestFrequencyPerformanceMetrics(unittest.TestCase):
@@ -91,12 +94,17 @@ class TestDcLinkPerformanceMetrics(unittest.TestCase):
 
         metrics = dc_link_performance_metrics(self.t, vdc, self.t_step)
 
+        self.assertAlmostEqual(metrics["vdc_pre_step_v"], 340.0, places=6)
         self.assertAlmostEqual(metrics["vdc_overshoot_pct"], 4.0, places=6)
+        self.assertAlmostEqual(
+            metrics["vdc_event_max_abs_deviation_pct"], 4.0, places=6
+        )
         self.assertTrue(metrics["vdc_overshoot_pass"])
+        self.assertTrue(metrics["vdc_event_deviation_pass"])
         self.assertTrue(metrics["vdc_minimum_voltage_pass"])
         self.assertTrue(metrics["vdc_criteria_pass"])
 
-    def test_excess_overshoot_and_undervoltage_are_rejected(self) -> None:
+    def test_excess_event_deviation_and_undervoltage_are_rejected(self) -> None:
         vdc = np.full_like(self.t, 340.0)
         vdc[(self.t >= 0.5) & (self.t < 0.7)] = 325.0
         vdc[(self.t >= 0.7) & (self.t < 0.8)] = 360.4
@@ -104,9 +112,34 @@ class TestDcLinkPerformanceMetrics(unittest.TestCase):
         metrics = dc_link_performance_metrics(self.t, vdc, self.t_step)
 
         self.assertAlmostEqual(metrics["vdc_overshoot_pct"], 6.0, places=6)
+        self.assertAlmostEqual(
+            metrics["vdc_event_max_abs_deviation_pct"], 6.0, places=6
+        )
         self.assertFalse(metrics["vdc_overshoot_pass"])
+        self.assertFalse(metrics["vdc_event_deviation_pass"])
         self.assertFalse(metrics["vdc_minimum_voltage_pass"])
         self.assertFalse(metrics["vdc_criteria_pass"])
+
+    def test_high_operating_point_is_diagnostic_not_automatic_rejection(self) -> None:
+        vdc = np.full_like(self.t, 379.309457)
+        post = self.t >= self.t_step
+        vdc[post] = 364.760804
+        vdc[(self.t >= 0.8) & (self.t < 1.0)] = 379.310448
+
+        metrics = dc_link_performance_metrics(self.t, vdc, self.t_step)
+
+        self.assertGreater(metrics["vdc_reference_deviation_pct"], 5.0)
+        self.assertGreater(metrics["vdc_overshoot_pct"], 5.0)
+        self.assertFalse(metrics["vdc_overshoot_pass"])
+        self.assertLessEqual(metrics["vdc_event_max_abs_deviation_pct"], 5.0)
+        self.assertTrue(metrics["vdc_event_deviation_pass"])
+        self.assertTrue(metrics["vdc_minimum_voltage_pass"])
+        self.assertTrue(metrics["vdc_criteria_pass"])
+
+    def test_nonpositive_pre_step_voltage_is_rejected(self) -> None:
+        vdc = np.zeros_like(self.t)
+        with self.assertRaises(ValueError):
+            dc_link_performance_metrics(self.t, vdc, self.t_step)
 
 
 class TestSecondLifeBessDiagnostics(unittest.TestCase):

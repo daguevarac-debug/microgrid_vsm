@@ -14,9 +14,11 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from validation.tune_gfm_parameters import (
+    CRITERIA_VERSION,
     CSV_FIELDNAMES,
     D_SWEEP_DEFAULT,
     M_SWEEP_DEFAULT,
+    VDC_ACCEPTANCE_BASIS,
     build_parameter_grid,
     main,
     write_runs_csv,
@@ -74,8 +76,12 @@ class TestGFMSweepCSV(unittest.TestCase):
             {
                 "run_index": 1,
                 "scenario": "load_step_20_no_bess",
+                "criteria_version": CRITERIA_VERSION,
+                "vdc_acceptance_basis": VDC_ACCEPTANCE_BASIS,
                 "M": 2.0,
                 "D": 50.0,
+                "vdc_event_max_abs_deviation_pct": 3.8,
+                "vdc_event_deviation_pass": True,
                 "status": "ok",
                 "candidate_admissible": False,
             }
@@ -94,9 +100,27 @@ class TestGFMSweepCSV(unittest.TestCase):
             self.assertEqual(tuple(reader.fieldnames or ()), CSV_FIELDNAMES)
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["scenario"], "load_step_20_no_bess")
+            self.assertEqual(rows[0]["criteria_version"], CRITERIA_VERSION)
+            self.assertEqual(rows[0]["vdc_acceptance_basis"], VDC_ACCEPTANCE_BASIS)
             self.assertEqual(rows[0]["M"], "2.0")
             self.assertEqual(rows[0]["D"], "50.0")
+            self.assertEqual(rows[0]["vdc_event_max_abs_deviation_pct"], "3.8")
+            self.assertEqual(rows[0]["vdc_event_deviation_pass"], "True")
             self.assertEqual(rows[0]["status"], "ok")
+
+    def test_schema_contains_event_relative_dc_fields(self) -> None:
+        required_fields = {
+            "criteria_version",
+            "vdc_acceptance_basis",
+            "vdc_pre_step_v",
+            "vdc_reference_deviation_pct",
+            "vdc_event_max_rise_v",
+            "vdc_event_max_drop_v",
+            "vdc_event_max_abs_deviation_pct",
+            "vdc_event_deviation_pass",
+        }
+
+        self.assertTrue(required_fields.issubset(set(CSV_FIELDNAMES)))
 
     def test_dry_run_does_not_execute_simulations(self) -> None:
         output = io.StringIO()
@@ -118,6 +142,8 @@ class TestGFMSweepCSV(unittest.TestCase):
         self.assertIn("grid_size=4", text)
         self.assertIn("run=1 | M=2 | D=0", text)
         self.assertIn("run=4 | M=5 | D=50", text)
+        self.assertIn(f"criteria_version={CRITERIA_VERSION}", text)
+        self.assertIn(f"vdc_acceptance_basis={VDC_ACCEPTANCE_BASIS}", text)
         self.assertIn("dry_run=True", text)
         self.assertIn("simulations_executed=0", text)
 

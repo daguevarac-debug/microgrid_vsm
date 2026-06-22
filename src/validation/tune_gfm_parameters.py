@@ -62,6 +62,8 @@ M_SWEEP_DEFAULT = (2.0, 5.0, 10.0, 20.0, 40.0, 80.0)
 D_SWEEP_DEFAULT = (0.0, 50.0, 100.0, 200.0, 500.0, 1000.0, 1500.0)
 TUNING_T_END_S_DEFAULT = 6.5
 SCENARIO_NAME = "load_step_20_no_bess"
+CRITERIA_VERSION = "obj2_vdc_event_relative_v2"
+VDC_ACCEPTANCE_BASIS = "max_abs_event_deviation_from_pre_step"
 DEFAULT_OUTPUT_PATH = (
     REPO_ROOT
     / "outputs"
@@ -73,6 +75,8 @@ DEFAULT_OUTPUT_PATH = (
 CSV_FIELDNAMES = (
     "run_index",
     "scenario",
+    "criteria_version",
+    "vdc_acceptance_basis",
     "bess_active",
     "M",
     "D",
@@ -100,15 +104,23 @@ CSV_FIELDNAMES = (
     "frequency_drop_pass",
     "frequency_recovery_pass",
     "frequency_criteria_pass",
+    "vdc_pre_step_v",
+    "vdc_reference_deviation_v",
+    "vdc_reference_deviation_pct",
     "vdc_max_post_step_v",
     "vdc_min_post_step_v",
     "vdc_overshoot_v",
     "vdc_overshoot_pct",
     "vdc_undershoot_v",
     "vdc_undershoot_pct",
+    "vdc_event_max_rise_v",
+    "vdc_event_max_drop_v",
+    "vdc_event_max_abs_deviation_v",
+    "vdc_event_max_abs_deviation_pct",
     "vdc_min_required_v",
     "vdc_min_margin_v",
     "vdc_overshoot_pass",
+    "vdc_event_deviation_pass",
     "vdc_minimum_voltage_pass",
     "vdc_criteria_pass",
     "candidate_admissible",
@@ -163,15 +175,23 @@ def _empty_metrics_record() -> dict[str, Any]:
         "frequency_drop_pass": False,
         "frequency_recovery_pass": False,
         "frequency_criteria_pass": False,
+        "vdc_pre_step_v": np.nan,
+        "vdc_reference_deviation_v": np.nan,
+        "vdc_reference_deviation_pct": np.nan,
         "vdc_max_post_step_v": np.nan,
         "vdc_min_post_step_v": np.nan,
         "vdc_overshoot_v": np.nan,
         "vdc_overshoot_pct": np.nan,
         "vdc_undershoot_v": np.nan,
         "vdc_undershoot_pct": np.nan,
+        "vdc_event_max_rise_v": np.nan,
+        "vdc_event_max_drop_v": np.nan,
+        "vdc_event_max_abs_deviation_v": np.nan,
+        "vdc_event_max_abs_deviation_pct": np.nan,
         "vdc_min_required_v": np.nan,
         "vdc_min_margin_v": np.nan,
         "vdc_overshoot_pass": False,
+        "vdc_event_deviation_pass": False,
         "vdc_minimum_voltage_pass": False,
         "vdc_criteria_pass": False,
         "candidate_admissible": False,
@@ -212,6 +232,8 @@ def run_single_candidate(
     record: dict[str, Any] = {
         "run_index": int(run_index),
         "scenario": SCENARIO_NAME,
+        "criteria_version": CRITERIA_VERSION,
+        "vdc_acceptance_basis": VDC_ACCEPTANCE_BASIS,
         "bess_active": False,
         "M": inertia_m,
         "D": damping_d,
@@ -330,6 +352,8 @@ def run_parameter_sweep(
     records: list[dict[str, Any]] = []
 
     print(f"scenario={SCENARIO_NAME}")
+    print(f"criteria_version={CRITERIA_VERSION}")
+    print(f"vdc_acceptance_basis={VDC_ACCEPTANCE_BASIS}")
     print(f"grid_size={len(grid)}")
     print(f"p_ref_w={p_ref_w:.6f}")
     print(f"t_step_s={MICROGRID_LOAD_STEP_TIME_S_DEFAULT:.6f}")
@@ -353,6 +377,7 @@ def run_parameter_sweep(
             f"{record['status']} | admissible={record['candidate_admissible']} | "
             f"drop_hz={record['max_frequency_drop_hz']} | "
             f"recovery_s={record['frequency_recovery_time_s']} | "
+            f"vdc_event_dev_pct={record['vdc_event_max_abs_deviation_pct']} | "
             f"vdc_min_v={record['vdc_min_post_step_v']} | "
             f"elapsed_s={record['elapsed_wall_s']:.3f}",
             flush=True,
@@ -417,6 +442,8 @@ def main(argv: list[str] | None = None) -> int:
     grid = build_parameter_grid(args.m_values, args.d_values)
     if args.dry_run:
         _print_grid(grid)
+        print(f"criteria_version={CRITERIA_VERSION}")
+        print(f"vdc_acceptance_basis={VDC_ACCEPTANCE_BASIS}")
         print("dry_run=True")
         print("simulations_executed=0")
         return 0

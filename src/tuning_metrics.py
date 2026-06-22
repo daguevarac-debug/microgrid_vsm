@@ -23,6 +23,7 @@ from config import (
     TUNING_FREQUENCY_RECOVERY_DWELL_S_DEFAULT,
     TUNING_MAX_FREQUENCY_DROP_HZ_DEFAULT,
     TUNING_MAX_FREQUENCY_RECOVERY_S_DEFAULT,
+    TUNING_MAX_VDC_EVENT_DEVIATION_PCT_DEFAULT,
     TUNING_MAX_VDC_OVERSHOOT_PCT_DEFAULT,
     TUNING_PRE_STEP_WINDOW_S_DEFAULT,
 )
@@ -47,6 +48,7 @@ class TuningCriteria:
 
     vdc_reference_v: float = SIM_VDC0_V_DEFAULT
     max_vdc_overshoot_pct: float = TUNING_MAX_VDC_OVERSHOOT_PCT_DEFAULT
+    max_vdc_event_deviation_pct: float = TUNING_MAX_VDC_EVENT_DEVIATION_PCT_DEFAULT
     ac_phase_voltage_rms_v: float = GRID_V_LN_RMS_DEFAULT
     modulation_index_max: float = INVERTER_MODULATION_INDEX_MAX_DEFAULT
 
@@ -60,6 +62,7 @@ class TuningCriteria:
             "pre_step_window_s": self.pre_step_window_s,
             "vdc_reference_v": self.vdc_reference_v,
             "max_vdc_overshoot_pct": self.max_vdc_overshoot_pct,
+            "max_vdc_event_deviation_pct": self.max_vdc_event_deviation_pct,
             "ac_phase_voltage_rms_v": self.ac_phase_voltage_rms_v,
             "modulation_index_max": self.modulation_index_max,
         }
@@ -199,7 +202,13 @@ def dc_link_performance_metrics(
     t_step: float,
     criteria: TuningCriteria = DEFAULT_TUNING_CRITERIA,
 ) -> dict[str, Any]:
-    """Evaluate positive DC-link overshoot and minimum-voltage feasibility."""
+    """Evaluate event-relative DC-link excursion and minimum-voltage feasibility.
+
+    Metrics relative to the nominal 340 V reference are retained as diagnostics
+    for backward compatibility. Acceptance is based on the maximum absolute
+    event-induced deviation from the pre-step operating point together with the
+    absolute minimum-voltage requirement.
+    """
     time, vdc = _validated_trace(t, vdc_v, value_name="vdc_v")
     if not np.isfinite(t_step):
         raise ValueError("t_step must be finite.")
@@ -208,29 +217,67 @@ def dc_link_performance_metrics(
     if not np.any(post_mask):
         raise ValueError("The trace must include at least one sample at or after t_step.")
 
+    vdc_pre = _pre_step_mean(
+        time,
+        vdc,
+        t_step,
+        criteria.pre_step_window_s,
+    )
+    if vdc_pre <= 0.0:
+        raise ValueError(
+            f"Pre-step DC-link voltage must be > 0 for relative metrics, got {vdc_pre}."
+        )
+
     vdc_post = vdc[post_mask]
     vdc_max = float(np.max(vdc_post))
     vdc_min = float(np.min(vdc_post))
+
+    reference_deviation_v = vdc_pre - criteria.vdc_reference_v
+    reference_deviation_pct = (
+        100.0 * reference_deviation_v / criteria.vdc_reference_v
+    )
+
     overshoot_v = max(vdc_max - criteria.vdc_reference_v, 0.0)
     undershoot_v = max(criteria.vdc_reference_v - vdc_min, 0.0)
     overshoot_pct = 100.0 * overshoot_v / criteria.vdc_reference_v
     undershoot_pct = 100.0 * undershoot_v / criteria.vdc_reference_v
+
+    event_max_rise_v = max(vdc_max - vdc_pre, 0.0)
+    event_max_drop_v = max(vdc_pre - vdc_min, 0.0)
+    event_max_abs_deviation_v = max(event_max_rise_v, event_max_drop_v)
+    event_max_abs_deviation_pct = (
+        100.0 * event_max_abs_deviation_v / vdc_pre
+    )
+
     min_required = criteria.vdc_min_required_v
-    overshoot_pass = bool(overshoot_pct <= criteria.max_vdc_overshoot_pct)
+    legacy_overshoot_pass = bool(
+        overshoot_pct <= criteria.max_vdc_overshoot_pct
+    )
+    event_deviation_pass = bool(
+        event_max_abs_deviation_pct <= criteria.max_vdc_event_deviation_pct
+    )
     minimum_voltage_pass = bool(vdc_min >= min_required)
 
     return {
+        "vdc_pre_step_v": float(vdc_pre),
+        "vdc_reference_deviation_v": float(reference_deviation_v),
+        "vdc_reference_deviation_pct": float(reference_deviation_pct),
         "vdc_max_post_step_v": vdc_max,
         "vdc_min_post_step_v": vdc_min,
         "vdc_overshoot_v": float(overshoot_v),
         "vdc_overshoot_pct": float(overshoot_pct),
         "vdc_undershoot_v": float(undershoot_v),
         "vdc_undershoot_pct": float(undershoot_pct),
+        "vdc_event_max_rise_v": float(event_max_rise_v),
+        "vdc_event_max_drop_v": float(event_max_drop_v),
+        "vdc_event_max_abs_deviation_v": float(event_max_abs_deviation_v),
+        "vdc_event_max_abs_deviation_pct": float(event_max_abs_deviation_pct),
         "vdc_min_required_v": float(min_required),
         "vdc_min_margin_v": float(vdc_min - min_required),
-        "vdc_overshoot_pass": overshoot_pass,
+        "vdc_overshoot_pass": legacy_overshoot_pass,
+        "vdc_event_deviation_pass": event_deviation_pass,
         "vdc_minimum_voltage_pass": minimum_voltage_pass,
-        "vdc_criteria_pass": bool(overshoot_pass and minimum_voltage_pass),
+        "vdc_criteria_pass": bool(event_deviation_pass and minimum_voltage_pass),
     }
 
 
