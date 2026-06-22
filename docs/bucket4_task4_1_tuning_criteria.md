@@ -13,7 +13,7 @@ Los valores adoptados son criterios de diseño de la tesis. No se presentan como
 | Caída máxima de frecuencia | `f_pre - min(f_post)` | `<= 0.50 Hz` |
 | Tiempo de recuperación de frecuencia | Primer instante de entrada a `60 +/- 0.10 Hz` con permanencia de `0.50 s` | `<= 5.0 s` |
 | Sobreoscilación positiva del enlace DC | `100*(Vdc_max - Vdc_ref)/Vdc_ref` | `<= 5.0 %` |
-| Tensión mínima del enlace DC | Mínimo postperturbación | `>= 327.52 V` |
+| Tensión mínima del enlace DC | Mínimo postperturbación | `>= 327.50 V` |
 
 La frecuencia previa al evento se calcula como el promedio de los últimos `0.10 s` anteriores al escalón. La referencia del enlace DC es `340 V`. La tensión mínima requerida se deriva de `2*sqrt(2)*110/0.95`, usando la tensión fase-neutro RMS y el índice máximo de modulación del modelo.
 
@@ -51,4 +51,4 @@ La función `bess_stress_metrics` registra estas magnitudes sin imponer todavía
 
 ## Implementación
 
-Las definiciones están implementadas en `src/tuning_metrics.py`. Las pruebas unitarias se encuentran en `src/validation/test_tuning_metrics.py`. La implementación evita modificar todavía el horizonte global de simulación; una corrida destinada a verificar el criterio de recuperación debe extenderse al menos hasta `t_step + 5.0 + 0.5 s`.
+Los límites numéricos están centralizados en `src/config.py`. Las definiciones están implementadas en `src/tuning_metrics.py` y las pruebas unitarias en `src/validation/test_tuning_metrics.py`. La implementación evita modificar todavía el horizonte global de simulación; una corrida destinada a verificar el criterio de recuperación debe extenderse al menos hasta `t_step + 5.0 + 0.5 s`.
