@@ -201,6 +201,17 @@ SIM_SOLVER_ATOL_DEFAULT = 1e-8
 SIM_SS_WINDOW_FRACTION = 0.75
 PV_CURVE_IRRADIANCE_LEVELS_W_PER_M2 = (1000.0, 800.0, 400.0)
 
+# ------------------------------
+# Bucket 4 tuning acceptance criteria
+# ------------------------------
+# Thesis design limits selected in Task 4.1. They are not universal standards.
+TUNING_MAX_FREQUENCY_DROP_HZ_DEFAULT = 0.50
+TUNING_FREQUENCY_RECOVERY_BAND_HZ_DEFAULT = 0.10
+TUNING_MAX_FREQUENCY_RECOVERY_S_DEFAULT = 5.0
+TUNING_FREQUENCY_RECOVERY_DWELL_S_DEFAULT = 0.50
+TUNING_PRE_STEP_WINDOW_S_DEFAULT = 0.10
+TUNING_MAX_VDC_OVERSHOOT_PCT_DEFAULT = 5.0
+
 
 def validate_default_dc_bus_consistency(
     v_ln_rms: float = GRID_V_LN_RMS_DEFAULT,
