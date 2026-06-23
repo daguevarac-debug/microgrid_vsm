@@ -6,6 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import numpy as np
+
 
 THIS_FILE = Path(__file__).resolve()
 SRC_DIR = THIS_FILE.parents[1]
@@ -45,6 +47,13 @@ class TestGFMOperatingPointSelection(unittest.TestCase):
             "vdc_event_max_abs_deviation_pct": 3.83,
             "vdc_min_post_step_v": 364.8,
         }
+
+    @staticmethod
+    def _write_csv(path: Path, record: dict[str, object]) -> None:
+        with path.open("w", newline="", encoding="utf-8") as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=list(record.keys()))
+            writer.writeheader()
+            writer.writerow(record)
 
     def setUp(self) -> None:
         self.coarse = [
@@ -127,11 +136,7 @@ class TestGFMOperatingPointSelection(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "legacy.csv"
-            with path.open("w", newline="", encoding="utf-8") as csv_file:
-                writer = csv.DictWriter(csv_file, fieldnames=list(legacy.keys()))
-                writer.writeheader()
-                writer.writerow(legacy)
-
+            self._write_csv(path, legacy)
             with self.assertRaisesRegex(ValueError, "criteria_version"):
                 load_sweep_csv(path)
 
@@ -143,16 +148,25 @@ class TestGFMOperatingPointSelection(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "valid.csv"
-            with path.open("w", newline="", encoding="utf-8") as csv_file:
-                writer = csv.DictWriter(csv_file, fieldnames=list(csv_record.keys()))
-                writer.writeheader()
-                writer.writerow(csv_record)
-
+            self._write_csv(path, csv_record)
             loaded = load_sweep_csv(path)
 
         self.assertEqual(len(loaded), 1)
         self.assertTrue(loaded[0]["candidate_admissible"])
         self.assertEqual((loaded[0]["M"], loaded[0]["D"]), (30.0, 75.0))
+
+    def test_csv_loader_preserves_nan_metrics_on_invalid_rows(self) -> None:
+        invalid = self._record(2.0, 0.0, float("nan"), admissible=False)
+        invalid["frequency_recovery_time_s"] = float("nan")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "invalid.csv"
+            self._write_csv(path, invalid)
+            loaded = load_sweep_csv(path)
+
+        self.assertEqual(len(loaded), 1)
+        self.assertFalse(loaded[0]["candidate_admissible"])
+        self.assertTrue(np.isnan(loaded[0]["max_frequency_drop_hz"]))
+        self.assertTrue(np.isnan(loaded[0]["frequency_recovery_time_s"]))
 
 
 if __name__ == "__main__":
