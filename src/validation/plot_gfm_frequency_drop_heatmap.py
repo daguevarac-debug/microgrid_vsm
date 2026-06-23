@@ -143,7 +143,11 @@ def load_frequency_drop_grid(csv_path: Path) -> FrequencyDropGrid:
             f"(M={inertia_m:g}, D={damping_d:g})"
             for inertia_m, damping_d in missing_pairs
         )
-        raise ValueError(f"Input CSV does not form a complete rectangular grid; missing {formatted}.")
+        raise ValueError(
+            "Input CSV does not form a complete rectangular grid; missing "
+            + formatted
+            + "."
+        )
 
     drop_hz = np.array(
         [
@@ -157,6 +161,16 @@ def load_frequency_drop_grid(csv_path: Path) -> FrequencyDropGrid:
         d_values=d_values,
         drop_hz=drop_hz,
     )
+
+
+def annotation_text_color(normalized_value: float) -> str:
+    """Return readable annotation color for the default dark-to-bright colormap."""
+    value = float(normalized_value)
+    if not np.isfinite(value) or not 0.0 <= value <= 1.0:
+        raise ValueError(
+            f"normalized_value must be finite and within [0, 1], got {normalized_value}."
+        )
+    return "white" if value < 0.58 else "black"
 
 
 def save_frequency_drop_heatmap(
@@ -193,14 +207,13 @@ def save_frequency_drop_heatmap(
         for column_index in range(grid.drop_hz.shape[1]):
             value = float(grid.drop_hz[row_index, column_index])
             normalized = float(image.norm(value))
-            text_color = "white" if normalized > 0.58 else "black"
             axis.text(
                 column_index,
                 row_index,
                 f"{value:.4f}",
                 ha="center",
                 va="center",
-                color=text_color,
+                color=annotation_text_color(normalized),
                 fontsize=9,
             )
 
