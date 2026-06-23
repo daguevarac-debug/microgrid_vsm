@@ -15,6 +15,7 @@ if str(SRC_DIR) not in sys.path:
 
 from validation.plot_gfm_frequency_drop_heatmap import (
     FrequencyDropGrid,
+    annotation_text_color,
     load_frequency_drop_grid,
     main,
     save_frequency_drop_heatmap,
@@ -102,6 +103,16 @@ class TestFrequencyDropGridLoading(unittest.TestCase):
 
 
 class TestFrequencyDropHeatmapSaving(unittest.TestCase):
+    def test_annotation_color_is_readable_on_dark_and_bright_cells(self) -> None:
+        self.assertEqual(annotation_text_color(0.0), "white")
+        self.assertEqual(annotation_text_color(0.40), "white")
+        self.assertEqual(annotation_text_color(0.58), "black")
+        self.assertEqual(annotation_text_color(1.0), "black")
+        with self.assertRaises(ValueError):
+            annotation_text_color(-0.01)
+        with self.assertRaises(ValueError):
+            annotation_text_color(1.01)
+
     def test_heatmap_is_saved_as_nonempty_png(self) -> None:
         grid = FrequencyDropGrid(
             m_values=(20.0, 30.0, 40.0),
