@@ -1,13 +1,8 @@
 """Select the classical GFM operating point from validated sweep CSV files.
 
-This module does not run new simulations and does not modify the controller. It
-applies a deterministic selection rule to the existing coarse and refined sweep
-results produced with the Objective 2 DC-link criterion v2.
-
-The selected point is the admissible refined candidate with the smallest
-``max_frequency_drop_hz``. Exact ties are resolved by lower ``M`` and then lower
-``D`` only to keep the result reproducible. The best coarse point is reported as
-a boundary diagnostic; it is not allowed to replace the refined-domain result.
+The selector does not run simulations or modify the controller. It applies a
+deterministic rule to the existing coarse and refined results generated with the
+Objective 2 DC-link criterion v2.
 """
 
 from __future__ import annotations
@@ -53,52 +48,55 @@ DEFAULT_OUTPUT_JSON = (
     / "operating_point_selection_summary.json"
 )
 
-REQUIRED_FIELDS = (
-    "criteria_version",
-    "vdc_acceptance_basis",
-    "M",
-    "D",
+BOOLEAN_FIELDS = (
     "solver_success",
     "states_finite",
     "frequency_criteria_pass",
     "vdc_criteria_pass",
     "candidate_admissible",
+)
+METRIC_FIELDS = (
     "max_frequency_drop_hz",
     "frequency_recovery_time_s",
     "vdc_event_max_abs_deviation_pct",
     "vdc_min_post_step_v",
 )
-
-TRUE_STRINGS = {"1", "true", "yes", "y"}
-FALSE_STRINGS = {"0", "false", "no", "n"}
+REQUIRED_FIELDS = (
+    "criteria_version",
+    "vdc_acceptance_basis",
+    "M",
+    "D",
+    *BOOLEAN_FIELDS,
+    *METRIC_FIELDS,
+)
 
 
 def _parse_bool(name: str, value: Any) -> bool:
     if isinstance(value, bool):
         return value
     normalized = str(value).strip().lower()
-    if normalized in TRUE_STRINGS:
+    if normalized in {"1", "true", "yes", "y"}:
         return True
-    if normalized in FALSE_STRINGS:
+    if normalized in {"0", "false", "no", "n"}:
         return False
     raise ValueError(f"{name} must be boolean-like, got {value!r}.")
 
 
-def _parse_finite_float(name: str, value: Any) -> float:
+def _parse_number(name: str, value: Any) -> float:
     try:
-        parsed = float(value)
+        return float(value)
     except (TypeError, ValueError) as exc:
         raise ValueError(f"{name} must be numeric, got {value!r}.") from exc
-    if not np.isfinite(parsed):
-        raise ValueError(f"{name} must be finite, got {value!r}.")
-    return parsed
 
 
-def _normalized_record(raw: dict[str, Any], *, source: Path, row_number: int) -> dict[str, Any]:
+def _normalized_record(
+    raw: dict[str, Any], *, source: Path, row_number: int
+) -> dict[str, Any]:
     missing = [field for field in REQUIRED_FIELDS if field not in raw]
     if missing:
         raise ValueError(
-            f"{source}: row {row_number} is missing required fields: {', '.join(missing)}."
+            f"{source}: row {row_number} is missing required fields: "
+            f"{', '.join(missing)}."
         )
 
     criteria_version = str(raw["criteria_version"]).strip()
@@ -115,47 +113,24 @@ def _normalized_record(raw: dict[str, Any], *, source: Path, row_number: int) ->
         )
 
     record = dict(raw)
-    record.update(
-        {
-            "criteria_version": criteria_version,
-            "vdc_acceptance_basis": vdc_basis,
-            "M": _parse_finite_float("M", raw["M"]),
-            "D": _parse_finite_float("D", raw["D"]),
-            "solver_success": _parse_bool("solver_success", raw["solver_success"]),
-            "states_finite": _parse_bool("states_finite", raw["states_finite"]),
-            "frequency_criteria_pass": _parse_bool(
-                "frequency_criteria_pass", raw["frequency_criteria_pass"]
-            ),
-            "vdc_criteria_pass": _parse_bool(
-                "vdc_criteria_pass", raw["vdc_criteria_pass"]
-            ),
-            "candidate_admissible": _parse_bool(
-                "candidate_admissible", raw["candidate_admissible"]
-            ),
-            "max_frequency_drop_hz": _parse_finite_float(
-                "max_frequency_drop_hz", raw["max_frequency_drop_hz"]
-            ),
-            "frequency_recovery_time_s": _parse_finite_float(
-                "frequency_recovery_time_s", raw["frequency_recovery_time_s"]
-            ),
-            "vdc_event_max_abs_deviation_pct": _parse_finite_float(
-                "vdc_event_max_abs_deviation_pct",
-                raw["vdc_event_max_abs_deviation_pct"],
-            ),
-            "vdc_min_post_step_v": _parse_finite_float(
-                "vdc_min_post_step_v", raw["vdc_min_post_step_v"]
-            ),
-        }
-    )
-    if record["M"] <= 0.0:
-        raise ValueError(f"{source}: row {row_number} has M <= 0.")
-    if record["D"] < 0.0:
-        raise ValueError(f"{source}: row {row_number} has D < 0.")
+    record["criteria_version"] = criteria_version
+    record["vdc_acceptance_basis"] = vdc_basis
+    record["M"] = _parse_number("M", raw["M"])
+    record["D"] = _parse_number("D", raw["D"])
+    for field in BOOLEAN_FIELDS:
+        record[field] = _parse_bool(field, raw[field])
+    for field in METRIC_FIELDS:
+        record[field] = _parse_number(field, raw[field])
+
+    if not np.isfinite(record["M"]) or record["M"] <= 0.0:
+        raise ValueError(f"{source}: row {row_number} must have finite M > 0.")
+    if not np.isfinite(record["D"]) or record["D"] < 0.0:
+        raise ValueError(f"{source}: row {row_number} must have finite D >= 0.")
     return record
 
 
 def load_sweep_csv(path: Path | str) -> list[dict[str, Any]]:
-    """Load and validate one Objective 2 sweep CSV."""
+    """Load one sweep CSV while preserving explicitly invalid result rows."""
     source = Path(path)
     if not source.is_file():
         raise ValueError(f"Sweep CSV does not exist: {source}.")
@@ -173,16 +148,9 @@ def load_sweep_csv(path: Path | str) -> list[dict[str, Any]]:
 
 
 def _is_fully_admissible(record: dict[str, Any]) -> bool:
-    return all(
-        bool(record[field])
-        for field in (
-            "solver_success",
-            "states_finite",
-            "frequency_criteria_pass",
-            "vdc_criteria_pass",
-            "candidate_admissible",
-        )
-    )
+    flags_pass = all(bool(record[field]) for field in BOOLEAN_FIELDS)
+    metrics_finite = all(np.isfinite(record[field]) for field in METRIC_FIELDS)
+    return bool(flags_pass and metrics_finite)
 
 
 def _admissible(records: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -204,10 +172,7 @@ def _best_by_frequency_drop(records: Iterable[dict[str, Any]]) -> dict[str, Any]
 
 
 def _find_point(
-    records: Iterable[dict[str, Any]],
-    *,
-    inertia_m: float,
-    damping_d: float,
+    records: Iterable[dict[str, Any]], *, inertia_m: float, damping_d: float
 ) -> dict[str, Any]:
     matches = [
         record
@@ -222,7 +187,8 @@ def _find_point(
         )
     if not _is_fully_admissible(matches[0]):
         raise ValueError(
-            f"The reference candidate M={inertia_m:g}, D={damping_d:g} is not fully admissible."
+            f"The reference candidate M={inertia_m:g}, D={damping_d:g} "
+            "is not fully admissible."
         )
     return matches[0]
 
@@ -242,9 +208,9 @@ def _point_summary(record: dict[str, Any]) -> dict[str, Any]:
 
 
 def _is_axis_boundary(record: dict[str, Any], records: Iterable[dict[str, Any]]) -> bool:
-    records_list = list(records)
-    m_values = [candidate["M"] for candidate in records_list]
-    d_values = [candidate["D"] for candidate in records_list]
+    candidates = list(records)
+    m_values = [candidate["M"] for candidate in candidates]
+    d_values = [candidate["D"] for candidate in candidates]
     return bool(
         np.isclose(record["M"], min(m_values))
         or np.isclose(record["M"], max(m_values))
@@ -263,7 +229,7 @@ def select_operating_point(
     coarse_records: Iterable[dict[str, Any]],
     refined_records: Iterable[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Return a reproducible operating-point selection and its diagnostics."""
+    """Select the refined admissible minimum and retain coarse diagnostics."""
     coarse_all = list(coarse_records)
     refined_all = list(refined_records)
     coarse_admissible = _admissible(coarse_all)
@@ -280,13 +246,14 @@ def select_operating_point(
         inertia_m=BALANCED_REFERENCE_M,
         damping_d=BALANCED_REFERENCE_D,
     )
-
-    same_m_candidates = [
-        candidate
-        for candidate in refined_admissible
-        if np.isclose(candidate["M"], selected["M"], rtol=0.0, atol=1e-12)
-    ]
-    same_m_lowest_d = min(same_m_candidates, key=lambda record: record["D"])
+    same_m_lowest_d = min(
+        (
+            candidate
+            for candidate in refined_admissible
+            if np.isclose(candidate["M"], selected["M"], rtol=0.0, atol=1e-12)
+        ),
+        key=lambda record: record["D"],
+    )
 
     balanced_abs, balanced_pct = _reduction(
         balanced["max_frequency_drop_hz"], selected["max_frequency_drop_hz"]
@@ -300,8 +267,8 @@ def select_operating_point(
         "status": "PASS",
         "selection_scope": SELECTION_SCOPE,
         "selection_rule": (
-            "minimum max_frequency_drop_hz among fully admissible refined candidates; "
-            "exact ties use lower M and then lower D"
+            "minimum max_frequency_drop_hz among fully admissible refined "
+            "candidates; exact ties use lower M and then lower D"
         ),
         "criteria_version": EXPECTED_CRITERIA_VERSION,
         "vdc_acceptance_basis": EXPECTED_VDC_ACCEPTANCE_BASIS,
@@ -331,7 +298,7 @@ def select_operating_point(
 
 
 def write_summary(summary: dict[str, Any], output_path: Path | str) -> Path:
-    """Write the local, non-versioned selection summary as JSON."""
+    """Write a local JSON summary under outputs/."""
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
