@@ -1,21 +1,24 @@
 """Validate islanded operation scenarios.
 
 This module is the consolidation point for the islanded-operation validation
-bucket. For now it includes only the nominal steady-operation scenario. Future
-functions can add the 20% load step, severe load change, no-BESS, and BESS
-support scenarios without creating one script per subtarea.
+bucket. Baseline scenarios remain available, while explicit GFM cross-validation
+paths can be added without silently converting the baseline execution mode.
 """
 
 from __future__ import annotations
 
+import argparse
+import json
 from pathlib import Path
 import sys
+from typing import Any
 
 import numpy as np
 from scipy.integrate import solve_ivp
 
 THIS_FILE = Path(__file__).resolve()
 SRC_DIR = THIS_FILE.parents[1]
+REPO_ROOT = SRC_DIR.parent
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
@@ -33,7 +36,12 @@ from config import (
     SIM_T_START_S_DEFAULT,
     SIM_VDC0_V_DEFAULT,
 )
+from controllers.gfm_controller import GFMController
 from microgrid import BalancedRLLoad, Microgrid, MicrogridWithBESS
+from tuning_metrics import (
+    dc_link_performance_metrics,
+    frequency_performance_metrics,
+)
 
 
 EPS = 1e-12
@@ -41,6 +49,20 @@ GROWTH_LIMIT = 1.2
 VDC_STEP_20_DELTA_LIMIT_PCT = 10.0
 VDC_ABRUPT_STEP_DELTA_LIMIT_PCT = 15.0
 LIMIT_ATOL = 1e-9
+
+GFM_SELECTED_M = 40.0
+GFM_SELECTED_D = 100.0
+GFM_SEVERE_T_END_S = 6.5
+GFM_SEVERE_SCENARIO_NAME = "gfm_selected_load_step_40_no_bess"
+GFM_CRITERIA_VERSION = "obj2_vdc_event_relative_v2"
+GFM_VDC_ACCEPTANCE_BASIS = "max_abs_event_deviation_from_pre_step"
+GFM_SEVERE_DEFAULT_OUTPUT = (
+    REPO_ROOT
+    / "outputs"
+    / "validation"
+    / "gfm_tuning"
+    / "selected_m40_d100_severe_40pct.json"
+)
 
 
 def _rms(signal: np.ndarray) -> float:
@@ -78,10 +100,14 @@ def _base_initial_state() -> list[float]:
     ]
 
 
-def _solve_model(model: Microgrid, y0: list[float]):
+def _solve_model(
+    model: Microgrid,
+    y0: list[float],
+    t_end_s: float = SIM_T_END_S_DEFAULT,
+):
     return solve_ivp(
         model.system_dynamics,
-        (SIM_T_START_S_DEFAULT, SIM_T_END_S_DEFAULT),
+        (SIM_T_START_S_DEFAULT, float(t_end_s)),
         y0,
         max_step=SIM_SOLVER_MAX_STEP_S_DEFAULT,
         rtol=SIM_SOLVER_RTOL_DEFAULT,
@@ -615,7 +641,241 @@ def validate_bess_vs_no_bess() -> str:
     return status
 
 
-def main() -> int:
+
+def _reference_active_power_w() -> float:
+    """Return the same available active-power reference used by the GFM sweep."""
+    reference_model = Microgrid()
+    return float(min(reference_model.P_ref_nominal, reference_model.p_available_ref))
+
+
+def _classify_selected_gfm_severe_status(
+    *,
+    solver_success: bool,
+    states_finite: bool,
+    scenario_configuration_ok: bool,
+    frequency_criteria_pass: bool,
+    vdc_criteria_pass: bool,
+) -> str:
+    """Classify the selected-point severe cross-validation outcome."""
+    if not (solver_success and states_finite and scenario_configuration_ok):
+        return "FAIL"
+    if frequency_criteria_pass and vdc_criteria_pass:
+        return "PASS"
+    return "REVIEW"
+
+
+def _json_ready_record(record: dict[str, Any]) -> dict[str, Any]:
+    """Return a JSON-safe record, replacing non-finite floats with null."""
+    json_ready: dict[str, Any] = {}
+    for key, value in record.items():
+        if isinstance(value, np.generic):
+            value = value.item()
+        if isinstance(value, float) and not np.isfinite(value):
+            value = None
+        json_ready[key] = value
+    return json_ready
+
+
+def validate_selected_gfm_severe(
+    output_path: Path = GFM_SEVERE_DEFAULT_OUTPUT,
+) -> dict[str, Any]:
+    """Validate (M*, D*) = (40, 100) under a no-BESS severe 40% load step."""
+    p_load_pre = float(MICROGRID_LOAD_P_NOM_W_DEFAULT)
+    p_load_post = float(
+        MICROGRID_LOAD_P_NOM_W_DEFAULT
+        * (1.0 + MICROGRID_LOAD_STEP_SEVERE_FRACTION_DEFAULT)
+    )
+    load_step_pct = 100.0 * (p_load_post - p_load_pre) / p_load_pre
+    t_step = float(MICROGRID_LOAD_STEP_TIME_S_DEFAULT)
+    p_ref_w = _reference_active_power_w()
+
+    load_pre = BalancedRLLoad.from_active_power(
+        p_3ph_w=p_load_pre,
+        power_factor=MICROGRID_LOAD_POWER_FACTOR_DEFAULT,
+    )
+    load_post = BalancedRLLoad.from_active_power(
+        p_3ph_w=p_load_post,
+        power_factor=MICROGRID_LOAD_POWER_FACTOR_DEFAULT,
+    )
+
+    record: dict[str, Any] = {
+        "scenario": GFM_SEVERE_SCENARIO_NAME,
+        "status": "FAIL",
+        "robustness_confirmed": False,
+        "selection_scope": "selected_within_explored_and_refined_domain",
+        "criteria_version": GFM_CRITERIA_VERSION,
+        "vdc_acceptance_basis": GFM_VDC_ACCEPTANCE_BASIS,
+        "bess_active": False,
+        "M": GFM_SELECTED_M,
+        "D": GFM_SELECTED_D,
+        "p_ref_w": p_ref_w,
+        "p_load_pre_step_w": p_load_pre,
+        "p_load_post_step_w": p_load_post,
+        "q_load_pre_step_var": float(load_pre.q_3ph_var),
+        "q_load_post_step_var": float(load_post.q_3ph_var),
+        "load_step_pct": load_step_pct,
+        "power_factor": float(MICROGRID_LOAD_POWER_FACTOR_DEFAULT),
+        "t_start_s": float(SIM_T_START_S_DEFAULT),
+        "t_step_s": t_step,
+        "t_end_s": GFM_SEVERE_T_END_S,
+        "controller_state_name": None,
+        "state_count": None,
+        "scenario_configuration_ok": False,
+        "solver_success": False,
+        "solver_message": "not started",
+        "states_finite": False,
+        "n_time_points": 0,
+        "nfev": 0,
+        "frequency_criteria_pass": False,
+        "vdc_criteria_pass": False,
+        "review_reasons": [],
+    }
+    reasons: list[str] = []
+
+    try:
+        controller = GFMController(
+            p_ref=p_ref_w,
+            inertia_m=GFM_SELECTED_M,
+            damping_d=GFM_SELECTED_D,
+        )
+        model = Microgrid(
+            controller=controller,
+            load_profile=lambda t: p_load_pre if t < t_step else p_load_post,
+        )
+        initial_state = model.initial_state(vdc0=SIM_VDC0_V_DEFAULT)
+        scenario_configuration_ok = bool(
+            model.controller_state_name == "omega"
+            and len(initial_state) == 12
+            and abs(load_step_pct - 40.0) <= 1e-9
+            and GFM_SEVERE_T_END_S >= t_step + 5.5
+        )
+
+        solution = _solve_model(
+            model,
+            initial_state,
+            t_end_s=GFM_SEVERE_T_END_S,
+        )
+        solver_success = bool(solution.success)
+        states_finite = bool(
+            np.all(np.isfinite(solution.t))
+            and np.all(np.isfinite(solution.y))
+        )
+        record.update(
+            {
+                "controller_state_name": model.controller_state_name,
+                "state_count": len(initial_state),
+                "scenario_configuration_ok": scenario_configuration_ok,
+                "solver_success": solver_success,
+                "solver_message": str(solution.message),
+                "states_finite": states_finite,
+                "n_time_points": int(solution.t.size),
+                "nfev": int(solution.nfev),
+            }
+        )
+
+        if solver_success and states_finite:
+            frequency_hz = solution.y[10] / (2.0 * np.pi)
+            frequency_metrics = frequency_performance_metrics(
+                t=solution.t,
+                frequency_hz=frequency_hz,
+                t_step=t_step,
+            )
+            vdc_metrics = dc_link_performance_metrics(
+                t=solution.t,
+                vdc_v=solution.y[0],
+                t_step=t_step,
+            )
+            record.update(frequency_metrics)
+            record.update(vdc_metrics)
+
+        frequency_pass = bool(record["frequency_criteria_pass"])
+        vdc_pass = bool(record["vdc_criteria_pass"])
+        status = _classify_selected_gfm_severe_status(
+            solver_success=solver_success,
+            states_finite=states_finite,
+            scenario_configuration_ok=scenario_configuration_ok,
+            frequency_criteria_pass=frequency_pass,
+            vdc_criteria_pass=vdc_pass,
+        )
+
+        if not scenario_configuration_ok:
+            reasons.append("severe GFM scenario configuration is inconsistent")
+        if not solver_success:
+            reasons.append(f"solve_ivp unsuccessful: {solution.message}")
+        if not states_finite:
+            reasons.append("time or state arrays contain NaN/Inf")
+        if solver_success and states_finite and not frequency_pass:
+            reasons.append("frequency acceptance criteria are not met")
+        if solver_success and states_finite and not vdc_pass:
+            reasons.append("DC-link acceptance criteria are not met")
+
+        record["status"] = status
+        record["robustness_confirmed"] = bool(status == "PASS")
+    except Exception as exc:
+        reasons.append(f"{type(exc).__name__}: {exc}")
+        record["status"] = "FAIL"
+        record["robustness_confirmed"] = False
+
+    record["review_reasons"] = reasons
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    json_record = _json_ready_record(record)
+    with output_path.open("w", encoding="utf-8") as output_file:
+        json.dump(json_record, output_file, indent=2, sort_keys=True)
+        output_file.write("\n")
+
+    print(f"scenario={record['scenario']}")
+    print(f"status={record['status']}")
+    print(f"robustness_confirmed={record['robustness_confirmed']}")
+    print(f"M={record['M']:.6f}")
+    print(f"D={record['D']:.6f}")
+    print(f"bess_active={record['bess_active']}")
+    print(f"load_step_pct={record['load_step_pct']:.6f}")
+    print(f"solver_success={record['solver_success']}")
+    print(f"states_finite={record['states_finite']}")
+    print(f"scenario_configuration_ok={record['scenario_configuration_ok']}")
+    for metric_name in (
+        "max_frequency_drop_hz",
+        "frequency_recovery_time_s",
+        "frequency_criteria_pass",
+        "vdc_event_max_abs_deviation_pct",
+        "vdc_min_post_step_v",
+        "vdc_criteria_pass",
+    ):
+        if metric_name in record:
+            print(f"{metric_name}={record[metric_name]}")
+    if reasons:
+        print("review_reasons:")
+        for reason in reasons:
+            print(f"- {reason}")
+    print(f"summary_path={output_path}")
+    return record
+
+
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Validate consolidated islanded-operation scenarios."
+    )
+    parser.add_argument(
+        "--gfm-selected-severe",
+        action="store_true",
+        help="Run only the selected GFM point under the severe 40 pct load step.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=GFM_SEVERE_DEFAULT_OUTPUT,
+        help="JSON output path for --gfm-selected-severe.",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parse_args(argv)
+    if args.gfm_selected_severe:
+        record = validate_selected_gfm_severe(output_path=args.output)
+        return 0 if record["status"] == "PASS" else 1
+
     statuses = [
         validate_steady_operation(),
         validate_load_step_20(),
