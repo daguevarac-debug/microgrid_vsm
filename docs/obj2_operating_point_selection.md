@@ -10,7 +10,7 @@ La denominación metodológicamente válida es:
 punto de operación seleccionado dentro del dominio explorado y refinado
 ```
 
-La pareja seleccionada se empleará en las validaciones cruzadas posteriores de la Tarea 4.3. En consecuencia, su adopción permanece condicionada a las pruebas con perturbación severa y BESS-SLB.
+La pareja seleccionada se empleó en las validaciones cruzadas de la Tarea 4.3. Los resultados finales se documentan en la Sección 11: el caso base con BESS-SLB fue admisible en los tres escenarios de SoH, mientras que el caso severo sin BESS no cumplió el criterio del enlace DC.
 
 ## 2. Resultados de entrada
 
@@ -109,10 +109,12 @@ La pareja `(40, 100)` también se ubica en el borde superior de la segunda malla
 ```text
 selected_on_refined_boundary = True
 global_optimum_claimed = False
-cross_validation_pending = True
+cross_validation_pending = False
+severe_no_bess_robustness_confirmed = False
+bess_soh_base_validation_pass = True
 ```
 
-La Tarea 4.3 no continuará ampliando la malla por defecto. La evidencia posterior deberá determinar si la pareja conserva su conveniencia al introducir la perturbación del `40 %` y los escenarios BESS-SLB. Una falla en esas comprobaciones obligará a reconsiderar el punto equilibrado u otra pareja admisible ya evaluada.
+La Tarea 4.3 no amplió la malla por defecto. La validación cruzada mostró que la pareja conserva admisibilidad en el escenario base con BESS-SLB, pero no cumple el criterio del enlace DC bajo el escalón severo sin BESS. Este resultado no justifica por sí solo escoger otra pareja `(M, D)`, porque el caso severo también presenta un déficit de potencia activa.
 
 ## 9. Implementación reproducible
 
@@ -130,9 +132,102 @@ El resultado esperado con los CSV indicados es:
 selected_operating_point = M=40, D=100
 selection_scope = selected_within_explored_and_refined_domain
 global_optimum_claimed = False
-cross_validation_pending = True
+cross_validation_pending = False
+severe_no_bess_robustness_confirmed = False
+bess_soh_base_validation_pass = True
 ```
 
 ## 10. Estado de cierre de esta subtarea
 
-La selección queda formalizada como `(M*, D*) = (40, 100)` para iniciar la validación cruzada. Este cierre no valida todavía el escalón severo, no incorpora la batería de segunda vida y no constituye el cierre completo de la Tarea 4.3.
+La selección permanece formalizada como `(M*, D*) = (40, 100)` dentro del dominio explorado y refinado. La validación cruzada ya fue ejecutada y no confirma robustez conjunta para todos los escenarios: el punto cumple el caso base con BESS-SLB en los tres SoH, pero no cumple el criterio del enlace DC en el escalón severo sin BESS. Por ello, la pareja no debe presentarse como robusta frente a toda perturbación ni como solución global.
+
+## 11. Resultado de la validación cruzada de la Tarea 4.3
+
+### 11.1 Escalón severo del 40 % sin BESS
+
+El punto `(M, D) = (40, 100)` se evaluó con una carga trifásica balanceada que aumenta de `3000 W` a `4200 W` en `t = 0.8 s`, factor de potencia `0.95` atrasado y horizonte de `6.5 s`.
+
+La integración fue numéricamente válida y la respuesta de frecuencia cumplió los criterios vigentes. Sin embargo, el enlace DC no fue admisible:
+
+| Métrica | Resultado |
+|---|---:|
+| Estado global | `REVIEW` |
+| Caída máxima de frecuencia | `0.1250844722 Hz` |
+| Desviación máxima absoluta de frecuencia | `0.0724337780 Hz` |
+| Criterio de frecuencia | `PASS` |
+| Desviación máxima del evento DC | `17.2627428065 %` |
+| `Vdc` mínima posterior | `313.8409278465 V` |
+| `Vdc` mínima requerida | `327.5020881285 V` |
+| Criterio del enlace DC | `FAIL` |
+
+El resultado no demuestra que otra pareja `(M, D)` resuelva el problema. La carga posterior al escalón, `4200 W`, supera la potencia activa de referencia disponible, aproximadamente `3678.20 W`. Por tanto, la caída del enlace DC puede estar dominada por el déficit de potencia de la fuente y no exclusivamente por la sintonización del GFM.
+
+La conclusión metodológica es:
+
+```text
+frequency robust, DC link not admissible in severe no-BESS scenario
+```
+
+### 11.2 Escenario base del 20 % con BESS-SLB
+
+La simulación completa de 15 estados se ejecutó con el mismo punto `(M, D) = (40, 100)`, carga de `3000 W` a `3600 W`, escalón en `t = 0.8 s`, factor de potencia `0.95` y horizonte de `6.5 s`.
+
+Se evaluaron tres condiciones de salud:
+
+| Escenario | SoH inicial | Capacidad inicial [Ah] | Límite inicial de corriente [A] | Límite inicial de potencia DC [W] |
+|---|---:|---:|---:|---:|
+| SoH nuevo | `1.000000` | `66.0` | `66.0` | `22440` |
+| SoH 0.70 | `0.700000` | `46.2` | `46.2` | `15708` |
+| SoH nominal | `0.668182` | `44.1` | `44.1` | `14994` |
+
+Los tres casos resultaron numéricamente válidos y cumplieron los criterios de frecuencia, enlace DC y límites implementados del BESS:
+
+| Métrica | Resultado común |
+|---|---:|
+| Estado global | `PASS` |
+| Caída máxima de frecuencia | `0.0062308681 Hz` |
+| Desviación máxima del evento DC | `0.9021555526 %` |
+| `Vdc` mínima posterior | `341.6935084071 V` |
+| Corriente máxima absoluta del BESS | `2.4021059173 A` |
+| Potencia máxima absoluta del BESS | `828.2562375425 W` |
+| Energía intercambiada posterior al escalón | `0.4594847687 Wh` |
+
+La variación de SoC aumentó al disminuir la capacidad disponible:
+
+| Escenario | Variación de SoC |
+|---|---:|
+| SoH 1.00 | `2.03742e-05` |
+| SoH 0.70 | `2.91060e-05` |
+| SoH nominal | `3.04920e-05` |
+
+La respuesta de frecuencia y del enlace DC fue idéntica entre los tres escenarios porque la corriente y la potencia demandadas permanecieron muy por debajo de los límites dependientes del SoH. En consecuencia, esta prueba valida la operación dentro de los límites implementados, pero no fuerza una saturación que permita diferenciar dinámicamente los tres niveles de degradación.
+
+### 11.3 Sentido del intercambio del BESS
+
+En los tres escenarios, la corriente y la potencia del BESS permanecieron negativas después del escalón. De acuerdo con la convención del repositorio:
+
+```text
+i_bess > 0  -> descarga
+i_bess < 0  -> carga o absorción
+```
+
+El diagnóstico reproducible fue:
+
+```text
+bess_exchange_mode = charge_only
+bess_discharge_observed = False
+bess_charge_observed = True
+```
+
+Por tanto, el `PASS` no constituye evidencia de soporte inercial por descarga. La conclusión válida es que el GFM opera de forma admisible con el BESS-SLB conectado y con límites dependientes del SoH, mientras el almacenamiento permanece en modo de carga o absorción durante el evento.
+
+### 11.4 Conclusión de la validación cruzada
+
+El punto `(40, 100)` conserva admisibilidad en el escenario base con BESS-SLB para los tres SoH considerados, pero no confirma robustez conjunta bajo el escalón severo sin almacenamiento. La selección continúa siendo válida únicamente como punto de operación escogido dentro del dominio explorado y refinado.
+
+No se afirma:
+
+- optimalidad global;
+- robustez frente a cualquier perturbación;
+- soporte inercial por descarga del BESS;
+- que una nueva sintonización de `M` y `D` elimine el déficit de potencia del caso severo.
