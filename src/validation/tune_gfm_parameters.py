@@ -1,23 +1,25 @@
-"""Run a reproducible coarse sweep of classical GFM parameters.
+"""Run reproducible classical-GFM parameter sweeps.
 
-The script evaluates the documented 20% load-step scenario without BESS for a
-Cartesian grid of virtual-inertia ``M`` and damping ``D`` values. Each run is
-integrated with the existing global microgrid ODE and evaluated with the Task
-4.1 tuning metrics.
+The default execution is the formal Task 4.2 initial sweep. It is limited to
+three unique ``M`` values and three unique ``D`` values, for at most nine
+simulations under the documented 20% load-step scenario without BESS.
+
+The former 6x7 campaign remains available only through ``--extended-grid`` as
+a historical extended exploration. It is not the formal initial sweep.
 
 Default output:
-    outputs/validation/gfm_tuning/sensitivity_runs.csv
+    outputs/validation/gfm_tuning/sensitivity_runs_initial_3x3.csv
 
 Examples:
-    # Inspect the configured grid without running simulations.
+    # Inspect the formal 3x3 grid without running simulations.
     python src/validation/tune_gfm_parameters.py --dry-run
 
-    # Run one smoke-test candidate.
+    # Run one bounded smoke-test candidate.
     python src/validation/tune_gfm_parameters.py --m-values 2 --d-values 50 \
         --output outputs/validation/gfm_tuning/smoke_single_run.csv
 
-    # Run the complete 42-point coarse grid.
-    python src/validation/tune_gfm_parameters.py
+    # Reproduce the historical extended 6x7 exploration explicitly.
+    python src/validation/tune_gfm_parameters.py --extended-grid
 """
 
 from __future__ import annotations
@@ -58,8 +60,21 @@ from tuning_metrics import (
 )
 
 
-M_SWEEP_DEFAULT = (2.0, 5.0, 10.0, 20.0, 40.0, 80.0)
-D_SWEEP_DEFAULT = (0.0, 50.0, 100.0, 200.0, 500.0, 1000.0, 1500.0)
+MAX_VALUES_PER_PARAMETER = 3
+
+# Formal Task 4.2 initial grid: low, intermediate and high values spanning the
+# documented domain. The Cartesian product is exactly 3x3 = 9 candidates.
+M_SWEEP_DEFAULT = (2.0, 20.0, 80.0)
+D_SWEEP_DEFAULT = (0.0, 200.0, 1500.0)
+
+# Historical extended exploration retained only for explicit reproduction.
+M_SWEEP_EXTENDED = (2.0, 5.0, 10.0, 20.0, 40.0, 80.0)
+D_SWEEP_EXTENDED = (0.0, 50.0, 100.0, 200.0, 500.0, 1000.0, 1500.0)
+
+SWEEP_PROFILE_INITIAL = "initial_3x3"
+SWEEP_PROFILE_CUSTOM = "custom_bounded_3x3"
+SWEEP_PROFILE_EXTENDED = "extended_6x7_historical"
+
 TUNING_T_END_S_DEFAULT = 6.5
 SCENARIO_NAME = "load_step_20_no_bess"
 CRITERIA_VERSION = "obj2_vdc_event_relative_v2"
@@ -69,7 +84,14 @@ DEFAULT_OUTPUT_PATH = (
     / "outputs"
     / "validation"
     / "gfm_tuning"
-    / "sensitivity_runs.csv"
+    / "sensitivity_runs_initial_3x3.csv"
+)
+EXTENDED_OUTPUT_PATH = (
+    REPO_ROOT
+    / "outputs"
+    / "validation"
+    / "gfm_tuning"
+    / "sensitivity_runs_extended_6x7.csv"
 )
 
 CSV_FIELDNAMES = (
@@ -134,6 +156,7 @@ def _validated_values(
     values: Iterable[float],
     *,
     strictly_positive: bool,
+    max_unique_values: int | None = None,
 ) -> tuple[float, ...]:
     """Return finite, ordered sweep values after enforcing parameter bounds."""
     validated: list[float] = []
@@ -149,17 +172,37 @@ def _validated_values(
             validated.append(value)
     if not validated:
         raise ValueError(f"At least one {name} value is required.")
+    if max_unique_values is not None and len(validated) > max_unique_values:
+        raise ValueError(
+            f"{name} accepts at most {max_unique_values} unique values in the "
+            f"formal bounded sweep, got {len(validated)}: {validated}."
+        )
     return tuple(validated)
 
 
 def build_parameter_grid(
     m_values: Iterable[float] = M_SWEEP_DEFAULT,
     d_values: Iterable[float] = D_SWEEP_DEFAULT,
+    *,
+    max_values_per_parameter: int | None = MAX_VALUES_PER_PARAMETER,
 ) -> tuple[tuple[float, float], ...]:
     """Return the Cartesian ``(M, D)`` grid in deterministic order."""
-    m_grid = _validated_values("M", m_values, strictly_positive=True)
-    d_grid = _validated_values("D", d_values, strictly_positive=False)
-    return tuple((m_value, d_value) for m_value, d_value in product(m_grid, d_grid))
+    m_grid = _validated_values(
+        "M",
+        m_values,
+        strictly_positive=True,
+        max_unique_values=max_values_per_parameter,
+    )
+    d_grid = _validated_values(
+        "D",
+        d_values,
+        strictly_positive=False,
+        max_unique_values=max_values_per_parameter,
+    )
+    return tuple(
+        (m_value, d_value)
+        for m_value, d_value in product(m_grid, d_grid)
+    )
 
 
 def _empty_metrics_record() -> dict[str, Any]:
@@ -345,13 +388,24 @@ def run_parameter_sweep(
     d_values: Iterable[float] = D_SWEEP_DEFAULT,
     t_end_s: float = TUNING_T_END_S_DEFAULT,
     output_path: Path = DEFAULT_OUTPUT_PATH,
+    max_values_per_parameter: int | None = MAX_VALUES_PER_PARAMETER,
+    sweep_profile: str = SWEEP_PROFILE_INITIAL,
 ) -> tuple[list[dict[str, Any]], Path]:
     """Run all requested candidates and write one row per simulation."""
-    grid = build_parameter_grid(m_values=m_values, d_values=d_values)
+    grid = build_parameter_grid(
+        m_values=m_values,
+        d_values=d_values,
+        max_values_per_parameter=max_values_per_parameter,
+    )
     p_ref_w = _reference_active_power_w()
     records: list[dict[str, Any]] = []
 
     print(f"scenario={SCENARIO_NAME}")
+    print(f"sweep_profile={sweep_profile}")
+    print(
+        "max_values_per_parameter="
+        f"{max_values_per_parameter if max_values_per_parameter is not None else 'unbounded_explicit'}"
+    )
     print(f"criteria_version={CRITERIA_VERSION}")
     print(f"vdc_acceptance_basis={VDC_ACCEPTANCE_BASIS}")
     print(f"grid_size={len(grid)}")
@@ -398,15 +452,29 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--m-values",
         nargs="+",
         type=float,
-        default=list(M_SWEEP_DEFAULT),
-        help="Virtual-inertia values. Default: 2 5 10 20 40 80.",
+        default=None,
+        help=(
+            "Custom virtual-inertia values, maximum three unique values. "
+            "Formal default: 2 20 80."
+        ),
     )
     parser.add_argument(
         "--d-values",
         nargs="+",
         type=float,
-        default=list(D_SWEEP_DEFAULT),
-        help="Damping values. Default: 0 50 100 200 500 1000 1500.",
+        default=None,
+        help=(
+            "Custom damping values, maximum three unique values. "
+            "Formal default: 0 200 1500."
+        ),
+    )
+    parser.add_argument(
+        "--extended-grid",
+        action="store_true",
+        help=(
+            "Explicitly reproduce the historical 6x7 exploration. This mode "
+            "cannot be combined with --m-values or --d-values."
+        ),
     )
     parser.add_argument(
         "--t-end",
@@ -417,10 +485,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=Path,
-        default=DEFAULT_OUTPUT_PATH,
+        default=None,
         help=(
-            "CSV output path. Default: "
-            "outputs/validation/gfm_tuning/sensitivity_runs.csv"
+            "CSV output path. Defaults to sensitivity_runs_initial_3x3.csv "
+            "or sensitivity_runs_extended_6x7.csv according to the mode."
         ),
     )
     parser.add_argument(
@@ -431,6 +499,58 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def resolve_sweep_request(
+    args: argparse.Namespace,
+) -> tuple[
+    tuple[float, ...],
+    tuple[float, ...],
+    int | None,
+    str,
+    Path,
+]:
+    """Resolve formal, custom-bounded or explicit historical sweep settings."""
+    custom_m = args.m_values is not None
+    custom_d = args.d_values is not None
+    if args.extended_grid and (custom_m or custom_d):
+        raise ValueError(
+            "--extended-grid cannot be combined with --m-values or --d-values."
+        )
+
+    if args.extended_grid:
+        m_values = M_SWEEP_EXTENDED
+        d_values = D_SWEEP_EXTENDED
+        max_values_per_parameter = None
+        sweep_profile = SWEEP_PROFILE_EXTENDED
+        default_output = EXTENDED_OUTPUT_PATH
+    else:
+        m_values = (
+            M_SWEEP_DEFAULT
+            if args.m_values is None
+            else tuple(args.m_values)
+        )
+        d_values = (
+            D_SWEEP_DEFAULT
+            if args.d_values is None
+            else tuple(args.d_values)
+        )
+        max_values_per_parameter = MAX_VALUES_PER_PARAMETER
+        sweep_profile = (
+            SWEEP_PROFILE_CUSTOM
+            if custom_m or custom_d
+            else SWEEP_PROFILE_INITIAL
+        )
+        default_output = DEFAULT_OUTPUT_PATH
+
+    output_path = default_output if args.output is None else Path(args.output)
+    return (
+        tuple(m_values),
+        tuple(d_values),
+        max_values_per_parameter,
+        sweep_profile,
+        output_path,
+    )
+
+
 def _print_grid(grid: tuple[tuple[float, float], ...]) -> None:
     print(f"grid_size={len(grid)}")
     for run_index, (inertia_m, damping_d) in enumerate(grid, start=1):
@@ -439,8 +559,31 @@ def _print_grid(grid: tuple[tuple[float, float], ...]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
-    grid = build_parameter_grid(args.m_values, args.d_values)
+    try:
+        (
+            m_values,
+            d_values,
+            max_values_per_parameter,
+            sweep_profile,
+            output_path,
+        ) = resolve_sweep_request(args)
+        grid = build_parameter_grid(
+            m_values,
+            d_values,
+            max_values_per_parameter=max_values_per_parameter,
+        )
+    except ValueError as exc:
+        print("status=FAIL")
+        print(f"error={exc}")
+        return 1
+
     if args.dry_run:
+        print(f"sweep_profile={sweep_profile}")
+        print(
+            "max_values_per_parameter="
+            f"{max_values_per_parameter if max_values_per_parameter is not None else 'unbounded_explicit'}"
+        )
+        print(f"output_path={output_path}")
         _print_grid(grid)
         print(f"criteria_version={CRITERIA_VERSION}")
         print(f"vdc_acceptance_basis={VDC_ACCEPTANCE_BASIS}")
@@ -449,10 +592,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     records, csv_path = run_parameter_sweep(
-        m_values=args.m_values,
-        d_values=args.d_values,
+        m_values=m_values,
+        d_values=d_values,
         t_end_s=args.t_end,
-        output_path=args.output,
+        output_path=output_path,
+        max_values_per_parameter=max_values_per_parameter,
+        sweep_profile=sweep_profile,
     )
     n_ok = sum(record["status"] == "ok" for record in records)
     n_invalid = len(records) - n_ok

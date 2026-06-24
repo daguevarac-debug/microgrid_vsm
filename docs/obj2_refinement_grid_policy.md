@@ -2,26 +2,30 @@
 
 ## 1. Motivación
 
-El barrido grueso de `42` combinaciones `(M, D)` fue útil para identificar la región admisible, pero cada simulación tarda aproximadamente un minuto. Repetir mallas extensas durante el refinamiento elevaría innecesariamente el tiempo de ejecución.
+La exploración ampliada histórica de `42` combinaciones `(M, D)` fue útil para
+identificar una región admisible, pero excede el límite de `3 x 3` definido
+para el barrido inicial formal de la Tarea 4.2. Sus resultados se conservan
+como evidencia histórica y no se consideran numéricamente inválidos.
 
-La región prometedora identificada es:
+La región prometedora identificada por esa campaña fue:
 
 ```text
 M = 10 ... 40
 D = 50 ... 200
 ```
 
-## 2. Límite por iteración
+## 2. Límite del barrido formal y de cada refinamiento
 
-A partir de esta etapa, cada ejecución de refinamiento queda limitada a:
+El barrido inicial formal y cada refinamiento quedan limitados a:
 
 ```text
 máximo 3 valores de M
 máximo 3 valores de D
-máximo 3 x 3 = 9 simulaciones por iteración
+máximo 3 x 3 = 9 simulaciones por ejecución
 ```
 
-El barrido grueso histórico de `42` casos se conserva como resultado de exploración inicial. Esta política aplica a las iteraciones posteriores de refinamiento y no invalida ese resultado.
+La campaña de `42` casos solo puede reproducirse mediante un modo extendido
+explícito. No reemplaza el barrido inicial formal.
 
 ## 3. Primera malla de refinamiento
 
@@ -76,7 +80,7 @@ Esta política no modifica:
 - las métricas de aceptación;
 - el escenario de carga;
 - el horizonte de `6.5 s`;
-- el barrido grueso histórico;
+- la exploración ampliada histórica de 42 casos;
 - la futura evaluación con BESS-SLB.
 
 Su único propósito es controlar el costo computacional del refinamiento y mantener cada iteración en un máximo de nueve simulaciones.
