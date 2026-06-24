@@ -17,7 +17,7 @@ La pareja seleccionada se empleó en las validaciones cruzadas de la Tarea 4.3. 
 La selección usa exclusivamente los resultados locales producidos por los ejecutores reproducibles del repositorio:
 
 ```text
-Barrido grueso:
+Exploración ampliada histórica:
 outputs/validation/gfm_tuning/sensitivity_runs_v2_event_relative.csv
 
 Segundo refinamiento:
@@ -49,7 +49,7 @@ Por tanto, la selección no compensa una violación de frecuencia con una mejor 
 
 ## 4. Definiciones comparativas
 
-El **mínimo grueso** es la pareja admisible con menor `max_frequency_drop_hz` dentro de las 42 combinaciones iniciales. Su función es diagnóstica, puesto que puede coincidir con los límites superiores de la malla y reflejar una preferencia automática por parámetros extremos.
+El **mínimo de la exploración ampliada histórica** es la pareja admisible con menor `max_frequency_drop_hz` dentro de las 42 combinaciones de la exploración ampliada histórica. Su función es diagnóstica, puesto que puede coincidir con los límites superiores de la malla y reflejar una preferencia automática por parámetros extremos.
 
 El **mínimo refinado** es la pareja admisible con menor `max_frequency_drop_hz` dentro de la región acotada `M = 20...40` y `D = 50...100`. Este conjunto representa la evidencia de mayor resolución disponible para la selección.
 
@@ -64,7 +64,7 @@ La regla formal es:
 ```text
 1. Rechazar filas que no usen el criterio DC v2.
 2. Filtrar las filas plenamente admisibles.
-3. Calcular el mínimo grueso solo como diagnóstico de frontera.
+3. Calcular el mínimo de la exploración ampliada histórica solo como diagnóstico de frontera.
 4. Restringir la decisión al conjunto refinado admisible.
 5. Seleccionar argmin(max_frequency_drop_hz) en el conjunto refinado.
 6. Resolver empates exactos mediante menor M y luego menor D.
@@ -80,7 +80,7 @@ El segundo refinamiento contiene nueve combinaciones y las nueve son admisibles.
 
 | Papel metodológico | M | D | Caída máxima de frecuencia [Hz] | Desviación máxima del evento DC [%] | Vdc mínima posterior [V] |
 |---|---:|---:|---:|---:|---:|
-| Mínimo grueso, solo diagnóstico | 80 | 1500 | 0.0101565401 | Resultado del barrido grueso | Resultado del barrido grueso |
+| Mínimo de exploración ampliada, solo diagnóstico | 80 | 1500 | 0.0101565401 | Resultado del barrido grueso | Resultado del barrido grueso |
 | Referencia equilibrada interior | 30 | 75 | 0.0459252153 | 3.8329316 | 364.787345 |
 | Referencia con igual M y menor D | 40 | 50 | 0.0353277149 | Resultado del refinamiento | Resultado del refinamiento |
 | Mínimo refinado y punto seleccionado | 40 | 100 | 0.0344426647 | 3.8334871 | 364.781099 |
@@ -96,11 +96,11 @@ Su caída máxima de frecuencia es `0.0114825506 Hz` menor que la del punto equi
 
 La decisión no se fundamenta en atribuir un beneficio amplio a `D = 100`. Se fundamenta en que `(40, 100)` es el mínimo reproducible dentro del conjunto refinado admisible, mientras la respuesta del enlace DC permanece prácticamente invariante entre los candidatos considerados.
 
-## 7. Tratamiento del mínimo grueso extremo
+## 7. Tratamiento del mínimo extremo de la exploración ampliada
 
 La pareja `(80, 1500)` presenta la menor caída de frecuencia de toda la malla gruesa. Sin embargo, ambos parámetros se encuentran en el límite superior del dominio explorado. Seleccionarla automáticamente equivaldría a convertir la minimización de una única métrica en una preferencia no acotada por inercia y amortiguamiento crecientes.
 
-El mínimo grueso se conserva en el informe para mostrar la dirección de la tendencia, pero no reemplaza el resultado del dominio refinado. Esta restricción evita afirmar que la pareja extrema es físicamente superior sin haber evaluado su costo dinámico, su interacción con el almacenamiento de segunda vida o su comportamiento fuera del escenario base.
+El mínimo de la exploración ampliada se conserva en el informe para mostrar la dirección de la tendencia, pero no reemplaza el resultado del dominio refinado. Esta restricción evita afirmar que la pareja extrema es físicamente superior sin haber evaluado su costo dinámico, su interacción con el almacenamiento de segunda vida o su comportamiento fuera del escenario base.
 
 ## 8. Advertencia de frontera del refinamiento
 

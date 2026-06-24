@@ -75,119 +75,61 @@ El prototipo `FOVICInverter` ya rechaza valores fuera de ese intervalo, incluido
 
 FOVIC todavía no está integrado en el controlador principal. Por tanto, `alpha` se documenta para una fase comparativa futura y no participa en el primer barrido clásico de `M` y `D`.
 
-## Barrido grueso inicial de `M`
+## Barrido inicial formal de `M` y `D`
 
-Se explorarán los valores:
+La auditoría de cierre del Bucket 4 identificó que la campaña original de
+`6 x 7` excedía el máximo de tres valores por parámetro definido para la Tarea
+4.2. El barrido inicial formal queda definido como:
 
 ```text
-M = [2, 5, 10, 20, 40, 80]
+M = [2, 20, 80]
+D = [0, 200, 1500]
+3 x 3 = 9 combinaciones
 ```
 
-Intervalo cubierto:
+Intervalos cubiertos:
 
 ```text
 2 <= M <= 80
-```
-
-Criterio de selección:
-
-- evita comenzar arbitrariamente cerca de `M = 0`, donde una misma descompensación de potencia produciría una derivada de frecuencia muy elevada;
-- incluye `M = 2`, ya empleado en una comparación GFM existente del repositorio;
-- cubre aproximadamente desde una respuesta de baja inercia hasta una respuesta de alta inercia sin generar una malla excesivamente grande.
-
-Como referencia únicamente orientativa, usando:
-
-```text
-S_base = 3000/0.95 = 3157.894737 VA
-omega_0 = 2*pi*60 rad/s
-M = 2*H*S_base/omega_0
-```
-
-la malla equivale aproximadamente a:
-
-| `M` | `H` orientativo [s] |
-|---:|---:|
-| 2 | 0.119 |
-| 5 | 0.298 |
-| 10 | 0.597 |
-| 20 | 1.194 |
-| 40 | 2.388 |
-| 80 | 4.775 |
-
-Esta conversión no cambia la variable que se simulará: el barrido se realizará directamente sobre `inertia_m`.
-
-## Barrido grueso inicial de `D`
-
-Se explorarán los valores:
-
-```text
-D = [0, 50, 100, 200, 500, 1000, 1500]
-```
-
-Intervalo cubierto:
-
-```text
 0 <= D <= 1500
 ```
 
-Criterio de selección:
+El ejecutor formal rechaza más de tres valores únicos por parámetro. La mayor
+resolución debe obtenerse mediante refinamientos locales sucesivos, también
+limitados a `3 x 3`.
 
-- `D = 0` proporciona una referencia sin amortiguamiento;
-- los valores intermedios permiten observar la transición entre respuesta poco amortiguada y fuertemente amortiguada;
-- `D = 1000` y `D = 1500` permiten explorar el orden de magnitud requerido por el escalón base de `600 W`.
+## Exploración ampliada histórica
 
-A partir del equilibrio aproximado de la ecuación swing:
-
-```text
-Delta_P = D*Delta_omega
-```
-
-para un escalón de `600 W` y una desviación de frecuencia de `0.10 Hz`:
+La campaña previamente ejecutada utilizó:
 
 ```text
-D ~= 600 / (2*pi*0.10) = 954.93
+M = [2, 5, 10, 20, 40, 80]
+D = [0, 50, 100, 200, 500, 1000, 1500]
+6 x 7 = 42 combinaciones
 ```
 
-Este cálculo es una guía de escala, no sustituye la simulación ni garantiza recuperación dinámica. La aceptación seguirá dependiendo del nadir, tiempo de recuperación, permanencia en banda y tensión del enlace DC.
+Se conserva como evidencia histórica de sensibilidad y puede reproducirse con
+`--extended-grid`, pero no se presenta como el barrido inicial formal.
 
 ## Barrido futuro de `alpha`
 
-Cuando FOVIC esté correctamente refactorizado e integrado, la primera malla será:
+Cuando FOVIC esté correctamente refactorizado e integrado, la primera malla
+comparativa será:
 
 ```text
 alpha = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 ```
 
-Intervalo inicial explorado:
-
-```text
-0.2 <= alpha <= 0.8
-```
-
-Esta malla:
-
-- permanece estrictamente dentro del dominio abierto `(0, 1)`;
-- incluye `alpha = 0.4`, valor predeterminado del prototipo actual;
-- no redefine el límite físico: valores entre `0` y `0.2`, o entre `0.8` y `1`, podrían estudiarse después si los resultados justifican una expansión del barrido.
-
-## Tamaño del barrido
-
-El barrido clásico inicial contiene:
-
-```text
-6 valores de M x 7 valores de D = 42 combinaciones
-```
-
-No se ejecutará todavía el producto cartesiano con `alpha`. La malla fraccionaria se incorporará únicamente después de validar una implementación FOVIC compatible con el integrador global y con los límites del BESS-SLB.
+No se combinará automáticamente con la campaña histórica de 42 parejas.
 
 ## Estrategia de refinamiento
 
-La exploración se realizará en dos etapas:
+La exploración compatible con el checklist se realiza en etapas:
 
-1. **barrido grueso:** evaluar las 42 combinaciones anteriores;
-2. **refinamiento local:** crear una malla más estrecha alrededor de los mejores candidatos que cumplan simultáneamente las métricas de la Tarea 4.1.
-
-Los puntos del refinamiento local no se fijan en esta tarea porque dependerán de los resultados del barrido grueso.
+1. barrido inicial formal de nueve combinaciones;
+2. refinamiento local de máximo tres valores de `M` y tres de `D`;
+3. resolución adicional mediante extremos y punto medio de intervalos cada vez
+   más estrechos.
 
 ## Validaciones ejecutadas
 

@@ -2,12 +2,14 @@
 
 ## Estado del documento
 
-Este documento consolida las decisiones cerradas antes de ejecutar cualquier barrido de parámetros del controlador grid-forming/VSG.
+Este documento conserva los criterios definidos antes de la primera campaña de sintonización y registra la corrección metodológica posterior del tamaño del barrido. La corrección de la Sección 5 no modifica las métricas, el escenario base ni las ecuaciones del controlador; únicamente distingue el barrido inicial formal de la exploración ampliada histórica.
 
 ```text
-Barrido M-D ejecutado antes de este documento: NO
+Protocolo original definido antes del primer barrido: SI
+Barrido inicial formal vigente: 3 x 3
+Exploración ampliada histórica conservada: 6 x 7
 FOVIC integrado en el controlador principal: NO
-Estrategia inicial autorizada: VSG clásico
+Estrategia autorizada: VSG clásico
 ```
 
 Los valores aquí registrados son criterios de diseño y comparación para esta tesis. No se presentan como límites normativos universales.
@@ -123,25 +125,39 @@ alpha = mu
 
 Los extremos `0` y `1` no son admisibles. Esta condición queda registrada para la futura comparación FOVIC, no para el primer barrido clásico.
 
-## 5. Malla gruesa inicial
+## 5. Malla inicial formal y exploración ampliada histórica
 
-### Valores de `M`
+La auditoría de cierre del Bucket 4 detectó que la versión original denominaba
+“malla inicial” a una campaña de `6 x 7 = 42` combinaciones. Esa campaña es
+numéricamente válida, pero no cumple el límite metodológico de máximo tres
+valores por parámetro fijado para la Tarea 4.2.
+
+Los resultados de 42 puntos no se eliminan ni se consideran erróneos. Se
+reclasifican como **exploración ampliada histórica**.
+
+### Malla inicial formal
+
+```text
+M = [2, 20, 80]
+D = [0, 200, 1500]
+3 x 3 = 9 combinaciones
+```
+
+Los puntos representan valores bajo, intermedio y alto del dominio documentado.
+La mayor resolución se obtiene mediante refinamientos sucesivos de máximo
+`3 x 3`.
+
+### Exploración ampliada histórica
 
 ```text
 M = [2, 5, 10, 20, 40, 80]
-```
-
-### Valores de `D`
-
-```text
 D = [0, 50, 100, 200, 500, 1000, 1500]
+6 x 7 = 42 combinaciones
 ```
 
-### Número de simulaciones clásicas
-
-```text
-6 valores de M x 7 valores de D = 42 combinaciones
-```
+Esta campaña solo puede reproducirse mediante el modo explícito
+`--extended-grid`. No constituye el barrido inicial formal exigido por el
+checklist.
 
 ### Malla fraccionaria futura
 
@@ -151,7 +167,7 @@ Cuando FOVIC esté refactorizado, integrado y validado:
 alpha = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 ```
 
-La malla de `alpha` no se combinará todavía con las 42 parejas `M-D`.
+La malla de `alpha` no se combinará por defecto con ninguna campaña clásica.
 
 ## 6. Preparación de las señales
 
