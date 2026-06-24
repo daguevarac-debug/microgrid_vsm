@@ -1,22 +1,8 @@
 # Objetivo 2 — Política de refinamiento acotado del barrido
 
-## 1. Motivación
+## 1. Propósito
 
-La exploración ampliada histórica de `42` combinaciones `(M, D)` fue útil para
-identificar una región admisible, pero excede el límite de `3 x 3` definido
-para el barrido inicial formal de la Tarea 4.2. Sus resultados se conservan
-como evidencia histórica y no se consideran numéricamente inválidos.
-
-La región prometedora identificada por esa campaña fue:
-
-```text
-M = 10 ... 40
-D = 50 ... 200
-```
-
-## 2. Límite del barrido formal y de cada refinamiento
-
-El barrido inicial formal y cada refinamiento quedan limitados a:
+El barrido inicial formal y cada refinamiento se limitan a:
 
 ```text
 máximo 3 valores de M
@@ -24,63 +10,93 @@ máximo 3 valores de D
 máximo 3 x 3 = 9 simulaciones por ejecución
 ```
 
-La campaña de `42` casos solo puede reproducirse mediante un modo extendido
-explícito. No reemplaza el barrido inicial formal.
+La campaña histórica de `6 x 7 = 42` combinaciones se conserva como evidencia de
+sensibilidad, pero no forma parte de la cadena formal de selección.
 
-## 3. Primera malla de refinamiento
+## 2. Barrido inicial formal
 
-La primera iteración usará:
-
-```text
-M = [10, 20, 40]
-D = [50, 100, 200]
-```
-
-Esto produce nueve combinaciones dentro de la región ya identificada como admisible.
-
-## 4. Mayor resolución mediante bisección
-
-Cuando una iteración requiera mayor resolución, no se ampliará el número de puntos por eje. En su lugar se reducirá el intervalo prometedor y se evaluarán sus extremos y punto medio:
+La malla inicial ejecutada fue:
 
 ```text
-x_mid = (x_low + x_high)/2
-valores = [x_low, x_mid, x_high]
+M = [2, 20, 80]
+D = [0, 200, 1500]
 ```
 
-Ejemplo para inercia:
+Los nueve casos terminaron correctamente y seis fueron admisibles. El menor
+valor de `max_frequency_drop_hz` apareció en la esquina superior:
 
 ```text
-intervalo inicial: [10, 40]
-tripleta: [10, 25, 40]
-
-si el subrango prometedor es [10, 25]:
-nueva tripleta: [10, 17.5, 25]
+M = 80
+D = 1500
+max_frequency_drop_hz = 0.0101565401 Hz
 ```
 
-El mismo procedimiento se aplica de forma independiente a `D`.
+## 3. Primer refinamiento formal
+
+Para estudiar con mayor resolución la región indicada por el barrido inicial se
+redujeron ambos intervalos y se evaluaron extremos y punto medio:
+
+```text
+M = [20, 50, 80]
+D = [200, 850, 1500]
+```
+
+Este refinamiento:
+
+- contiene nueve combinaciones;
+- permanece dentro del dominio inicial;
+- reduce el intervalo de `M` de `[2, 80]` a `[20, 80]`;
+- reduce el intervalo de `D` de `[0, 1500]` a `[200, 1500]`;
+- usa el mismo escenario, solver, métricas y criterio DC v2.
+
+Los nueve candidatos fueron admisibles. El mínimo volvió a aparecer en:
+
+```text
+M = 80
+D = 1500
+max_frequency_drop_hz = 0.0101565401 Hz
+```
+
+## 4. Tratamiento de refinamientos históricos
+
+Las mallas:
+
+```text
+M = [10, 20, 40], D = [50, 100, 200]
+M = [20, 30, 40], D = [50, 75, 100]
+```
+
+fueron ejecutadas antes de corregir el barrido inicial. Se conservan como
+estudios históricos de una región práctica identificada mediante la campaña de
+42 casos, pero no se presentan como refinamientos derivados del barrido inicial
+formal.
 
 ## 5. Reglas de validación
 
-El ejecutor de refinamiento deberá:
+El selector formal debe:
 
-- rechazar más de tres valores únicos de `M`;
-- rechazar más de tres valores únicos de `D`;
-- mantener `M > 0`;
-- mantener `D >= 0`;
-- rechazar intervalos con límite superior menor o igual al inferior;
-- generar exactamente extremos y punto medio cuando se use un rango;
-- permitir menos de tres valores cuando la comprobación lo requiera;
-- reutilizar el mismo escenario, solver, métricas y criterio DC v2 del barrido validado.
+- rechazar más de tres valores únicos por parámetro;
+- rechazar más de nueve combinaciones por etapa;
+- exigir una malla cartesiana completa;
+- mantener `M > 0` y `D >= 0`;
+- exigir que cada refinamiento permanezca dentro del intervalo anterior;
+- exigir que al menos uno de los dos intervalos se reduzca;
+- reutilizar el escenario `load_step_20_no_bess`;
+- reutilizar `obj2_vdc_event_relative_v2`;
+- seleccionar únicamente dentro de la última malla formal.
 
-## 6. Alcance
+## 6. Alcance de la conclusión
 
-Esta política no modifica:
+El resultado en `(80, 1500)` se encuentra en la frontera superior de la región
+estudiada. Por tanto:
 
-- las ecuaciones del VSG;
-- las métricas de aceptación;
-- el escenario de carga;
-- el horizonte de `6.5 s`;
-- la exploración ampliada histórica de 42 casos;
-- la futura evaluación con BESS-SLB.
+```text
+seleccionado dentro del dominio formal = sí
+óptimo global demostrado = no
+```
 
-Su único propósito es controlar el costo computacional del refinamiento y mantener cada iteración en un máximo de nueve simulaciones.
+La función objetivo vigente minimiza únicamente la caída máxima de frecuencia
+entre candidatos plenamente admisibles. Como no incluye una penalización por
+inercia virtual, amortiguamiento, esfuerzo de control o costo físico, la
+preferencia por la esquina superior debe documentarse como una limitación del
+criterio de selección.

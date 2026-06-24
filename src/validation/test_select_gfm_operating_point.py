@@ -16,6 +16,7 @@ if str(SRC_DIR) not in sys.path:
 
 from validation.select_gfm_operating_point import (
     EXPECTED_CRITERIA_VERSION,
+    EXPECTED_SCENARIO,
     EXPECTED_VDC_ACCEPTANCE_BASIS,
     load_sweep_csv,
     select_operating_point,
@@ -31,8 +32,10 @@ class TestGFMOperatingPointSelection(unittest.TestCase):
         *,
         admissible: bool = True,
         criteria_version: str = EXPECTED_CRITERIA_VERSION,
+        scenario: str = EXPECTED_SCENARIO,
     ) -> dict[str, object]:
         return {
+            "scenario": scenario,
             "criteria_version": criteria_version,
             "vdc_acceptance_basis": EXPECTED_VDC_ACCEPTANCE_BASIS,
             "M": inertia_m,
@@ -48,119 +51,178 @@ class TestGFMOperatingPointSelection(unittest.TestCase):
             "vdc_min_post_step_v": 364.8,
         }
 
+    @classmethod
+    def _grid(
+        cls,
+        m_values: list[float],
+        d_values: list[float],
+        *,
+        best_pair: tuple[float, float],
+    ) -> list[dict[str, object]]:
+        records = []
+        for inertia_m in m_values:
+            for damping_d in d_values:
+                distance = abs(best_pair[0] - inertia_m) + abs(best_pair[1] - damping_d) / 1000.0
+                records.append(
+                    cls._record(
+                        inertia_m,
+                        damping_d,
+                        0.01 + 0.001 * distance,
+                    )
+                )
+        return records
+
     @staticmethod
-    def _write_csv(path: Path, record: dict[str, object]) -> None:
+    def _write_csv(path: Path, records: list[dict[str, object]]) -> None:
         with path.open("w", newline="", encoding="utf-8") as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=list(record.keys()))
+            writer = csv.DictWriter(csv_file, fieldnames=list(records[0].keys()))
             writer.writeheader()
-            writer.writerow(record)
+            writer.writerows(records)
 
     def setUp(self) -> None:
-        self.coarse = [
-            self._record(20.0, 100.0, 0.0589),
-            self._record(40.0, 100.0, 0.0344),
-            self._record(80.0, 1500.0, 0.0101),
-        ]
-        self.refined = [
-            self._record(20.0, 50.0, 0.0688946510),
-            self._record(20.0, 75.0, 0.0634844694),
-            self._record(20.0, 100.0, 0.0589592787),
-            self._record(30.0, 50.0, 0.0474927213),
-            self._record(30.0, 75.0, 0.0459252153),
-            self._record(30.0, 100.0, 0.0434930424),
-            self._record(40.0, 50.0, 0.0353277149),
-            self._record(40.0, 75.0, 0.0354788988),
-            self._record(40.0, 100.0, 0.0344426647),
-        ]
+        self.initial = self._grid(
+            [2.0, 20.0, 80.0],
+            [0.0, 200.0, 1500.0],
+            best_pair=(80.0, 1500.0),
+        )
+        self.refinement = self._grid(
+            [20.0, 50.0, 80.0],
+            [200.0, 850.0, 1500.0],
+            best_pair=(80.0, 1500.0),
+        )
 
-    def test_selects_refined_minimum_not_coarse_extreme(self) -> None:
-        summary = select_operating_point(self.coarse, self.refined)
+    def test_selects_last_refinement_minimum(self) -> None:
+        summary = select_operating_point(self.initial, [self.refinement])
 
         selected = summary["selected_operating_point"]
-        coarse_best = summary["coarse_best_diagnostic"]
         diagnostics = summary["diagnostics"]
 
-        self.assertEqual((selected["M"], selected["D"]), (40.0, 100.0))
-        self.assertEqual((coarse_best["M"], coarse_best["D"]), (80.0, 1500.0))
-        self.assertTrue(diagnostics["coarse_best_on_explored_boundary"])
-        self.assertTrue(diagnostics["selected_on_refined_boundary"])
-        self.assertFalse(diagnostics["global_optimum_claimed"])
+        self.assertEqual((selected["M"], selected["D"]), (80.0, 1500.0))
+        self.assertEqual(len(summary["stages"]), 2)
+        self.assertTrue(diagnostics["selection_changed_from_previous"])
+        self.assertTrue(diagnostics["selected_on_final_boundary"])
+        self.assertTrue(diagnostics["selected_on_final_upper_corner"])
         self.assertTrue(diagnostics["cross_validation_pending"])
-        self.assertAlmostEqual(
-            diagnostics["frequency_drop_reduction_vs_balanced_pct"],
-            25.003,
-            places=3,
-        )
+        self.assertFalse(diagnostics["global_optimum_claimed"])
+        self.assertIsNone(diagnostics["severe_no_bess_robustness_confirmed"])
+        self.assertIsNone(diagnostics["bess_soh_base_validation_pass"])
 
     def test_nonadmissible_lower_drop_is_ignored(self) -> None:
-        refined = list(self.refined)
-        refined.append(self._record(35.0, 80.0, 0.001, admissible=False))
-
-        summary = select_operating_point(self.coarse, refined)
-
-        self.assertEqual(
-            (
-                summary["selected_operating_point"]["M"],
-                summary["selected_operating_point"]["D"],
-            ),
-            (40.0, 100.0),
+        refinement = list(self.refinement)
+        target = next(
+            record
+            for record in refinement
+            if record["M"] == 50.0 and record["D"] == 850.0
         )
+        target.update(
+            self._record(50.0, 850.0, 0.0001, admissible=False)
+        )
+
+        summary = select_operating_point(self.initial, [refinement])
+        selected = summary["selected_operating_point"]
+        self.assertEqual((selected["M"], selected["D"]), (80.0, 1500.0))
 
     def test_exact_tie_uses_lower_m_then_lower_d(self) -> None:
-        refined = list(self.refined)
-        refined[-1] = self._record(40.0, 100.0, 0.0344)
-        refined.append(self._record(35.0, 90.0, 0.0344))
-        refined.append(self._record(35.0, 80.0, 0.0344))
+        refinement = list(self.refinement)
+        for record in refinement:
+            if (record["M"], record["D"]) in {
+                (50.0, 850.0),
+                (50.0, 1500.0),
+                (80.0, 1500.0),
+            }:
+                record["max_frequency_drop_hz"] = 0.001
 
-        summary = select_operating_point(self.coarse, refined)
-
+        summary = select_operating_point(self.initial, [refinement])
         selected = summary["selected_operating_point"]
-        self.assertEqual((selected["M"], selected["D"]), (35.0, 80.0))
+        self.assertEqual((selected["M"], selected["D"]), (50.0, 850.0))
 
-    def test_missing_balanced_reference_is_rejected(self) -> None:
-        refined = [
-            record
-            for record in self.refined
-            if not (record["M"] == 30.0 and record["D"] == 75.0)
-        ]
+    def test_more_than_three_values_are_rejected(self) -> None:
+        invalid = self._grid(
+            [20.0, 40.0, 60.0, 80.0],
+            [200.0],
+            best_pair=(80.0, 200.0),
+        )
+        with self.assertRaisesRegex(ValueError, "unique M values"):
+            select_operating_point(self.initial, [invalid])
 
-        with self.assertRaisesRegex(ValueError, "M=30, D=75"):
-            select_operating_point(self.coarse, refined)
+    def test_incomplete_cartesian_grid_is_rejected(self) -> None:
+        incomplete = self.refinement[:-1]
+        with self.assertRaisesRegex(ValueError, "complete Cartesian grid"):
+            select_operating_point(self.initial, [incomplete])
+
+    def test_refinement_outside_parent_bounds_is_rejected(self) -> None:
+        outside = self._grid(
+            [20.0, 50.0, 100.0],
+            [200.0, 850.0, 1500.0],
+            best_pair=(100.0, 1500.0),
+        )
+        with self.assertRaisesRegex(ValueError, "outside initial_3x3"):
+            select_operating_point(self.initial, [outside])
+
+    def test_identical_domain_is_not_a_refinement(self) -> None:
+        identical = self._grid(
+            [2.0, 20.0, 80.0],
+            [0.0, 200.0, 1500.0],
+            best_pair=(80.0, 1500.0),
+        )
+        with self.assertRaisesRegex(ValueError, "must narrow"):
+            select_operating_point(self.initial, [identical])
+
+    def test_at_least_one_refinement_is_required(self) -> None:
+        with self.assertRaisesRegex(ValueError, "At least one refinement"):
+            select_operating_point(self.initial, [])
 
     def test_csv_loader_rejects_legacy_dc_criteria(self) -> None:
-        legacy = self._record(
-            30.0,
-            75.0,
-            0.0459,
-            criteria_version="legacy_nominal_vdc_reference",
-        )
+        legacy = [
+            self._record(
+                50.0,
+                850.0,
+                0.02,
+                criteria_version="legacy_nominal_vdc_reference",
+            )
+        ]
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "legacy.csv"
             self._write_csv(path, legacy)
             with self.assertRaisesRegex(ValueError, "criteria_version"):
                 load_sweep_csv(path)
 
+    def test_csv_loader_rejects_other_scenario(self) -> None:
+        other = [
+            self._record(
+                50.0,
+                850.0,
+                0.02,
+                scenario="other_scenario",
+            )
+        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "other.csv"
+            self._write_csv(path, other)
+            with self.assertRaisesRegex(ValueError, "scenario"):
+                load_sweep_csv(path)
+
     def test_csv_loader_parses_boolean_strings(self) -> None:
-        record = self._record(30.0, 75.0, 0.0459)
+        record = self._record(50.0, 850.0, 0.02)
         csv_record = {
             key: (str(value).lower() if isinstance(value, bool) else value)
             for key, value in record.items()
         }
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "valid.csv"
-            self._write_csv(path, csv_record)
+            self._write_csv(path, [csv_record])
             loaded = load_sweep_csv(path)
 
         self.assertEqual(len(loaded), 1)
         self.assertTrue(loaded[0]["candidate_admissible"])
-        self.assertEqual((loaded[0]["M"], loaded[0]["D"]), (30.0, 75.0))
+        self.assertEqual((loaded[0]["M"], loaded[0]["D"]), (50.0, 850.0))
 
     def test_csv_loader_preserves_nan_metrics_on_invalid_rows(self) -> None:
-        invalid = self._record(2.0, 0.0, float("nan"), admissible=False)
+        invalid = self._record(20.0, 200.0, float("nan"), admissible=False)
         invalid["frequency_recovery_time_s"] = float("nan")
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "invalid.csv"
-            self._write_csv(path, invalid)
+            self._write_csv(path, [invalid])
             loaded = load_sweep_csv(path)
 
         self.assertEqual(len(loaded), 1)
