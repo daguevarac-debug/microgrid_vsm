@@ -66,9 +66,11 @@ CSV_PATH = OUTPUT_DIR / "bess_soh_scenarios_summary.csv"
 GFM_SOH_OUTPUT_DIR = (
     REPO_ROOT / "outputs" / "validation" / "gfm_bess_soh_scenarios"
 )
-GFM_SOH_CSV_PATH = GFM_SOH_OUTPUT_DIR / "gfm_bess_soh_scenarios_summary.csv"
-GFM_SELECTED_M = 40.0
-GFM_SELECTED_D = 100.0
+GFM_SOH_CSV_PATH = (
+    GFM_SOH_OUTPUT_DIR / "gfm_m80_d1500_bess_soh_scenarios_summary.csv"
+)
+GFM_SELECTED_M = 80.0
+GFM_SELECTED_D = 1500.0
 GFM_SOH_T_END_S = 6.5
 GFM_CRITERIA_VERSION = "obj2_vdc_event_relative_v2"
 GFM_VDC_ACCEPTANCE_BASIS = "max_abs_event_deviation_from_pre_step"

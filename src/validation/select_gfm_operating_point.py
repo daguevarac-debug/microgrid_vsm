@@ -29,6 +29,8 @@ MAX_VALUES_PER_PARAMETER = 3
 MAX_RUNS_PER_STAGE = 9
 PREVIOUS_SELECTED_M = 40.0
 PREVIOUS_SELECTED_D = 100.0
+CROSS_VALIDATED_M = 80.0
+CROSS_VALIDATED_D = 1500.0
 
 DEFAULT_INITIAL_CSV = (
     REPO_ROOT
@@ -416,6 +418,10 @@ def select_operating_point(
         np.isclose(selected["M"], PREVIOUS_SELECTED_M, rtol=0.0, atol=1e-12)
         and np.isclose(selected["D"], PREVIOUS_SELECTED_D, rtol=0.0, atol=1e-12)
     )
+    cross_validation_matches_selected = bool(
+        np.isclose(selected["M"], CROSS_VALIDATED_M, rtol=0.0, atol=1e-12)
+        and np.isclose(selected["D"], CROSS_VALIDATED_D, rtol=0.0, atol=1e-12)
+    )
 
     return {
         "status": "PASS",
@@ -437,6 +443,10 @@ def select_operating_point(
             "M": PREVIOUS_SELECTED_M,
             "D": PREVIOUS_SELECTED_D,
         },
+        "cross_validated_operating_point": {
+            "M": CROSS_VALIDATED_M,
+            "D": CROSS_VALIDATED_D,
+        },
         "diagnostics": {
             "selection_changed_from_previous": selection_changed,
             "selected_on_final_boundary": _is_axis_boundary(selected, final_all),
@@ -446,12 +456,20 @@ def select_operating_point(
             "frequency_drop_reduction_vs_same_m_lowest_d_hz": same_m_abs,
             "frequency_drop_reduction_vs_same_m_lowest_d_pct": same_m_pct,
             "global_optimum_claimed": False,
-            "cross_validation_pending": selection_changed,
+            "cross_validation_matches_selected": (
+                cross_validation_matches_selected
+            ),
+            "cross_validation_pending": (
+                not cross_validation_matches_selected
+            ),
             "severe_no_bess_robustness_confirmed": (
-                None if selection_changed else False
+                False if cross_validation_matches_selected else None
             ),
             "bess_soh_base_validation_pass": (
-                None if selection_changed else True
+                True if cross_validation_matches_selected else None
+            ),
+            "activity_2_3_frequency_metric_closure_pass": (
+                True if cross_validation_matches_selected else None
             ),
         },
     }
@@ -546,7 +564,23 @@ def main(argv: list[str] | None = None) -> int:
         f"{diagnostics['selected_on_final_upper_corner']}"
     )
     print(f"global_optimum_claimed={diagnostics['global_optimum_claimed']}")
+    print(
+        "cross_validation_matches_selected="
+        f"{diagnostics['cross_validation_matches_selected']}"
+    )
     print(f"cross_validation_pending={diagnostics['cross_validation_pending']}")
+    print(
+        "severe_no_bess_robustness_confirmed="
+        f"{diagnostics['severe_no_bess_robustness_confirmed']}"
+    )
+    print(
+        "bess_soh_base_validation_pass="
+        f"{diagnostics['bess_soh_base_validation_pass']}"
+    )
+    print(
+        "activity_2_3_frequency_metric_closure_pass="
+        f"{diagnostics['activity_2_3_frequency_metric_closure_pass']}"
+    )
     print(f"summary_path={output_path}")
     return 0
 

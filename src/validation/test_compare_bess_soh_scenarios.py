@@ -16,6 +16,7 @@ if str(SRC_DIR) not in sys.path:
 from validation.compare_bess_soh_scenarios import (
     GFM_SELECTED_D,
     GFM_SELECTED_M,
+    GFM_SOH_CSV_PATH,
     _available_limit_order_ok,
     _classify_bess_exchange_mode,
     _classify_gfm_soh_case,
@@ -26,8 +27,12 @@ from validation.compare_bess_soh_scenarios import (
 
 class TestGFMSoHComparison(unittest.TestCase):
     def test_selected_point_and_scenarios(self) -> None:
-        self.assertEqual(GFM_SELECTED_M, 40.0)
-        self.assertEqual(GFM_SELECTED_D, 100.0)
+        self.assertEqual(GFM_SELECTED_M, 80.0)
+        self.assertEqual(GFM_SELECTED_D, 1500.0)
+        self.assertEqual(
+            GFM_SOH_CSV_PATH.name,
+            "gfm_m80_d1500_bess_soh_scenarios_summary.csv",
+        )
         scenarios = dict(_gfm_soh_scenarios())
         self.assertEqual(scenarios["SoH_1p00"], 1.0)
         self.assertEqual(scenarios["SoH_0p70"], 0.70)

@@ -16,6 +16,7 @@ if str(SRC_DIR) not in sys.path:
 from validation.validate_islanded_operation_scenarios import (
     GFM_SELECTED_D,
     GFM_SELECTED_M,
+    GFM_SEVERE_DEFAULT_OUTPUT,
     GFM_SEVERE_T_END_S,
     _classify_selected_gfm_severe_status,
     _json_ready_record,
@@ -24,9 +25,13 @@ from validation.validate_islanded_operation_scenarios import (
 
 class TestSelectedGFMSevereValidation(unittest.TestCase):
     def test_selected_operating_point_and_horizon_are_fixed(self) -> None:
-        self.assertEqual(GFM_SELECTED_M, 40.0)
-        self.assertEqual(GFM_SELECTED_D, 100.0)
+        self.assertEqual(GFM_SELECTED_M, 80.0)
+        self.assertEqual(GFM_SELECTED_D, 1500.0)
         self.assertEqual(GFM_SEVERE_T_END_S, 6.5)
+        self.assertEqual(
+            GFM_SEVERE_DEFAULT_OUTPUT.name,
+            "selected_m80_d1500_severe_40pct.json",
+        )
 
     def test_pass_requires_all_acceptance_conditions(self) -> None:
         status = _classify_selected_gfm_severe_status(

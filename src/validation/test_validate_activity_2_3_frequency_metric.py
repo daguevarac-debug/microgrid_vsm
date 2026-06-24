@@ -17,6 +17,8 @@ if str(SRC_DIR) not in sys.path:
 
 from validation.validate_activity_2_3_frequency_metric import (
     CANONICAL_METRIC,
+    EXPECTED_SELECTED_D,
+    EXPECTED_SELECTED_M,
     NONCANONICAL_ALIAS,
     validate_activity_2_3,
     validate_frequency_record,
@@ -38,6 +40,8 @@ def _record(
     max_drop = max(frequency_pre - frequency_min, 0.0)
     return {
         "label": label,
+        "M": EXPECTED_SELECTED_M,
+        "D": EXPECTED_SELECTED_D,
         "frequency_pre_step_hz": frequency_pre,
         "frequency_min_post_step_hz": frequency_min,
         "frequency_max_post_step_hz": frequency_max,
@@ -93,6 +97,17 @@ class TestActivity23FrequencyMetric(unittest.TestCase):
             label="bad_metric",
         )
         self.assertFalse(result["metric_definition_ok"])
+        self.assertFalse(result["frequency_metric_coherent"])
+
+    def test_other_selected_point_is_rejected(self) -> None:
+        record = _record()
+        record["M"] = 40.0
+        record["D"] = 100.0
+        result = validate_frequency_record(
+            record,
+            label="stale_selected_point",
+        )
+        self.assertFalse(result["selected_point_matches"])
         self.assertFalse(result["frequency_metric_coherent"])
 
     def test_full_closure_report_passes_for_consistent_inputs(self) -> None:
@@ -156,6 +171,9 @@ class TestActivity23FrequencyMetric(unittest.TestCase):
             )
             self.assertTrue(
                 report["all_frequency_criteria_pass"]
+            )
+            self.assertTrue(
+                report["all_selected_point_records_match"]
             )
             self.assertTrue(output_path.exists())
 

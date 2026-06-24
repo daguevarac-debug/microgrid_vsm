@@ -102,10 +102,16 @@ class TestGFMOperatingPointSelection(unittest.TestCase):
         self.assertTrue(diagnostics["selection_changed_from_previous"])
         self.assertTrue(diagnostics["selected_on_final_boundary"])
         self.assertTrue(diagnostics["selected_on_final_upper_corner"])
-        self.assertTrue(diagnostics["cross_validation_pending"])
+        self.assertTrue(diagnostics["cross_validation_matches_selected"])
+        self.assertFalse(diagnostics["cross_validation_pending"])
         self.assertFalse(diagnostics["global_optimum_claimed"])
-        self.assertIsNone(diagnostics["severe_no_bess_robustness_confirmed"])
-        self.assertIsNone(diagnostics["bess_soh_base_validation_pass"])
+        self.assertFalse(
+            diagnostics["severe_no_bess_robustness_confirmed"]
+        )
+        self.assertTrue(diagnostics["bess_soh_base_validation_pass"])
+        self.assertTrue(
+            diagnostics["activity_2_3_frequency_metric_closure_pass"]
+        )
 
     def test_nonadmissible_lower_drop_is_ignored(self) -> None:
         refinement = list(self.refinement)
@@ -134,7 +140,14 @@ class TestGFMOperatingPointSelection(unittest.TestCase):
 
         summary = select_operating_point(self.initial, [refinement])
         selected = summary["selected_operating_point"]
+        diagnostics = summary["diagnostics"]
         self.assertEqual((selected["M"], selected["D"]), (50.0, 850.0))
+        self.assertFalse(diagnostics["cross_validation_matches_selected"])
+        self.assertTrue(diagnostics["cross_validation_pending"])
+        self.assertIsNone(
+            diagnostics["severe_no_bess_robustness_confirmed"]
+        )
+        self.assertIsNone(diagnostics["bess_soh_base_validation_pass"])
 
     def test_more_than_three_values_are_rejected(self) -> None:
         invalid = self._grid(
