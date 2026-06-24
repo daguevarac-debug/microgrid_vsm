@@ -26,30 +26,34 @@ from tuning_metrics import DEFAULT_TUNING_CRITERIA, TuningCriteria
 
 CANONICAL_METRIC = "max_frequency_abs_deviation_hz"
 NONCANONICAL_ALIAS = "max_abs_frequency_deviation_hz"
+EXPECTED_SELECTED_M = 80.0
+EXPECTED_SELECTED_D = 1500.0
 
 DEFAULT_SEVERE_PATH = (
     REPO_ROOT
     / "outputs"
     / "validation"
     / "gfm_tuning"
-    / "selected_m40_d100_severe_40pct.json"
+    / "selected_m80_d1500_severe_40pct.json"
 )
 DEFAULT_SOH_PATH = (
     REPO_ROOT
     / "outputs"
     / "validation"
     / "gfm_bess_soh_scenarios"
-    / "gfm_bess_soh_scenarios_summary.csv"
+    / "gfm_m80_d1500_bess_soh_scenarios_summary.csv"
 )
 DEFAULT_OUTPUT_PATH = (
     REPO_ROOT
     / "outputs"
     / "validation"
     / "activity_2_3_frequency_metric"
-    / "activity_2_3_frequency_metric_closure.json"
+    / "activity_2_3_frequency_metric_closure_m80_d1500.json"
 )
 
 REQUIRED_FIELDS = (
+    "M",
+    "D",
     "frequency_pre_step_hz",
     "frequency_min_post_step_hz",
     "frequency_max_post_step_hz",
@@ -113,11 +117,18 @@ def validate_frequency_record(
         "recovery_pass_logic_ok": False,
         "frequency_criteria_logic_ok": False,
         "entire_post_step_within_recovery_band": False,
+        "selected_point_matches": False,
         "frequency_metric_coherent": False,
     }
     if missing:
         return result
 
+    selected_m = _as_float(record, "M")
+    selected_d = _as_float(record, "D")
+    selected_point_matches = (
+        _close(selected_m, EXPECTED_SELECTED_M)
+        and _close(selected_d, EXPECTED_SELECTED_D)
+    )
     frequency_pre = _as_float(record, "frequency_pre_step_hz")
     frequency_min = _as_float(record, "frequency_min_post_step_hz")
     frequency_max = _as_float(record, "frequency_max_post_step_hz")
@@ -168,11 +179,17 @@ def validate_frequency_record(
             drop_pass_logic_ok,
             recovery_pass_logic_ok,
             frequency_criteria_logic_ok,
+            selected_point_matches,
         )
     )
 
     result.update(
         {
+            "M": selected_m,
+            "D": selected_d,
+            "expected_selected_M": EXPECTED_SELECTED_M,
+            "expected_selected_D": EXPECTED_SELECTED_D,
+            "selected_point_matches": selected_point_matches,
             "frequency_pre_step_hz": frequency_pre,
             "frequency_min_post_step_hz": frequency_min,
             "frequency_max_post_step_hz": frequency_max,
@@ -267,13 +284,21 @@ def validate_activity_2_3(
         bool(record.get("frequency_criteria_pass", False))
         for record in records
     )
+    all_selected_point_records_match = all(
+        bool(record.get("selected_point_matches", False))
+        for record in records
+    )
     all_post_step_within_band = all(
         bool(record["entire_post_step_within_recovery_band"])
         for record in records
     )
     closure_status = (
         "PASS"
-        if all_metrics_coherent and all_frequency_criteria_pass
+        if (
+            all_metrics_coherent
+            and all_frequency_criteria_pass
+            and all_selected_point_records_match
+        )
         else "FAIL"
     )
 
@@ -281,6 +306,8 @@ def validate_activity_2_3(
         "activity": "2.3",
         "status": closure_status,
         "canonical_metric": CANONICAL_METRIC,
+        "expected_selected_M": EXPECTED_SELECTED_M,
+        "expected_selected_D": EXPECTED_SELECTED_D,
         "noncanonical_alias": NONCANONICAL_ALIAS,
         "criteria_source": "Task 4.1",
         "nominal_frequency_hz": (
@@ -300,14 +327,18 @@ def validate_activity_2_3(
         ),
         "all_frequency_metrics_coherent": all_metrics_coherent,
         "all_frequency_criteria_pass": all_frequency_criteria_pass,
+        "all_selected_point_records_match": (
+            all_selected_point_records_match
+        ),
         "all_post_step_traces_within_recovery_band": (
             all_post_step_within_band
         ),
         "records": records,
         "scope_note": (
-            "Activity 2.3 closes the frequency-metric consistency check. "
-            "It does not convert the severe no-BESS scenario from REVIEW "
-            "to PASS because its DC-link criterion remains unmet."
+            "Activity 2.3 checks frequency-metric consistency for the "
+            "current selected point (M, D) = (80, 1500). The severe "
+            "no-BESS global status still depends independently on its "
+            "DC-link criterion."
         ),
     }
 
@@ -362,6 +393,10 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "all_frequency_criteria_pass="
         f"{report['all_frequency_criteria_pass']}"
+    )
+    print(
+        "all_selected_point_records_match="
+        f"{report['all_selected_point_records_match']}"
     )
     print(
         "all_post_step_traces_within_recovery_band="

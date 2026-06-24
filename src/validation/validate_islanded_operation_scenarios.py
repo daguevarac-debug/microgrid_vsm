@@ -50,8 +50,8 @@ VDC_STEP_20_DELTA_LIMIT_PCT = 10.0
 VDC_ABRUPT_STEP_DELTA_LIMIT_PCT = 15.0
 LIMIT_ATOL = 1e-9
 
-GFM_SELECTED_M = 40.0
-GFM_SELECTED_D = 100.0
+GFM_SELECTED_M = 80.0
+GFM_SELECTED_D = 1500.0
 GFM_SEVERE_T_END_S = 6.5
 GFM_SEVERE_SCENARIO_NAME = "gfm_selected_load_step_40_no_bess"
 GFM_CRITERIA_VERSION = "obj2_vdc_event_relative_v2"
@@ -61,7 +61,7 @@ GFM_SEVERE_DEFAULT_OUTPUT = (
     / "outputs"
     / "validation"
     / "gfm_tuning"
-    / "selected_m40_d100_severe_40pct.json"
+    / "selected_m80_d1500_severe_40pct.json"
 )
 
 
@@ -679,7 +679,7 @@ def _json_ready_record(record: dict[str, Any]) -> dict[str, Any]:
 def validate_selected_gfm_severe(
     output_path: Path = GFM_SEVERE_DEFAULT_OUTPUT,
 ) -> dict[str, Any]:
-    """Validate (M*, D*) = (40, 100) under a no-BESS severe 40% load step."""
+    """Validate (M*, D*) = (80, 1500) under a no-BESS severe 40% load step."""
     p_load_pre = float(MICROGRID_LOAD_P_NOM_W_DEFAULT)
     p_load_post = float(
         MICROGRID_LOAD_P_NOM_W_DEFAULT
@@ -702,7 +702,7 @@ def validate_selected_gfm_severe(
         "scenario": GFM_SEVERE_SCENARIO_NAME,
         "status": "FAIL",
         "robustness_confirmed": False,
-        "selection_scope": "selected_within_explored_and_refined_domain",
+        "selection_scope": "selected_within_compliant_initial_and_nested_refinement_domain",
         "criteria_version": GFM_CRITERIA_VERSION,
         "vdc_acceptance_basis": GFM_VDC_ACCEPTANCE_BASIS,
         "bess_active": False,
