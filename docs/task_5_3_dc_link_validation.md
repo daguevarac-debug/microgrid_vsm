@@ -74,6 +74,31 @@ Los resultados numéricos, criterios, limitaciones y archivos generados se conso
 
 `docs/dc_link_regulation_validation.md`
 
+## Cierre formal del bucket
+
+El bucket `dc_link_regulation` solo puede tomar el estado `CLOSED` cuando el escenario severo del 40 % cumple simultáneamente:
+
+- criterios de frecuencia;
+- criterios del enlace DC;
+- límites de corriente y potencia del BESS;
+- límites de SoC y SoH;
+- BESS activo;
+- integración numérica válida y señales finitas.
+
+Si una sola condición falla o no está presente, el estado permanece `OPEN`. El cierre no modifica el controlador, el modelo de planta ni los parámetros seleccionados.
+
+Script:
+
+`src/validation/close_task_5_3_bucket.py`
+
+Prueba:
+
+`src/validation/test_close_task_5_3_bucket.py`
+
+Resultado:
+
+`outputs/validation/dc_link_regulation/task_5_3_bucket_closure.json`
+
 ## Ejecución reproducible
 
 Validación de escenarios:
@@ -88,11 +113,16 @@ Descarga, límites, SoH y comparación:
 
 `src/validation/validate_dc_link_bess_soh_support.py`
 
+Cierre formal del bucket:
+
+`src/validation/close_task_5_3_bucket.py`
+
 Pruebas:
 
 - `src/validation/test_validate_dc_link_pi_scenarios.py`;
 - `src/validation/test_validate_task_5_3_frequency_vdc_closure.py`;
-- `src/validation/test_validate_dc_link_bess_soh_support.py`.
+- `src/validation/test_validate_dc_link_bess_soh_support.py`;
+- `src/validation/test_close_task_5_3_bucket.py`.
 
 Resultados:
 
@@ -103,4 +133,5 @@ Resultados:
 - `outputs/validation/dc_link_regulation/task_5_3_bess_soh_support_summary.json`;
 - `outputs/validation/dc_link_regulation/task_5_3_bess_soh_support_summary.csv`;
 - `outputs/validation/dc_link_regulation/task_5_3_no_support_vs_bess_pi.csv`;
-- `outputs/validation/dc_link_regulation/task_5_3_no_support_vs_bess_pi.png`.
+- `outputs/validation/dc_link_regulation/task_5_3_no_support_vs_bess_pi.png`;
+- `outputs/validation/dc_link_regulation/task_5_3_bucket_closure.json`.
