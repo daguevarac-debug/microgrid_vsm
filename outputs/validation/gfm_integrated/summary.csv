@@ -1,0 +1,5 @@
+scenario,status,load_step_pct,gfm_active,bess_pi_active,execution_pass,frequency_criteria_pass,vdc_criteria_pass,performance_pass,status_basis
+steady_operation,PASS,0.0,True,False,True,,,True,execution and steady-operation criteria passed
+load_step_20,PASS,20.0,True,False,True,True,True,True,"execution, frequency, and DC-link criteria passed"
+load_step_40,REVIEW,40.0,True,False,True,True,False,False,simulation valid but DC-link criteria were not met
+bess_vs_no_bess,PASS,20.0,True,True,True,,,True,comparison execution and applicable design criteria passed
