@@ -24,48 +24,56 @@ Se añadió `src/controllers/dc_link_bess_pi.py` con la estructura:
 
 `PBESS_ref_unsat = Kp*e_vdc + Ki*xi_vdc`
 
-`dxi_vdc/dt = e_vdc`
-
 La salida positiva conserva la convención de descarga del BESS. Los parámetros se expresan como `Kp [W/V]` y `Ki [W/(V*s)]` y deben suministrarse explícitamente. Esta etapa no realiza sintonización.
-
-Pruebas:
-
-`src/validation/test_dc_link_bess_pi.py`
 
 ## Subtarea 3 — Conexión del PI a la referencia de potencia del BESS
 
-Estado: implementada mediante arquitectura explícita, pendiente de validación local.
+Estado: cerrada.
 
-Se añadió `src/microgrid_bess_pi.py` con la clase `MicrogridWithBESSPI`. La conexión adoptada es:
+Se añadió `src/microgrid_bess_pi.py` con la clase optativa `MicrogridWithBESSPI`. La referencia de potencia se convierte mediante:
 
-`PBESS_ref_unsat -> IBESS_cmd = PBESS_ref_unsat / Vdc`
+`IBESS_cmd = PBESS_ref / Vdc`
 
-El signo se conserva: potencia positiva produce corriente positiva de descarga y potencia negativa produce corriente negativa de carga.
+La arquitectura anterior `MicrogridWithBESS` conserva sus 15 estados. La nueva arquitectura añade `xi_bess_vdc` en `x[15]`; los primeros 15 índices no se desplazan y los 16 estados se integran con el mismo solver global.
 
-La arquitectura anterior `MicrogridWithBESS` conserva sus 15 estados y su comportamiento. La nueva clase optativa añade únicamente el estado integral del PI al final del vector:
+La clase entrega al VSG únicamente la potencia real del BESS. No modifica la ecuación de oscilación, la referencia del VSG, la inercia virtual `M` ni el amortiguamiento `D`.
 
-`[Vdc, i1abc, vcabc, i2abc, omega, theta, soc_bess, vrc_bess, zdeg_bess, xi_bess_vdc]`
+## Subtareas 4 y 5 — Saturación, anti-windup, límites y deshabilitación
 
-Por tanto:
+Estado: implementadas, pendientes de validación local.
 
-- los índices `x[0]` a `x[14]` no cambian;
-- `x[10]` continúa siendo `omega` en modo GFM;
-- `x[11]` continúa siendo `theta`;
-- los estados del BESS permanecen en `x[12:15]`;
-- `x[15] = xi_bess_vdc`;
-- los 16 estados se integran con el mismo solver global.
+La referencia PI queda limitada antes de convertirse a corriente:
 
-La clase entrega al VSG únicamente la potencia real del BESS después de convertir la referencia PI a corriente. No modifica la ecuación de oscilación, la referencia del VSG, la inercia virtual `M` ni el amortiguamiento `D`.
+`PBESS_ref = sat(PBESS_ref_unsat, PBESS_min, PBESS_max)`
 
-Los límites existentes de corriente, potencia, SoC y SoH permanecen activos porque son restricciones obligatorias del modelo. Todavía no se implementa anti-windup: durante una saturación, el integrador continúa con `dxi_bess_vdc/dt = e_vdc`. Esa corrección corresponde a la siguiente subtarea.
+Los límites dinámicos se construyen con las restricciones existentes:
 
-Las señales integradas incorporan:
+- corriente máxima disponible dependiente de SoH;
+- potencia máxima disponible dependiente de SoH;
+- límite de potencia equivalente a `Vdc*IBESS_max_available`;
+- SoC mínimo que bloquea descarga;
+- SoC máximo que bloquea carga;
+- estado explícito `bess_enabled`.
 
-- `p_bess_ref_unsat_w`;
-- `vdc_error_v`;
-- `xi_bess_vdc_v_s`;
-- potencia y corriente reales del BESS.
+El límite positivo corresponde a descarga y el negativo a carga. Cuando el BESS está deshabilitado, ambos límites son cero, la referencia aplicada es cero, la corriente es cero y el VSG recibe disponibilidad de soporte igual a cero.
+
+Se implementó anti-windup por integración condicional:
+
+- si la salida satura en el límite superior y `e_vdc > 0`, se fija `dxi_bess_vdc/dt = 0`;
+- si la salida satura en el límite inferior y `e_vdc < 0`, se fija `dxi_bess_vdc/dt = 0`;
+- si el error ayuda a abandonar la saturación, el integrador continúa y puede descargarse;
+- con BESS deshabilitado, el integrador permanece congelado.
+
+El controlador no puede ordenar descarga cuando:
+
+- `bess_enabled = False`;
+- `SoC <= SoC_min`;
+- la disponibilidad de corriente o potencia es cero por SoH o límites nominales;
+- `Vdc <= 0` impide una conversión válida de potencia a corriente.
+
+Las señales integradas incluyen referencia no saturada y saturada, límites dinámicos, bandera de saturación, estado de anti-windup, habilitación y disponibilidad de carga/descarga.
 
 Pruebas:
 
-`src/validation/test_microgrid_bess_pi_connection.py`
+- `src/validation/test_dc_link_bess_pi.py`;
+- `src/validation/test_microgrid_bess_pi_connection.py`.
