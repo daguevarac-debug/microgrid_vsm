@@ -33,11 +33,40 @@ def ieee33_manual_coordinates() -> dict[int, tuple[float, float]]:
     return pos
 
 
+def _case_labels(datos: dict) -> dict[str, str]:
+    controller_class = str(datos.get("controller_class", ""))
+    gfm_active = controller_class == "GFMController"
+    if gfm_active:
+        return {
+            "case_name": "microrred GFM + BESS",
+            "short_name": "GFM + BESS",
+            "suptitle": (
+                "Acople secuencial one-way: IEEE 33 + microrred PV-BESS con GFM activo"
+            ),
+            "voltage_title": "Perfil de tension nodal: IEEE 33 base vs microrred GFM",
+            "power_title": "Potencia activa en el PCC - p_pcc(t)",
+            "dynamic_title": "Dinamica local GFM y estado de lineas IEEE 33",
+            "scope_note": "Flujo IEEE 33 estatico posterior; sin co-simulacion dinamica",
+        }
+    return {
+        "case_name": "microrred baseline",
+        "short_name": "baseline",
+        "suptitle": (
+            "Acople secuencial one-way: IEEE 33 + PV + DC-link + LCL baseline"
+        ),
+        "voltage_title": "Perfil de tension nodal: IEEE 33 base vs microrred baseline",
+        "power_title": "Potencia activa del baseline - P(t)",
+        "dynamic_title": "Dinamica local baseline y estado de lineas IEEE 33",
+        "scope_note": "Flujo IEEE 33 estatico posterior; sin co-simulacion dinamica",
+    }
+
+
 def plot_ieee33_topology(
     ax: plt.Axes,
     ramas: list[tuple[int, int]],
     nodo_pcc: int = 18,
     p_ss_kw: float = 0.0,
+    injection_label: str = "Microrred",
 ) -> None:
     """Draw a simplified IEEE 33 one-line diagram with highlighted PCC."""
     pos = ieee33_manual_coordinates()
@@ -75,9 +104,9 @@ def plot_ieee33_topology(
 
     if abs(p_ss_kw) > 1e-9:
         ax.annotate(
-            "Baseline DG",
+            f"{injection_label}\n{p_ss_kw:.3f} kW",
             xy=(x_pcc, y_pcc + 0.02),
-            xytext=(x_pcc, y_pcc + 0.72),
+            xytext=(x_pcc, y_pcc + 0.82),
             textcoords="data",
             ha="center",
             va="bottom",
@@ -89,7 +118,7 @@ def plot_ieee33_topology(
     ax.set_title("Sistema IEEE 33 nodos con punto de acople de la microrred", fontsize=11)
     ax.set_aspect("equal", adjustable="box")
     ax.set_xlim(-0.8, 17.8)
-    ax.set_ylim(-1.5, 1.6)
+    ax.set_ylim(-1.5, 1.8)
     ax.axis("off")
 
 
@@ -108,37 +137,50 @@ def plot_ieee33_results(
 ) -> None:
     """Plot thesis-grade summary figures for one-way sequential coupling."""
     output_dir.mkdir(parents=True, exist_ok=True)
+    labels = _case_labels(datos)
 
     nodos = v_base.index + 1
     pcc_bus_num = nodo_pcc
     delta_v = v_mg.to_numpy() - v_base.to_numpy()
 
     fig_a = plt.figure(figsize=(14, 9))
-    fig_a.suptitle(
-        "Acople secuencial one-way: IEEE 33 + PV + DC-link + LCL baseline averaged model",
-        fontsize=13,
-        fontweight="bold",
-    )
+    fig_a.suptitle(labels["suptitle"], fontsize=13, fontweight="bold")
     gs_a = gridspec.GridSpec(2, 2, figure=fig_a, height_ratios=[1.2, 1.0], hspace=0.4, wspace=0.35)
 
     ax_top = fig_a.add_subplot(gs_a[0, :])
-    plot_ieee33_topology(ax=ax_top, ramas=ramas, nodo_pcc=pcc_bus_num, p_ss_kw=p_ss_kw)
+    plot_ieee33_topology(
+        ax=ax_top,
+        ramas=ramas,
+        nodo_pcc=pcc_bus_num,
+        p_ss_kw=p_ss_kw,
+        injection_label=labels["short_name"],
+    )
+    ax_top.text(
+        0.5,
+        -0.04,
+        labels["scope_note"],
+        transform=ax_top.transAxes,
+        ha="center",
+        va="top",
+        fontsize=9,
+        style="italic",
+    )
 
     ax1 = fig_a.add_subplot(gs_a[1, 0])
-    ax1.plot(nodos, v_base, "b-o", markersize=4, label="Sin baseline")
+    ax1.plot(nodos, v_base, "b-o", markersize=4, label="IEEE 33 sin microrred")
     ax1.plot(
         nodos,
         v_mg,
         "g-s",
         markersize=4,
-        label=f"Con baseline ({p_ss_kw:.2f} kW en nodo {pcc_bus_num})",
+        label=f"Con {labels['case_name']} ({p_ss_kw:.3f} kW en nodo {pcc_bus_num})",
     )
     ax1.axhline(0.95, color="r", linestyle="--", linewidth=1.2, label="Limite inferior (0.95 p.u.)")
     ax1.axvline(pcc_bus_num, color="black", linestyle=":", linewidth=1.5, label=f"PCC - Nodo {pcc_bus_num}")
-    ax1.fill_between(nodos, v_base, v_mg, alpha=0.15, color="green", label="Mejora de voltaje")
-    ax1.set_title("Perfil de voltaje sin y con baseline")
+    ax1.fill_between(nodos, v_base, v_mg, alpha=0.15, color="green", label="Cambio de tension")
+    ax1.set_title(labels["voltage_title"])
     ax1.set_xlabel("Numero de nodo")
-    ax1.set_ylabel("Voltaje (p.u.)")
+    ax1.set_ylabel("Tension (p.u.)")
     ax1.set_xticks(range(1, 34, 2))
     ax1.grid(True, alpha=0.4)
     ax1.legend(fontsize=8, loc="lower left")
@@ -154,7 +196,7 @@ def plot_ieee33_results(
         linewidth=1.2,
         label=f"PCC - Nodo {pcc_bus_num}",
     )
-    ax_delta.set_title("Mejora de voltaje por nodo")
+    ax_delta.set_title("Variacion de tension por nodo respecto al IEEE 33 base")
     ax_delta.set_xlabel("Numero de nodo")
     ax_delta.set_ylabel("Delta V (p.u.)")
     ax_delta.set_xticks(range(1, 34, 2))
@@ -162,11 +204,11 @@ def plot_ieee33_results(
     ax_delta.legend(fontsize=8, loc="best")
 
     ruta_figura_a = output_dir / "ieee33_microgrid_resultado.png"
-    fig_a.savefig(ruta_figura_a, dpi=180, bbox_inches="tight")
+    fig_a.savefig(ruta_figura_a, dpi=220, bbox_inches="tight")
 
     fig_b = plt.figure(figsize=(15, 4.8))
     fig_b.suptitle(
-        f"Dinamica local baseline y estado de lineas IEEE 33 (PCC: nodo {pcc_bus_num})",
+        f"{labels['dynamic_title']} (PCC: nodo {pcc_bus_num})",
         fontsize=12,
         fontweight="bold",
     )
@@ -175,7 +217,7 @@ def plot_ieee33_results(
     ax2 = fig_b.add_subplot(gs_b[0, 0])
     ax2.plot(datos["t"], datos["Vdc"], "b-", linewidth=1)
     ax2.axvline(datos["t_step"], color="orange", linestyle="--", label="Escalon de carga")
-    ax2.set_title("Bus DC del baseline - Vdc(t)")
+    ax2.set_title("Bus DC - Vdc(t)")
     ax2.set_xlabel("t [s]")
     ax2.set_ylabel("Vdc [V]")
     ax2.legend(fontsize=8)
@@ -189,9 +231,9 @@ def plot_ieee33_results(
         color="red",
         linestyle="--",
         linewidth=1.2,
-        label=f"P_ss = {p_ss_kw:.3f} kW (potencia media inyectada al IEEE 33)",
+        label=f"P_ss = {p_ss_kw:.3f} kW (media de p_pcc)",
     )
-    ax3.set_title("Potencia activa del baseline - P(t)")
+    ax3.set_title(labels["power_title"])
     ax3.set_xlabel("t [s]")
     ax3.set_ylabel("P [kW]")
     ax3.legend(fontsize=8)
@@ -199,21 +241,27 @@ def plot_ieee33_results(
 
     ax4 = fig_b.add_subplot(gs_b[0, 2])
     idx_lineas = np.arange(1, len(estado_lineas_base) + 1)
-    ax4.plot(idx_lineas, estado_lineas_base, "b-o", markersize=3.5, linewidth=1.1, label="Sin baseline")
-    ax4.plot(idx_lineas, estado_lineas_mg, "g-s", markersize=3.5, linewidth=1.1, label="Con baseline")
+    ax4.plot(idx_lineas, estado_lineas_base, "b-o", markersize=3.5, linewidth=1.1, label="IEEE 33 base")
+    ax4.plot(
+        idx_lineas,
+        estado_lineas_mg,
+        "g-s",
+        markersize=3.5,
+        linewidth=1.1,
+        label=f"Con {labels['short_name']}",
+    )
     if metrica_lineas == "loading_percent":
         ax4.axhline(100.0, color="r", linestyle="--", linewidth=1.0, label="Limite termico (100%)")
-    ax4.set_title("Estado electrico de lineas: sin y con baseline")
+    ax4.set_title("Estado electrico de lineas")
     ax4.set_xlabel("Indice de linea / tramo")
     ax4.set_ylabel(etiqueta_estado_lineas)
     ax4.grid(True, alpha=0.4)
     ax4.legend(fontsize=8, loc="best")
 
     ruta_figura_b = output_dir / "ieee33_microgrid_dinamica_lineas.png"
-    fig_b.savefig(ruta_figura_b, dpi=180, bbox_inches="tight")
+    fig_b.savefig(ruta_figura_b, dpi=220, bbox_inches="tight")
 
-    print("\n  Figura guardada: ieee33_microgrid_resultado.png")
-    print("  Figura guardada: ieee33_microgrid_dinamica_lineas.png")
-    # Flujo por script: se guardan figuras en disco y se evita abrir GUI interactiva.
+    print(f"\n  Figura guardada: {ruta_figura_a}")
+    print(f"  Figura guardada: {ruta_figura_b}")
     plt.close(fig_a)
     plt.close(fig_b)
