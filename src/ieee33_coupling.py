@@ -21,10 +21,16 @@ from config import (
     SIM_T_START_S_DEFAULT,
     SIM_VDC0_V_DEFAULT,
 )
+from controllers.gfm_controller import GFMController
 from ieee33_base import construir_red_ieee33
 from microgrid import Microgrid, MicrogridWithBESS
 from ieee33_plots import plot_ieee33_results
 from ieee33_reporting import print_ieee33_report
+from inverter_source import validate_dc_bus_capability
+
+
+IEEE33_GFM_INERTIA_M_DEFAULT = 80.0
+IEEE33_GFM_DAMPING_D_DEFAULT = 1500.0
 
 
 def _finite_float(name: str, value) -> float:
@@ -244,7 +250,7 @@ class IEEE33MicrogridBaseline(_IEEE33CouplingMixin, Microgrid):
 
 
 class IEEE33MicrogridWithBESS(_IEEE33CouplingMixin, MicrogridWithBESS):
-    """PV + DC-link + LCL + preliminary BESS model with one-way IEEE 33 coupling."""
+    """PV + DC-link + LCL + BESS with active GFM and one-way IEEE 33 coupling."""
 
     def __init__(
         self,
@@ -254,22 +260,60 @@ class IEEE33MicrogridWithBESS(_IEEE33CouplingMixin, MicrogridWithBESS):
         temperature_profile=None,
         load_profile=None,
         output_dir: str | Path | None = None,
+        controller: GFMController | None = None,
     ):
+        if controller is not None and not isinstance(controller, GFMController):
+            raise ValueError(
+                "IEEE33MicrogridWithBESS requires GFMController, got "
+                f"{type(controller).__name__}."
+            )
+
+        # Build the plant once through the established constructor. When no
+        # controller is supplied, replace the temporary baseline controller with
+        # the selected GFM point before any state vector or simulation is built.
         super().__init__(
             irradiance_profile=irradiance_profile,
             temperature_profile=temperature_profile,
             load_profile=load_profile,
+            controller=controller,
         )
+        if controller is None:
+            self.controller = GFMController(
+                p_ref=min(self.P_ref_nominal, self.p_available_ref),
+                inertia_m=IEEE33_GFM_INERTIA_M_DEFAULT,
+                damping_d=IEEE33_GFM_DAMPING_D_DEFAULT,
+            )
+            self.vdc_min_required = validate_dc_bus_capability(
+                vdc0=SIM_VDC0_V_DEFAULT,
+                vdc_ref=SIM_VDC0_V_DEFAULT,
+                v_ln_rms=self.controller.modulator.v_ln_rms,
+                m_max=self.controller.m_base,
+                strict=False,
+                context=type(self.controller).__name__,
+            )
+
         self._init_ieee33_coupling(ruta_txt, pcc_bus_idx=pcc_bus_idx, output_dir=output_dir)
 
     def simular(self) -> tuple[float, dict]:
-        """Run preliminary BESS-coupled simulation and return average PCC active power."""
+        """Run GFM+BESS dynamics and average ``p_pcc`` in the steady window."""
+        if not isinstance(self.controller, GFMController):
+            raise TypeError(
+                "IEEE33MicrogridWithBESS.simular requires an active GFMController."
+            )
+        if self.controller_state_name != "omega":
+            raise ValueError(
+                "IEEE33MicrogridWithBESS requires x[10] = omega in GFM mode."
+            )
+
+        dynamics = self.controller.frequency_dynamics
         print("=" * 55)
         print("  PASO 1: Simulacion dinamica LOCAL")
-        print("  PV + DC-link + LCL + BESS preliminar")
-        print("  Acople IEEE 33 one-way; NO es GFM/VSG integrado")
+        print("  PV + DC-link + LCL + BESS con GFM activo")
+        print("  Acople IEEE 33 secuencial one-way")
         print("=" * 55)
-        print(f"  P_ref_nominal baseline : {self.P_ref_nominal:.1f} W")
+        print(f"  Controlador              : {type(self.controller).__name__}")
+        print(f"  P_ref GFM                : {self.controller.p_ref:.1f} W")
+        print(f"  M, D                     : {dynamics.inertia_m:.1f}, {dynamics.damping_d:.1f}")
 
         t_span = (SIM_T_START_S_DEFAULT, SIM_T_END_S_DEFAULT)
         y0 = self.initial_state_with_bess(vdc0=SIM_VDC0_V_DEFAULT)
@@ -281,9 +325,14 @@ class IEEE33MicrogridWithBESS(_IEEE33CouplingMixin, MicrogridWithBESS):
             rtol=SIM_SOLVER_RTOL_DEFAULT,
             atol=SIM_SOLVER_ATOL_DEFAULT,
         )
+        if not sol.success:
+            raise RuntimeError(f"IEEE33 GFM+BESS simulation failed: {sol.message}")
+        if not np.all(np.isfinite(sol.y)):
+            raise RuntimeError("IEEE33 GFM+BESS simulation produced NaN/Inf states.")
 
         t = sol.t
         vdc = sol.y[0]
+        frequency_hz = sol.y[10] / (2.0 * np.pi)
         p_pcc = np.zeros_like(t)
         i_bess = np.zeros_like(t)
         p_bess_dc = np.zeros_like(t)
@@ -298,15 +347,23 @@ class IEEE33MicrogridWithBESS(_IEEE33CouplingMixin, MicrogridWithBESS):
             soc_bess[k] = sig["soc_bess"]
             soh_bess[k] = sig["soh_bess"]
 
-        idx_ss = t > (SIM_T_END_S_DEFAULT * SIM_SS_WINDOW_FRACTION)
-        p_ss_w = float(p_pcc[idx_ss].mean())
+        ss_window_start_s = SIM_T_END_S_DEFAULT * SIM_SS_WINDOW_FRACTION
+        idx_ss = t > ss_window_start_s
+        if not np.any(idx_ss):
+            raise RuntimeError(
+                "IEEE33 GFM+BESS simulation has no samples in the steady-state window."
+            )
+
+        # Protected coupling invariant: the static IEEE 33 injection is obtained
+        # exclusively from the arithmetic mean of p_pcc in the stationary window.
+        p_ss_w = float(np.mean(p_pcc[idx_ss]))
         p_ss_kw = p_ss_w / 1000.0
         print(f"  P estado estacionario desde p_pcc : {p_ss_w:.1f} W  ->  {p_ss_kw:.4f} kW")
-        print("  Nota: la frecuencia del baseline grid-following no se interpreta como metrica GFM/VSG.")
 
         datos_dinamicos = {
             "t": t,
             "Vdc": vdc,
+            "frequency_hz": frequency_hz,
             "p_inst": p_pcc,
             "p_pcc": p_pcc,
             "i_bess": i_bess,
@@ -316,8 +373,15 @@ class IEEE33MicrogridWithBESS(_IEEE33CouplingMixin, MicrogridWithBESS):
             "t_step": self.t_step,
             "P_ss_w": p_ss_w,
             "p_ss_kw": p_ss_kw,
+            "p_ss_source": "mean(p_pcc[steady_state_window])",
+            "ss_window_start_s": float(ss_window_start_s),
+            "ss_sample_count": int(np.count_nonzero(idx_ss)),
+            "controller_class": type(self.controller).__name__,
+            "controller_state_name": self.controller_state_name,
+            "gfm_inertia_m": float(dynamics.inertia_m),
+            "gfm_damping_d": float(dynamics.damping_d),
             "nodo_pcc": self.pcc_bus_idx + 1,
-            "scope": "PV + DC-link + LCL + BESS preliminar; no GFM/VSG integrado",
+            "scope": "PV + DC-link + LCL + BESS con GFM activo; acople IEEE 33 one-way",
         }
         return p_ss_kw, datos_dinamicos
 
