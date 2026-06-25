@@ -24,7 +24,7 @@ Se añadió `src/controllers/dc_link_bess_pi.py` con la estructura:
 
 `PBESS_ref_unsat = Kp*e_vdc + Ki*xi_vdc`
 
-La salida positiva conserva la convención de descarga del BESS. Los parámetros se expresan como `Kp [W/V]` y `Ki [W/(V*s)]` y deben suministrarse explícitamente. Esta etapa no realiza sintonización.
+La salida positiva conserva la convención de descarga del BESS. Los parámetros se expresan como `Kp [W/V]` y `Ki [W/(V*s)]` y deben suministrarse explícitamente.
 
 ## Subtarea 3 — Conexión del PI a la referencia de potencia del BESS
 
@@ -40,40 +40,60 @@ La clase entrega al VSG únicamente la potencia real del BESS. No modifica la ec
 
 ## Subtareas 4 y 5 — Saturación, anti-windup, límites y deshabilitación
 
-Estado: implementadas, pendientes de validación local.
+Estado: cerradas.
 
 La referencia PI queda limitada antes de convertirse a corriente:
 
 `PBESS_ref = sat(PBESS_ref_unsat, PBESS_min, PBESS_max)`
 
-Los límites dinámicos se construyen con las restricciones existentes:
+Los límites dinámicos se construyen con las restricciones existentes de corriente, potencia, SoC y SoH. El límite positivo corresponde a descarga y el negativo a carga. Con `bess_enabled = False`, la referencia aplicada, la corriente y la derivada integral son cero.
 
-- corriente máxima disponible dependiente de SoH;
-- potencia máxima disponible dependiente de SoH;
-- límite de potencia equivalente a `Vdc*IBESS_max_available`;
-- SoC mínimo que bloquea descarga;
-- SoC máximo que bloquea carga;
-- estado explícito `bess_enabled`.
+Se implementó anti-windup por integración condicional: el integrador se congela cuando el error empuja la salida más allá del límite activo y vuelve a integrar cuando el error ayuda a abandonar la saturación.
 
-El límite positivo corresponde a descarga y el negativo a carga. Cuando el BESS está deshabilitado, ambos límites son cero, la referencia aplicada es cero, la corriente es cero y el VSG recibe disponibilidad de soporte igual a cero.
+## Subtarea 6 — Pruebas unitarias del soporte BESS-DC
 
-Se implementó anti-windup por integración condicional:
+Estado: cerrada.
 
-- si la salida satura en el límite superior y `e_vdc > 0`, se fija `dxi_bess_vdc/dt = 0`;
-- si la salida satura en el límite inferior y `e_vdc < 0`, se fija `dxi_bess_vdc/dt = 0`;
-- si el error ayuda a abandonar la saturación, el integrador continúa y puede descargarse;
-- con BESS deshabilitado, el integrador permanece congelado.
+Las pruebas cubren:
 
-El controlador no puede ordenar descarga cuando:
+- signo de potencia y corriente;
+- error nulo;
+- respuesta positiva ante subtensión;
+- respuesta negativa ante sobretensión;
+- saturación superior e inferior;
+- anti-windup y descarga del integrador;
+- límites de corriente, potencia, SoC y SoH;
+- BESS deshabilitado;
+- conservación del mapeo de estados y de los parámetros `M` y `D`.
 
-- `bess_enabled = False`;
-- `SoC <= SoC_min`;
-- la disponibilidad de corriente o potencia es cero por SoH o límites nominales;
-- `Vdc <= 0` impide una conversión válida de potencia a corriente.
-
-Las señales integradas incluyen referencia no saturada y saturada, límites dinámicos, bandera de saturación, estado de anti-windup, habilitación y disponibilidad de carga/descarga.
-
-Pruebas:
+Archivos:
 
 - `src/validation/test_dc_link_bess_pi.py`;
 - `src/validation/test_microgrid_bess_pi_connection.py`.
+
+## Subtarea 7 — Ajuste mínimo de Kp y Ki
+
+Estado: implementada con una sola pareja candidata, pendiente de validación local.
+
+No se realiza una optimización ni un barrido. Se evalúa únicamente:
+
+- `Kp = 170 W/V`, equivalente al soporte proporcional anterior cerca de 340 V: `340 V * 0.5 A/V`;
+- `Ki = 10 W/(V*s)`, valor integral pequeño para introducir corrección estacionaria sin un cambio agresivo.
+
+La pareja se valida en el escenario GFM seleccionado `(M, D) = (80, 1500)` con escalón severo de carga del 40 %. La aceptación requiere simultáneamente:
+
+- éxito numérico y estados finitos;
+- cumplimiento de los criterios existentes del enlace DC;
+- cumplimiento de los criterios existentes de frecuencia;
+- respeto de límites de corriente, potencia, SoC y SoH.
+
+El error final respecto a 340 V se registra como diagnóstico, pero no se añade como criterio nuevo.
+
+Script y prueba:
+
+- `src/validation/validate_bess_pi_minimal_tuning.py`;
+- `src/validation/test_validate_bess_pi_minimal_tuning.py`.
+
+Salida:
+
+`outputs/validation/dc_link_regulation/gfm_m80_d1500_bess_pi_minimal_tuning.json`
