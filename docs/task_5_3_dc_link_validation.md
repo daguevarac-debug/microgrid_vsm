@@ -34,18 +34,48 @@ Cada escenario obtiene `PASS` únicamente si se cumplen simultáneamente:
 
 La tarea completa obtiene `PASS` solo si los dos escenarios obligatorios pasan.
 
+## Confirmación de frecuencia — Actividad 2.3
+
+La frecuencia de cada escenario se vuelve a comprobar con la definición canónica de la Actividad 2.3:
+
+- punto seleccionado `(M, D) = (80, 1500)`;
+- caída máxima respecto al promedio preescalón;
+- desviación absoluta máxima respecto a 60 Hz;
+- recuperación a `60 ± 0.10 Hz` en máximo 5.0 s;
+- permanencia continua de 0.50 s;
+- coherencia entre las métricas reportadas y sus banderas de aceptación.
+
+No se acepta un alias alternativo de la métrica canónica `max_frequency_abs_deviation_hz`.
+
+## Confirmación de Vdc — Tarea 4.1
+
+Se comprueban explícitamente:
+
+- desviación máxima del evento menor o igual al 5 % respecto al punto preescalón;
+- tensión mínima posterior al escalón mayor o igual a la tensión físicamente requerida;
+- recuperación dentro de la banda del evento en máximo 5.0 s;
+- permanencia continua dentro de banda durante 0.50 s.
+
+Para el tiempo de recuperación de `Vdc`, se aplica el horizonte común de 5.0 s y la permanencia de 0.50 s definidos en la Tarea 4.1 sobre la banda vigente de aceptación del evento de ±5 %. Esta interpretación se registra explícitamente y no modifica los criterios ni el controlador.
+
 ## Ejecución reproducible
 
-Script:
+Validación de escenarios:
 
 `src/validation/validate_dc_link_pi_scenarios.py`
 
+Cierre de frecuencia y `Vdc`:
+
+`src/validation/validate_task_5_3_frequency_vdc_closure.py`
+
 Pruebas:
 
-`src/validation/test_validate_dc_link_pi_scenarios.py`
+- `src/validation/test_validate_dc_link_pi_scenarios.py`;
+- `src/validation/test_validate_task_5_3_frequency_vdc_closure.py`.
 
 Resultados:
 
 - `outputs/validation/dc_link_regulation/gfm_m80_d1500_bess_pi_base_20pct.json`;
 - `outputs/validation/dc_link_regulation/gfm_m80_d1500_bess_pi_severe_40pct.json`;
-- `outputs/validation/dc_link_regulation/task_5_3_dc_link_pi_validation_summary.json`.
+- `outputs/validation/dc_link_regulation/task_5_3_dc_link_pi_validation_summary.json`;
+- `outputs/validation/dc_link_regulation/task_5_3_frequency_vdc_closure.json`.
