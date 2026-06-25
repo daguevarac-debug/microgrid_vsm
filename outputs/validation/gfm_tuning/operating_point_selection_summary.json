@@ -1,0 +1,135 @@
+{
+  "status": "PASS",
+  "selection_scope": "selected_within_compliant_initial_and_nested_refinement_domain",
+  "selection_rule": "minimum max_frequency_drop_hz among fully admissible candidates in the last compliant nested refinement; exact ties use lower M and then lower D",
+  "scenario": "load_step_20_no_bess",
+  "criteria_version": "obj2_vdc_event_relative_v2",
+  "vdc_acceptance_basis": "max_abs_event_deviation_from_pre_step",
+  "stages": [
+    {
+      "stage_name": "initial_3x3",
+      "runs_total": 9,
+      "candidates_admissible": 6,
+      "M_values": [
+        2.0,
+        20.0,
+        80.0
+      ],
+      "D_values": [
+        0.0,
+        200.0,
+        1500.0
+      ],
+      "M_min": 2.0,
+      "M_max": 80.0,
+      "D_min": 0.0,
+      "D_max": 1500.0,
+      "best_admissible": {
+        "M": 80.0,
+        "D": 1500.0,
+        "max_frequency_drop_hz": 0.010156540121592172,
+        "frequency_recovery_time_s": 5.06043446835136e-06,
+        "vdc_event_max_abs_deviation_pct": 3.8350776972261866,
+        "vdc_min_post_step_v": 364.76328025611036,
+        "candidate_admissible": true
+      },
+      "best_on_boundary": true,
+      "best_on_upper_corner": true
+    },
+    {
+      "stage_name": "refinement_1",
+      "runs_total": 9,
+      "candidates_admissible": 9,
+      "M_values": [
+        20.0,
+        50.0,
+        80.0
+      ],
+      "D_values": [
+        200.0,
+        850.0,
+        1500.0
+      ],
+      "M_min": 20.0,
+      "M_max": 80.0,
+      "D_min": 200.0,
+      "D_max": 1500.0,
+      "best_admissible": {
+        "M": 80.0,
+        "D": 1500.0,
+        "max_frequency_drop_hz": 0.010156540121592172,
+        "frequency_recovery_time_s": 5.06043446835136e-06,
+        "vdc_event_max_abs_deviation_pct": 3.8350776972261866,
+        "vdc_min_post_step_v": 364.76328025611036,
+        "candidate_admissible": true
+      },
+      "best_on_boundary": true,
+      "best_on_upper_corner": true
+    }
+  ],
+  "initial_best_diagnostic": {
+    "M": 80.0,
+    "D": 1500.0,
+    "max_frequency_drop_hz": 0.010156540121592172,
+    "frequency_recovery_time_s": 5.06043446835136e-06,
+    "vdc_event_max_abs_deviation_pct": 3.8350776972261866,
+    "vdc_min_post_step_v": 364.76328025611036,
+    "candidate_admissible": true
+  },
+  "final_midpoint_reference": {
+    "M": 50.0,
+    "D": 850.0,
+    "max_frequency_drop_hz": 0.016795509612137494,
+    "frequency_recovery_time_s": 1.3910219167634352e-06,
+    "vdc_event_max_abs_deviation_pct": 3.834738263149825,
+    "vdc_min_post_step_v": 364.765053813375,
+    "candidate_admissible": true
+  },
+  "selected_operating_point": {
+    "M": 80.0,
+    "D": 1500.0,
+    "max_frequency_drop_hz": 0.010156540121592172,
+    "frequency_recovery_time_s": 5.06043446835136e-06,
+    "vdc_event_max_abs_deviation_pct": 3.8350776972261866,
+    "vdc_min_post_step_v": 364.76328025611036,
+    "candidate_admissible": true
+  },
+  "same_m_lowest_d_reference": {
+    "M": 80.0,
+    "D": 200.0,
+    "max_frequency_drop_hz": 0.017220885677566855,
+    "frequency_recovery_time_s": 6.3001901474679656e-06,
+    "vdc_event_max_abs_deviation_pct": 3.8344059570867635,
+    "vdc_min_post_step_v": 364.77140440436335,
+    "candidate_admissible": true
+  },
+  "previous_selected_operating_point": {
+    "M": 40.0,
+    "D": 100.0
+  },
+  "cross_validated_operating_point": {
+    "M": 80.0,
+    "D": 1500.0
+  },
+  "diagnostics": {
+    "selection_changed_from_previous": true,
+    "selected_on_final_boundary": true,
+    "selected_on_final_upper_corner": true,
+    "frequency_drop_reduction_vs_final_midpoint_hz": 0.006638969490545321,
+    "frequency_drop_reduction_vs_final_midpoint_pct": 39.52824084449086,
+    "frequency_drop_reduction_vs_same_m_lowest_d_hz": 0.007064345555974683,
+    "frequency_drop_reduction_vs_same_m_lowest_d_pct": 41.021964190710584,
+    "global_optimum_claimed": false,
+    "cross_validation_matches_selected": true,
+    "cross_validation_pending": false,
+    "severe_no_bess_robustness_confirmed": false,
+    "bess_soh_base_validation_pass": true,
+    "activity_2_3_frequency_metric_closure_pass": true
+  },
+  "input_files": {
+    "initial": "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\outputs\\validation\\gfm_tuning\\sensitivity_runs_initial_3x3.csv",
+    "refinements": [
+      "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\outputs\\validation\\gfm_tuning\\refinement_compliant_iter1_m20-80_d200-1500.csv"
+    ]
+  }
+}
