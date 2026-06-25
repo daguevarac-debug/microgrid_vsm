@@ -1,4 +1,4 @@
-"""Entry point for one-way sequential IEEE 33 + microgrid coupling."""
+"""Entry point for sequential one-way IEEE 33 + microgrid coupling."""
 
 import argparse
 import os
@@ -11,25 +11,31 @@ from ieee33_reporting import select_line_metric
 
 
 def main() -> None:
-    """Run full one-way sequential IEEE 33 study and figures."""
+    """Run the IEEE 33 one-way study with baseline or active GFM+BESS."""
     parser = argparse.ArgumentParser(
-        description="Run one-way sequential IEEE 33 + local microgrid coupling."
+        description="Run sequential one-way IEEE 33 + local microgrid coupling."
     )
     parser.add_argument(
         "--baseline",
         action="store_true",
-        help="Use the historical PV + DC-link + LCL baseline without preliminary BESS coupling.",
+        help=(
+            "Use the historical grid-following PV + DC-link + LCL baseline "
+            "without BESS."
+        ),
     )
     args = parser.parse_args()
 
     ruta_txt = str(Path(__file__).resolve().parent / "ieee33bus.txt")
     if args.baseline:
         sistema = IEEE33MicrogridBaseline(ruta_txt)
-        print("Modo IEEE 33: PV + DC-link + LCL baseline, sin BESS.")
+        print("Modo IEEE 33: baseline grid-following, sin BESS.")
     else:
         sistema = IEEE33MicrogridWithBESS(ruta_txt)
-        print("Modo IEEE 33: PV + DC-link + LCL + BESS preliminar.")
-        print("Alcance: acople secuencial one-way; NO es GFM/VSG integrado.")
+        print("Modo IEEE 33: PV + DC-link + LCL + BESS con GFM activo.")
+        print(
+            "Alcance: acople secuencial one-way y flujo de potencia estatico; "
+            "no es co-simulacion dinamica."
+        )
 
     p_ss_kw, datos = sistema.simular()
     v_base, res_line_base = sistema.flujo_base()
