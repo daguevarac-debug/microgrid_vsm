@@ -101,9 +101,15 @@ separado. En el IEEE 33 solo se observa la potencia neta equivalente de la
 microrred en el PCC.
 
 El PCC usado es el Nodo 18 del IEEE 33 y el nivel de tension de la red se
-mantiene en `12.66 kV`. Este caso tampoco representa un acople dinamico
-GFM/VSG integrado al IEEE 33; el bloque GFM/VSG permanece como estructura
-minima aislada hasta su integracion explicita en una etapa posterior.
+mantiene en `12.66 kV`. La microrred local opera ahora con `GFMController`
+activo; sin embargo, el acople con el IEEE 33 sigue siendo secuencial one-way.
+Primero se resuelve la dinamica local, luego se calcula `p_ss_kw` como promedio
+de `p_pcc` en la ventana estacionaria y finalmente se ejecuta un flujo de
+potencia estatico en pandapower. El IEEE 33 no retroalimenta estados, tensiones
+ni potencias durante la integracion temporal de la microrred. Por tanto, este
+caso no constituye co-simulacion dinamica ni un acople bidireccional en tiempo
+real; corresponde a postprocesamiento estatico de red con una inyeccion
+estacionaria equivalente en el PCC.
 
 ## Generador fotovoltaico (baseline actual)
 
