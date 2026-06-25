@@ -1,162 +1,192 @@
-# Estructura mínima del inversor grid-forming
+# Estructura del inversor grid-forming implementado
 
-Este documento fija la estructura mínima que se usará como base para implementar el inversor grid-forming en etapas posteriores de la tesis.
+## Estado actual
 
-Alcance de esta etapa:
+La estructura mínima grid-forming definida inicialmente para el Objetivo 2 ya
+está implementada e integrada en la planta completa mediante
+`GFMController`. El controlador conserva una formulación VSG clásica reducida,
+compatible con la interfaz común de controladores del repositorio.
 
-- Definir variables de estado internas del inversor grid-forming.
-- Explicitar el papel del ángulo eléctrico `theta`.
-- Explicitar el papel de la frecuencia angular `omega`.
-- Dejar planteadas las ecuaciones dinámicas mínimas.
-- Diferenciar el inversor grid-forming de una fuente sinusoidal ideal.
+El GFM actual no es una fuente sinusoidal ideal de frecuencia fija y tampoco es
+una implementación FOVIC. `omega` es un estado dinámico interno que responde al
+desequilibrio de potencia activa y gobierna la evolución del ángulo `theta`.
 
-Fuera de alcance en esta etapa:
+## Estados internos del GFM
 
-- No se implementa todavía el controlador grid-forming completo.
-- No se activa todavía el modo grid-forming en `main.py`.
-- No se cambia todavía el vector de estados del baseline existente.
-- No se modifica la física ya validada del PV, BESS, DC-link ni LCL.
-
-## 1. Estado actual del baseline
-
-El baseline actual usa un controlador grid-following PI para regulación del bus DC. La fase eléctrica se propaga con frecuencia fija de referencia.
-
-Por tanto, el sistema actual no debe presentarse todavía como control grid-forming final.
-
-## 2. Variables de estado mínimas del inversor grid-forming
-
-Para representar el inversor grid-forming mínimo como una fuente interna de tensión con dinámica propia, el vector mínimo de estados del bloque GFM debe ser:
+El bloque grid-forming usa:
 
 ```text
 x_gfm = [theta, omega]
 ```
 
-Donde:
+con:
 
-- `theta` [rad]: ángulo eléctrico interno del inversor.
-- `omega` [rad/s]: frecuencia angular interna del inversor.
+- `theta` [rad]: ángulo eléctrico interno;
+- `omega` [rad/s]: frecuencia angular interna.
 
-En el baseline actual, `theta` ya existe como variable asociada a la fase eléctrica de la fuente/inversor, pero `omega` todavía no está incorporada como estado dinámico independiente; la frecuencia se mantiene referida a `omega_ref`.
-
-La incorporación futura de `omega` como estado debe hacerse de forma explícita y documentada, sin cambiar silenciosamente el orden del vector de estados existente de `Microgrid` ni activar todavía control grid-forming.
-
-## 3. Ángulo eléctrico theta
-
-`theta` [rad] es el ángulo eléctrico interno del inversor grid-forming y define la fase de la tensión trifásica sintetizada:
+En la arquitectura completa, estos estados ocupan posiciones protegidas:
 
 ```text
-v_a = Vpk * sin(theta)
-v_b = Vpk * sin(theta - 2*pi/3)
-v_c = Vpk * sin(theta + 2*pi/3)
+GFM sin BESS, 12 estados:
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, omega, theta]
+
+GFM con BESS, 15 estados:
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, omega, theta,
+ soc_bess, vrc_bess, zdeg_bess]
+
+GFM con BESS y PI de Vdc, 16 estados:
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, omega, theta,
+ soc_bess, vrc_bess, zdeg_bess, xi_bess_vdc]
 ```
 
-En este contexto, `theta` no debe interpretarse como una señal externa impuesta por la red. En el baseline actual, `theta` ya existe, pero todavía está asociado a una frecuencia fija de referencia.
+Por tanto:
 
-En el inversor grid-forming, `theta` debe evolucionar según:
+- `x[10] = omega` en modo GFM;
+- `x[11] = theta`;
+- los estados BESS permanecen en `x[12]`, `x[13]` y `x[14]`;
+- el PI externo del bus DC, cuando se usa, añade `xi_bess_vdc` en `x[15]`;
+- todos los estados se integran en un único `solve_ivp`.
+
+## Síntesis trifásica de tensión
+
+La tensión interna del inversor se genera a partir de `theta`:
 
 ```text
-dtheta/dt = omega
+v_a = Vpk*sin(theta)
+v_b = Vpk*sin(theta - 2*pi/3)
+v_c = Vpk*sin(theta + 2*pi/3)
 ```
 
-Esta ecuación queda documentada como estructura mínima futura; no se implementa todavía ni cambia el vector de estados actual de `Microgrid`.
+La amplitud sintetizable depende de la referencia de tensión, del bus DC y del
+límite de modulación. Si `Vdc` cae por debajo del umbral UVLO, el controlador
+anula la tensión del puente y la corriente DC del inversor.
 
-## 4. Frecuencia angular omega
+## Dinámica angular y de frecuencia
 
-`omega` [rad/s] es la frecuencia angular interna del inversor grid-forming y gobierna la evolución del ángulo eléctrico interno:
-
-```text
-dtheta/dt = omega
-```
-
-La referencia nominal se define como:
-
-```text
-omega_ref = 2*pi*f_nom
-```
-
-Para `f_nom = 60 Hz`, `omega_ref ≈ 376.99 rad/s`.
-
-En una fuente sinusoidal ideal, `omega` es constante e impuesta. En un inversor grid-forming, `omega` debe tratarse como un estado dinámico interno.
-
-La ecuación para `domega/dt` queda fuera de esta subtarea; no se implementa todavía ni cambia el vector de estados actual de `Microgrid`.
-
-## 5. Ecuación dinámica mínima de frecuencia
-
-La estructura matemática mínima se plantea como una forma reducida tipo VSG/swing, coherente con la revisión de GFM/VSG de Anttila et al. (2022), el uso de inercia virtual y amortiguamiento en microrred wind-PV-battery de Zhou et al. (2023), el soporte de inercia virtual con BESS de Nour et al. (2023) y la ecuación swing para dinámica de frecuencia en microrred de Nguyen et al. (2025):
+La formulación implementada es:
 
 ```text
 dtheta/dt = omega
 ```
 
 ```text
-domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
+domega/dt = (P_ref_eff - P_e - D*(omega - omega_ref))/M
 ```
 
 Donde:
 
-- `theta` [rad]: ángulo eléctrico interno del inversor.
-- `omega` [rad/s]: frecuencia angular interna del inversor.
-- `P_ref` [W]: potencia activa mecánica/virtual o referencia activa equivalente.
-- `P_e` [W]: potencia eléctrica entregada por el inversor; `P_ref - P_e` representa el desequilibrio activo.
-- `D` [W/(rad/s)]: amortiguamiento virtual.
-- `M` [J/(rad/s)^2] o parámetro equivalente: inercia virtual.
-- `omega_ref` [rad/s]: frecuencia angular nominal.
+- `P_ref_eff` [W]: referencia activa limitada por disponibilidad DC;
+- `P_e` [W]: potencia eléctrica entregada en el PCC;
+- `D`: amortiguamiento virtual;
+- `M`: parámetro de inercia virtual equivalente;
+- `omega_ref = 2*pi*f_nom`.
 
-Para mantener coherencia con el modelo existente, `P_e` puede calcularse en una implementación futura como la potencia medida en el lado AC/PCC:
+La potencia eléctrica se calcula con la tensión completa del PCC de la carga R-L:
 
 ```text
-P_e = v_pcc^T * i2
+P_e = v_pcc^T*i2
 ```
 
-Esta sección solo define la estructura matemática mínima; no implementa `domega/dt`, no activa control grid-forming y no introduce FOVIC ni controles avanzados.
+No se usa la aproximación puramente resistiva para la realimentación final del
+GFM integrado.
 
-## 6. Diferencia frente a una fuente sinusoidal ideal
+## Referencia activa y disponibilidad energética
 
-Una fuente sinusoidal ideal de frecuencia fija impone:
+`GFMController` no aplica una referencia activa ilimitada. La potencia efectiva
+se restringe por la disponibilidad neta del lado DC:
+
+```text
+P_pv_dc_available = max(Vdc*ipv, 0)
+P_dc_net_available = P_pv_dc_available + P_bess_dc_actual
+P_net_ac_available = max(eta*P_dc_net_available, 0)
+P_ref_eff = min(P_ref, P_net_ac_available)
+```
+
+Cuando el BESS carga, `P_bess_dc_actual < 0` y reduce la potencia neta disponible.
+Cuando descarga, puede aumentar el soporte solo dentro de los límites de SoC,
+SoH, corriente y potencia disponibles.
+
+## Punto seleccionado para validación integrada
+
+La campaña principal usa:
+
+```text
+M = 80
+D = 1500
+```
+
+Este punto corresponde a la formulación VSG clásica adoptada para el cierre del
+Objetivo 2. Cambiarlo exige repetir la campaña integrada y documentar el nuevo
+criterio de selección.
+
+## Diferencia frente a una fuente sinusoidal ideal
+
+Una fuente ideal de frecuencia fija impondría:
 
 ```text
 theta(t) = omega_ref*t + theta0
 omega(t) = omega_ref
 ```
 
-En ese caso, la frecuencia es externa/constante y no responde a cambios de carga ni a desequilibrios de potencia.
-
-El inversor grid-forming mínimo no solo genera senoidales; incorpora estados internos:
-
-```text
-x_gfm = [theta, omega]
-```
-
-con la estructura dinámica mínima:
+El GFM implementado, en cambio, integra `omega` como estado y permite que la
+frecuencia responda a `P_ref_eff - P_e` con inercia y amortiguamiento virtuales.
+La frecuencia observable se obtiene como:
 
 ```text
-dtheta/dt = omega
-domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
+frequency_hz = omega/(2*pi)
 ```
 
-La diferencia clave es que `omega` puede variar dinámicamente ante el desequilibrio activo `P_ref - P_e`, con amortiguamiento virtual `D` e inercia virtual o equivalente `M`.
+## Integración con el BESS
 
-Esta definición sigue siendo estructural: no implica que el control grid-forming ya esté implementado, ni cambia el vector de estados actual de `Microgrid`.
-
-## 7. Implicación para la siguiente tarea
-
-La siguiente tarea debe implementar de forma conservadora:
+La arquitectura con BESS conserva:
 
 ```text
-dtheta/dt = omega
+dVdc/dt = (ipv + i_bess - idc_inv)/Cdc
+p_bess_dc = Vdc*i_bess
 ```
 
-y luego conectar la evolución de `omega` con el desequilibrio de potencia.
+El controlador recibe información de supervisión sobre:
 
-La implementación no debe activar todavía control avanzado de inercia virtual ni FOVIC si el objetivo inmediato solo es validar la dinámica básica de frecuencia.
+- SoC;
+- SoH;
+- corriente máxima disponible;
+- potencia máxima disponible;
+- potencia DC real y firmada del BESS.
 
-## 8. Criterio de cierre de esta tarea
+La arquitectura opcional `MicrogridWithBESSPI` añade un PI externo del bus DC.
+Ese PI limita su referencia por las restricciones del BESS y usa anti-windup
+condicional. No modifica las ecuaciones VSG ni los valores seleccionados de `M`
+y `D`.
 
-Esta tarea se considera cerrada si queda definido y trazable que:
+## Validación implementada
 
-- El bloque grid-forming mínimo tiene estados `theta` y `omega`.
-- `theta` genera la fase de la tensión trifásica.
-- `omega` gobierna la evolución de `theta`.
-- La dinámica base cumple `dtheta/dt = omega`.
-- La evolución de `omega` se asocia al desequilibrio `P_ref - P_e`.
-- Se diferencia explícitamente de una fuente sinusoidal ideal de frecuencia fija.
+La estructura integrada se verifica mediante:
+
+- `validate_gfm_integrated_system.py`;
+- `validate_physical_invariants.py`;
+- `validate_obj1_regression.py`;
+- `validate_ieee33_gfm_pcc_average.py`;
+- `validate_ieee33_gfm_voltage_profile.py`.
+
+Los escenarios estacionario, escalón del 20 % y comparación BESS/no BESS están en
+`PASS`. El escalón severo del 40 % queda en `REVIEW` por el criterio del enlace
+DC, no por error del solucionador ni de la dinámica GFM.
+
+## Alcance y trabajo futuro
+
+La estructura actual cierra la integración VSG clásica del Objetivo 2. Quedan
+fuera:
+
+- FOVIC y dinámica de orden fraccionario;
+- control reactivo Q-V;
+- lazos internos detallados de corriente y tensión;
+- convertidor DC/DC detallado;
+- BMS industrial final;
+- optimización global y demostración formal completa de estabilidad;
+- validación experimental o HIL.
+
+La formulación implementada debe presentarse como GFM/VSG clásico integrado, no
+como contribución FOVIC final.
