@@ -1,173 +1,271 @@
 # Interfaz planta-control del inversor grid-forming
 
-Este documento define la interfaz mínima entre el bloque de control grid-forming y la planta eléctrica. El baseline actual sigue siendo grid-following; esta descripción es estructural y no activa todavía control grid-forming en `main.py` ni cambia el vector de estados de `Microgrid`.
+## Estado actual
 
-## Entradas manipulables
+La interfaz planta-control descrita en este documento ya está implementada en
+`GFMController` y conectada al modelo dinámico de la microrred. El controlador
+participa en el mismo `solve_ivp` global que la planta, el filtro LCL, la carga y,
+cuando aplica, el BESS.
 
-Para el inversor grid-forming mínimo, las variables manipuladas o referencias de control relevantes son:
+El baseline grid-following se conserva como ruta de regresión del Objetivo 1. La
+ruta GFM usa `omega` como estado de control en `x[10]` y `theta` en `x[11]`.
 
-1. `P_ref` [W]
-   - Referencia de potencia activa.
-   - Entra en la dinámica interna de frecuencia:
+## Entradas y referencias de control
 
-```text
-domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
-```
+### `P_ref` [W]
 
-2. `V_ref` o `v_ln_rms` [V RMS fase-neutro]
-   - Referencia de tensión AC.
-   - Define la amplitud deseada de la tensión trifásica sintetizada por el inversor.
-
-3. `m_ctrl` o `m_max` [-]
-   - Índice o límite de modulación.
-   - Limita la amplitud sintetizable según el bus DC disponible.
-
-4. `v_inv_abc` [V]
-   - Tensión trifásica efectivamente entregada por el bloque inversor a la planta.
-   - Es la señal manipulada directa que ve la planta eléctrica.
-   - Se calcula a partir de `theta`, `V_ref`/`v_ln_rms`, `Vdc` y `m_max`.
-
-`P_ref` y `V_ref` son referencias de control. `v_inv_abc` es la señal manipulada directa hacia la planta.
-
-`idc_inv` no debe tratarse como entrada manipulable independiente en esta etapa; es una consecuencia del intercambio de potencia entre el bus DC y el lado AC.
-
-`P_e` no es una entrada manipulable; es una magnitud medida o estimada de la planta. `theta` y `omega` son estados internos del control GFM, no entradas manipulables externas.
-
-Quedan fuera de esta interfaz mínima: `Q_ref`, control `Q-V`, droop reactivo, FOVIC y lazos avanzados.
-
-## Estados del modelo/control
-
-El vector mínimo de estados internos del inversor grid-forming es:
+Referencia nominal de potencia activa. En ejecución se transforma en una
+referencia efectiva limitada por disponibilidad energética:
 
 ```text
-x_gfm = [theta, omega]
+P_ref_eff = min(P_ref, P_net_ac_available)
 ```
 
-Donde:
+La dinámica GFM usa:
 
-- `theta` [rad]: ángulo eléctrico interno del inversor; define la fase de la tensión trifásica sintetizada.
-- `omega` [rad/s]: frecuencia angular interna del inversor; gobierna la evolución de `theta`.
+```text
+domega/dt = (P_ref_eff - P_e - D*(omega - omega_ref))/M
+```
 
-La dinámica mínima asociada es:
+### `v_ln_rms` [V RMS fase-neutro]
+
+Referencia de amplitud de tensión AC usada por el modulador trifásico.
+
+### `m_base` / `m_ctrl` [-]
+
+Límite e índice efectivo de modulación. La tensión sintetizable queda restringida
+por `Vdc` y por el valor máximo permitido.
+
+### `v_inv_abc` [V]
+
+Señal manipulada directa entregada por el controlador a la planta. Se calcula a
+partir de `theta`, la referencia de tensión, `Vdc` y el índice de modulación.
+
+`idc_inv` no es una entrada manipulable independiente. Se deriva de la potencia
+del puente y del bus DC.
+
+## Mediciones de planta usadas por el controlador
+
+`GFMController.compute_control()` recibe:
+
+- `Vdc` [V];
+- `v_pcc_abc` [V];
+- `i1_abc` [A];
+- `i2_abc` [A];
+- `ipv` [A].
+
+La potencia eléctrica realimentada se calcula como:
+
+```text
+P_e = v_pcc^T*i2
+```
+
+`v_pcc` debe ser la tensión completa de la carga R-L:
+
+```text
+v_pcc = R_load*i2 + L_load*di2/dt
+```
+
+No debe reemplazarse silenciosamente por la aproximación resistiva
+`R_load*i2` en la ruta GFM integrada.
+
+## Estados y mapeo protegido
+
+### Sin BESS
+
+```text
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, omega, theta]
+```
+
+### Con BESS
+
+```text
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, omega, theta,
+ soc_bess, vrc_bess, zdeg_bess]
+```
+
+### Con BESS y PI externo de Vdc
+
+```text
+[Vdc, i1_a, i1_b, i1_c, vc_a, vc_b, vc_c,
+ i2_a, i2_b, i2_c, omega, theta,
+ soc_bess, vrc_bess, zdeg_bess, xi_bess_vdc]
+```
+
+Reglas:
+
+- `x[10] = omega` en GFM;
+- `x[11] = theta`;
+- `x[12] = soc_bess`;
+- `x[13] = vrc_bess`;
+- `x[14] = zdeg_bess`;
+- `x[15] = xi_bess_vdc` solo en `MicrogridWithBESSPI`;
+- todos los estados se integran con un único solucionador global.
+
+## Dinámica interna del GFM
 
 ```text
 dtheta/dt = omega
-domega/dt = (P_ref - P_e - D*(omega - omega_ref)) / M
 ```
 
-`theta` y `omega` son estados internos dinámicos del control GFM. También pueden registrarse como salidas observables para diagnóstico, pero eso no cambia su naturaleza de estados internos.
+```text
+domega/dt = (P_ref_eff - P_e - D*(omega - omega_ref))/M
+```
 
-No son estados internos del GFM: `P_ref` (referencia de control), `V_ref`/`v_ln_rms` (referencia de tensión), `m_ctrl`/`m_max` (índice o límite de modulación), `P_e` (medición o estimación de planta), `Vdc` (variable de planta/bus DC), `v_inv_abc` (señal manipulada hacia la planta), `freq_hz` (métrica derivada de `omega`), `power_imbalance = P_ref - P_e` (variable algebraica) ni `max_abs_frequency_deviation_hz` (métrica de validación).
+Parámetros principales:
 
-## Parámetros de sintonía futura
+- `omega_ref = 2*pi*f_nom`;
+- `theta0`;
+- `P_ref`;
+- `v_ln_rms`;
+- `M` / `inertia_m`;
+- `D` / `damping_d`;
+- `m_base`.
 
-Los parámetros mínimos configurables del bloque GFM para simulación, validación
-aislada y sintonía futura en el Objetivo 2 son:
+La campaña integrada adoptó:
 
-1. `f_nom` [Hz] u `omega_ref` [rad/s]
-   - Frecuencia nominal del inversor.
-   - `omega_ref = 2*pi*f_nom`.
+```text
+M = 80
+D = 1500
+```
 
-2. `theta0` [rad]
-   - Ángulo eléctrico inicial.
+## Disponibilidad energética del lado DC
 
-3. `P_ref` [W]
-   - Referencia de potencia activa.
-   - Define el punto de equilibrio de potencia activa.
+El controlador limita la referencia activa usando:
 
-4. `V_ref` o `v_ln_rms` [V RMS fase-neutro]
-   - Referencia de tensión AC.
-   - Modifica la amplitud deseada de la referencia de tensión sintetizada.
+```text
+P_pv_dc_available = max(Vdc*ipv, 0)
+P_dc_net_available = P_pv_dc_available + P_bess_dc_actual
+P_net_ac_available = max(eta*P_dc_net_available, 0)
+P_ref_eff = min(P_ref, P_net_ac_available)
+```
 
-5. `M` o `inertia_m`
-   - Parámetro de inercia virtual equivalente.
-   - Debe ser estrictamente positivo.
+Cuando no hay BESS, `P_bess_dc_actual = 0`. Cuando el BESS carga,
+`P_bess_dc_actual < 0` y reduce la potencia disponible. Cuando descarga, su aporte
+positivo se limita por la disponibilidad operacional.
 
-6. `D` o `damping_d`
-   - Amortiguamiento virtual.
-   - Debe ser mayor o igual que cero.
+## Interfaz de supervisión BESS/BMS
 
-7. `m_max` o `m_ctrl` [-]
-   - Límite o índice de modulación.
-   - Restringe la tensión sintetizable según `Vdc`.
+Cuando la ruta BESS está activa, los siguientes datos deben suministrarse en
+conjunto:
 
-Ajustar estos parámetros no debe cambiar la estructura del modelo. `M`/`inertia_m`
-y `D`/`damping_d` modifican la respuesta transitoria de frecuencia; `P_ref` define
-el equilibrio de potencia activa; `V_ref`/`v_ln_rms` y `m_max`/`m_ctrl` modifican
-la amplitud de la referencia de tensión sintetizada y su límite por bus DC. En el
-Objetivo 2 también podrán considerarse límites derivados del BESS/BMS, como
-corriente disponible, potencia disponible, `SoC` y `SoH`, para restringir la
-potencia inercial o la referencia activa.
+- `soc_bess` [-];
+- `soh_bess` [-];
+- `i_bess_max_available` [A];
+- `p_bess_dc_max_available` [W];
+- `p_bess_dc_actual` [W].
 
-Estos parámetros son candidatos de sintonía futura. No constituyen todavía una
-estrategia VSG/FOVIC final ni implican que el control grid-forming esté integrado
-al modelo principal de microrred.
+El controlador no sustituye al BMS. Usa estas señales para limitar la potencia
+inercial disponible sin modificar la inercia virtual nominal `M`.
 
-No son parámetros ajustables del control GFM: `Vdc` (pertenece a la planta/bus DC), `P_e` (medición o estimación de planta), `theta` y `omega` (estados internos), `freq_hz`, `power_imbalance` y `max_abs_frequency_deviation_hz` (métricas derivadas).
+Convenciones protegidas:
 
-Quedan fuera de esta etapa: `Q_ref`, droop `Q-V`, ganancias de lazos internos de tensión/corriente, FOVIC, parámetros fraccionarios y estrategias avanzadas de despacho o control.
+```text
+i_bess > 0  -> descarga
+p_bess_dc > 0 -> potencia entregada al bus DC
+i_bess < 0  -> carga
+p_bess_dc < 0 -> potencia absorbida del bus DC
+```
+
+## PI externo de regulación del bus DC
+
+`MicrogridWithBESSPI` añade una capa externa de regulación de `Vdc` mediante
+`DCLinkBESSPIController`.
+
+La interfaz del PI usa:
+
+- `Vdc`;
+- `Vdc_ref`;
+- `xi_bess_vdc`;
+- límites firmados de potencia de carga y descarga;
+- señal explícita `bess_enabled`.
+
+La salida es una referencia firmada de potencia BESS, posteriormente convertida
+a corriente y limitada otra vez por corriente, potencia, SoC y SoH.
+
+El anti-windup condicional evita seguir integrando cuando la salida está saturada
+y el error empuja en la misma dirección de saturación.
+
+Esta capa no modifica:
+
+- `dtheta/dt`;
+- `domega/dt`;
+- `M`;
+- `D`;
+- el orden de los primeros 15 estados.
 
 ## Salidas observables
 
-Las salidas observables no deben confundirse con entradas manipulables. En esta interfaz mínima se distinguen tres grupos.
+### Señales de planta y control
 
-### 1. Salida directa hacia la planta
+- `v_inv_abc` [V];
+- `idc_inv` [A];
+- `p_bridge` [W];
+- `p_pcc` [W];
+- `p_cmd` / `P_ref_eff` [W];
+- `m_ctrl` [-].
 
-- `v_inv_abc` [V]: tensión trifásica sintetizada por el inversor. Es la señal que la planta eléctrica recibe desde el bloque inversor y puede registrarse para verificar amplitud, balance y limitación por `Vdc`.
+### Estados y métricas GFM
 
-### 2. Mediciones o estimaciones provenientes de la planta
+- `theta` [rad];
+- `omega` [rad/s];
+- `frequency_hz = omega/(2*pi)` [Hz];
+- desviación respecto a frecuencia nominal;
+- nadir o máximo de frecuencia;
+- RoCoF, cuando se calcula con una ventana y método documentados;
+- tiempo de recuperación o asentamiento, según el criterio del escenario.
 
-- `P_e` [W]: potencia activa eléctrica entregada por el inversor. Puede estimarse en una integración futura como `P_e = v_pcc^T * i2`; no es entrada manipulable.
-- `Vdc` [V]: tensión del bus DC disponible para sintetizar tensión AC.
-- `i1_abc` [A]: corriente del lado inversor/filtro.
-- `i2_abc` [A]: corriente del lado PCC/carga.
-- `v_pcc_abc` [V]: tensión en el punto de acople local.
-- `idc_inv` [A]: corriente DC equivalente asociada al intercambio de potencia DC/AC; no es entrada manipulable independiente.
+Las métricas de frecuencia son válidas como métricas dinámicas solo cuando
+`GFMController` está activo y `x[10]` representa `omega`.
 
-### 3. Métricas derivadas para diagnóstico y validación
+### Señales BESS
 
-- `theta` [rad]: ángulo interno GFM. Es estado interno, pero observable para diagnóstico.
-- `omega` [rad/s]: frecuencia angular interna. Es estado interno, pero observable para diagnóstico.
-- `freq_hz` [Hz]: frecuencia equivalente calculada como `omega/(2*pi)`.
-- `power_imbalance` [W]: diferencia `P_ref - P_e`; explica el signo de la evolución de frecuencia.
-- `max_abs_frequency_deviation_hz` [Hz]: métrica de validación respecto a la frecuencia nominal.
+- `i_bess` [A];
+- `p_bess_dc` [W];
+- `soc_bess` [-];
+- `soh_bess` [-];
+- `vt_bess` [V];
+- límites disponibles de corriente y potencia;
+- estado de saturación y anti-windup para la arquitectura PI.
 
-`P_e`, `Vdc`, `i1_abc`, `i2_abc` y `v_pcc_abc` son señales de planta o mediciones/estimaciones. `theta` y `omega` son estados internos del GFM que se registran como salidas observables para diagnóstico. `freq_hz` y `max_abs_frequency_deviation_hz` son métricas derivadas, no estados físicos nuevos.
+## Relación con IEEE 33
 
-Esta documentación no activa control grid-forming ni cambia el baseline actual.
+La interfaz local termina en la potencia activa del PCC. Para el estudio IEEE 33:
 
-## Variables de interés para control
+1. se simula la microrred local con GFM activo;
+2. se calcula `p_ss_kw` como promedio de `p_pcc` en la ventana estacionaria;
+3. se inyecta esa potencia como `sgen` estático en el nodo 18;
+4. se ejecuta el flujo de potencia pandapower.
 
-Para el diseño futuro del control en el Objetivo 2, las variables relevantes de
-la interfaz se agrupan de la siguiente forma:
+El IEEE 33 no entrega retroalimentación dinámica al controlador. Este acople no
+es co-simulación en tiempo real.
 
-- Referencias o consignas: `P_ref` y `V_ref`/`v_ln_rms`.
-- Señal manipulada hacia la planta: `v_inv_abc`, limitada por `Vdc` y por
-  `m_max`/`m_ctrl`.
-- Mediciones o estimaciones de planta: `P_e`, `Vdc`, `i1_abc`, `i2_abc` y
-  `v_pcc_abc`.
-- Estados internos del control: `theta` y `omega`.
-- Métricas derivadas de diagnóstico: `freq_hz` y `power_imbalance`.
-- Variables del BESS/BMS para restricciones operativas futuras: `SoC`, `SoH`,
-  límites de corriente de carga/descarga y límites de potencia DC disponible.
+## Validación de la interfaz
 
-Estas variables permiten trazar qué información debe intercambiarse entre planta,
-controlador y BESS/BMS. Las métricas de frecuencia del bloque aislado sirven solo
-como diagnóstico preliminar y no deben interpretarse como métricas finales de
-desempeño de la tesis hasta que el GFM/VSG se acople a la planta completa.
+La coherencia de la interfaz está respaldada por:
 
-## Preparación para el Objetivo 2
+- `validate_gfm_integrated_system.py`;
+- `validate_physical_invariants.py`;
+- `validate_ieee33_gfm_pcc_average.py`;
+- `validate_ieee33_gfm_voltage_profile.py`;
+- pruebas unitarias de mapeo de estados y dinámica GFM;
+- regresión del Objetivo 1 mediante `validate_obj1_regression.py`.
 
-Esta interfaz deja definidos los elementos mínimos para iniciar el Objetivo 2: determinar la estrategia de control de inercia virtual del inversor grid-forming con el sistema de gestión de baterías de segunda vida.
+## Alcance pendiente
 
-Elementos ya delimitados para el diseño:
+No están implementados en esta interfaz:
 
-1. Entradas disponibles para el controlador: `P_ref`, `V_ref`/`v_ln_rms` y `m_max`/`m_ctrl`.
-2. Mediciones necesarias desde la planta: `P_e`, `Vdc`, `i1_abc`, `i2_abc`, `v_pcc_abc` e `idc_inv`.
-3. Estados internos disponibles: `theta` y `omega`.
-4. Parámetros de sintonía futura: `f_nom`/`omega_ref`, `theta0`, `P_ref`, `V_ref`/`v_ln_rms`, `M`/`inertia_m`, `D`/`damping_d` y `m_max`/`m_ctrl`.
-5. Variables que deberán conectarse con el BESS/BMS: `SoC`, `SoH`, corriente máxima de carga/descarga, potencia máxima de carga/descarga y límites de operación segura del almacenamiento.
+- `Q_ref` y control Q-V;
+- droop reactivo;
+- lazos internos detallados de corriente y tensión;
+- FOVIC o parámetros fraccionarios;
+- convertidor DC/DC detallado;
+- BMS industrial final;
+- co-simulación dinámica con red externa;
+- validación experimental.
 
-Esta etapa no implementa todavía VSG completo, FOVIC ni gestión BESS/BMS. La interfaz queda documentada para que el Objetivo 2 pueda diseñar la estrategia de control sin redefinir la planta.
-
-La siguiente etapa deberá decidir si la estrategia será VSG clásico, FOVIC u otra variante justificada, y cómo los límites del BESS modifican `P_ref`, `M`, `D` o la potencia inercial disponible. No debe afirmarse todavía que la estrategia de inercia virtual está implementada.
+La interfaz actual corresponde a una arquitectura VSG clásica integrada y
+suficiente para el cierre formal del Objetivo 2, con las limitaciones anteriores
+declaradas explícitamente.
