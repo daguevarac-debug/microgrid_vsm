@@ -54,17 +54,7 @@ Se implementó anti-windup por integración condicional: el integrador se congel
 
 Estado: cerrada.
 
-Las pruebas cubren:
-
-- signo de potencia y corriente;
-- error nulo;
-- respuesta positiva ante subtensión;
-- respuesta negativa ante sobretensión;
-- saturación superior e inferior;
-- anti-windup y descarga del integrador;
-- límites de corriente, potencia, SoC y SoH;
-- BESS deshabilitado;
-- conservación del mapeo de estados y de los parámetros `M` y `D`.
+Las pruebas cubren signo de potencia y corriente, error nulo, respuesta ante subtensión y sobretensión, saturación, anti-windup, límites de corriente, potencia, SoC y SoH, BESS deshabilitado, conservación del mapeo de estados y conservación de `M` y `D`.
 
 Archivos:
 
@@ -80,12 +70,7 @@ No se realiza una optimización ni un barrido. Se evalúa únicamente:
 - `Kp = 170 W/V`, equivalente al soporte proporcional anterior cerca de 340 V: `340 V * 0.5 A/V`;
 - `Ki = 10 W/(V*s)`, valor integral pequeño para introducir corrección estacionaria sin un cambio agresivo.
 
-La pareja se valida en el escenario GFM seleccionado `(M, D) = (80, 1500)` con escalón severo de carga del 40 %. La aceptación requiere simultáneamente:
-
-- éxito numérico y estados finitos;
-- cumplimiento de los criterios existentes del enlace DC;
-- cumplimiento de los criterios existentes de frecuencia;
-- respeto de límites de corriente, potencia, SoC y SoH.
+La pareja se valida en el escenario GFM seleccionado `(M, D) = (80, 1500)` con escalón severo de carga del 40 %. La aceptación requiere éxito numérico, cumplimiento de los criterios existentes del enlace DC y frecuencia, y respeto de los límites del BESS.
 
 El error final respecto a 340 V se registra como diagnóstico, pero no se añade como criterio nuevo.
 
