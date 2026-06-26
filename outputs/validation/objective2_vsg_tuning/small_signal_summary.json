@@ -1,0 +1,1023 @@
+{
+  "D": 1500.0,
+  "M": 80.0,
+  "all_exponents": [
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": 0.0,
+      "lambda_real": -985.9825205820997,
+      "mode_id": 1
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": 0.0,
+      "lambda_real": -957.263585760856,
+      "mode_id": 2
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": 0.0,
+      "lambda_real": -954.8023429956706,
+      "mode_id": 3
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": 0.0,
+      "lambda_real": -70.16475824568737,
+      "mode_id": 4
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": -95.1279199129091,
+      "lambda_real": -67.8782100972862,
+      "mode_id": 5
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": 95.1279199129091,
+      "lambda_real": -67.8782100972862,
+      "mode_id": 6
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": -95.12827874415828,
+      "lambda_real": -67.87757688044535,
+      "mode_id": 7
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": 95.12827874415828,
+      "lambda_real": -67.87757688044535,
+      "mode_id": 8
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": -95.12808537797397,
+      "lambda_real": -67.87681763157903,
+      "mode_id": 9
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": 95.12808537797397,
+      "lambda_real": -67.87681763157903,
+      "mode_id": 10
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": 0.0,
+      "lambda_real": -18.759540935127845,
+      "mode_id": 11
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "lambda_imag": 0.0,
+      "lambda_real": 6.341570639969865e-05,
+      "mode_id": 12
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 0.0,
+      "lambda_real": -957.6987079562591,
+      "mode_id": 1
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": -3.8814095405735833,
+      "lambda_real": -953.3420987713049,
+      "mode_id": 2
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 3.8814095405735833,
+      "lambda_real": -953.3420987713049,
+      "mode_id": 3
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 0.0,
+      "lambda_real": -253.71505037796544,
+      "mode_id": 4
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": -95.1279100555571,
+      "lambda_real": -67.87820484245351,
+      "mode_id": 5
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 95.1279100555571,
+      "lambda_real": -67.87820484245351,
+      "mode_id": 6
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": -95.12827876480196,
+      "lambda_real": -67.87757684770244,
+      "mode_id": 7
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 95.12827876480196,
+      "lambda_real": -67.87757684770244,
+      "mode_id": 8
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": -95.12808969993226,
+      "lambda_real": -67.87682395802332,
+      "mode_id": 9
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 95.12808969993226,
+      "lambda_real": -67.87682395802332,
+      "mode_id": 10
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 0.0,
+      "lambda_real": -18.75226398611336,
+      "mode_id": 11
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 0.0,
+      "lambda_real": -0.057180270407218785,
+      "mode_id": 12
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 0.0,
+      "lambda_real": -0.027793520502846853,
+      "mode_id": 13
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 0.0,
+      "lambda_real": 1.4654943925051889e-12,
+      "mode_id": 14
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 0.0,
+      "lambda_real": 1.7253398709478685e-09,
+      "mode_id": 15
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "lambda_imag": 0.0,
+      "lambda_real": 4.178219246629587e-05,
+      "mode_id": 16
+    }
+  ],
+  "all_multipliers": [
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 1,
+      "mu_imag": 0.0,
+      "mu_magnitude": 7.298280221113274e-08,
+      "mu_real": 7.298280221113274e-08
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 2,
+      "mu_imag": 0.0,
+      "mu_magnitude": 1.1778639131850928e-07,
+      "mu_real": 1.1778639131850928e-07
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 3,
+      "mu_imag": 0.0,
+      "mu_magnitude": 1.227185416123204e-07,
+      "mu_real": 1.227185416123204e-07
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 4,
+      "mu_imag": 0.0,
+      "mu_magnitude": 0.31054929273830484,
+      "mu_real": 0.31054929273830484
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 5,
+      "mu_imag": -0.3225777471600488,
+      "mu_magnitude": 0.3226124563650893,
+      "mu_real": -0.004732234045804697
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 6,
+      "mu_imag": 0.3225777471600488,
+      "mu_magnitude": 0.3226124563650893,
+      "mu_real": -0.004732234045804697
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 7,
+      "mu_imag": -0.32258112323175436,
+      "mu_magnitude": 0.3226158611103961,
+      "mu_real": -0.0047342131914479835
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 8,
+      "mu_imag": 0.32258112323175436,
+      "mu_magnitude": 0.3226158611103961,
+      "mu_real": -0.0047342131914479835
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 9,
+      "mu_imag": -0.32258522050258026,
+      "mu_magnitude": 0.3226199435650062,
+      "mu_real": -0.004733233481398244
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 10,
+      "mu_imag": 0.32258522050258026,
+      "mu_magnitude": 0.3226199435650062,
+      "mu_real": -0.004733233481398244
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 11,
+      "mu_imag": 0.0,
+      "mu_magnitude": 0.7314992999083804,
+      "mu_real": 0.7314992999083804
+    },
+    {
+      "architecture": "gfm_12_state_no_bess",
+      "mode_id": 12,
+      "mu_imag": 0.0,
+      "mu_magnitude": 1.0000010569289985,
+      "mu_real": 1.0000010569289985
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 1,
+      "mu_imag": 0.0,
+      "mu_magnitude": 1.1693528993812645e-07,
+      "mu_real": 1.1693528993812645e-07
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 2,
+      "mu_imag": -8.128586935284708e-09,
+      "mu_magnitude": 1.2574183260718068e-07,
+      "mu_real": 1.2547882108885057e-07
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 3,
+      "mu_imag": 8.128586935284708e-09,
+      "mu_magnitude": 1.2574183260718068e-07,
+      "mu_real": 1.2547882108885057e-07
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 4,
+      "mu_imag": 0.0,
+      "mu_magnitude": 0.014573008808863624,
+      "mu_real": 0.014573008808863624
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 5,
+      "mu_imag": -0.32257777618903555,
+      "mu_magnitude": 0.32261248461966524,
+      "mu_real": -0.00473218146421165
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 6,
+      "mu_imag": 0.32257777618903555,
+      "mu_magnitude": 0.32261248461966524,
+      "mu_real": -0.00473218146421165
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 7,
+      "mu_imag": -0.322581123406163,
+      "mu_magnitude": 0.32261586128645253,
+      "mu_real": -0.004734213305019193
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 8,
+      "mu_imag": 0.322581123406163,
+      "mu_magnitude": 0.32261586128645253,
+      "mu_real": -0.004734213305019193
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 9,
+      "mu_imag": -0.3225851861480101,
+      "mu_magnitude": 0.32261990954772285,
+      "mu_real": -0.004733256218984572
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 10,
+      "mu_imag": 0.3225851861480101,
+      "mu_magnitude": 0.32261990954772285,
+      "mu_real": -0.004733256218984572
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 11,
+      "mu_imag": 0.0,
+      "mu_magnitude": 0.7315880233403967,
+      "mu_real": 0.7315880233403967
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 12,
+      "mu_imag": 0.0,
+      "mu_magnitude": 0.9990474494577865,
+      "mu_real": 0.9990474494577865
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 13,
+      "mu_imag": 0.0,
+      "mu_magnitude": 0.9995368819305801,
+      "mu_real": 0.9995368819305801
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 14,
+      "mu_imag": 0.0,
+      "mu_magnitude": 1.0000000000000244,
+      "mu_real": 1.0000000000000244
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 15,
+      "mu_imag": 0.0,
+      "mu_magnitude": 1.0000000000287557,
+      "mu_real": 1.0000000000287557
+    },
+    {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "mode_id": 16,
+      "mu_imag": 0.0,
+      "mu_magnitude": 1.000000696370117,
+      "mu_real": 1.000000696370117
+    }
+  ],
+  "alpha": "no aplicable",
+  "architectures": {
+    "gfm_12_state_no_bess": {
+      "architecture": "gfm_12_state_no_bess",
+      "bess_slow_state_drift": {},
+      "modes": [
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i2_a",
+          "dominant_state_2": "i1_a",
+          "dominant_state_3": "i2_b",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": -985.9825205820997,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 1,
+          "mu_imag": 0.0,
+          "mu_magnitude": 7.298280221113274e-08,
+          "mu_real": 7.298280221113274e-08,
+          "natural_frequency_rad_s": 985.9825205820997,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i2_a",
+          "dominant_state_2": "i1_a",
+          "dominant_state_3": "i2_b",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": -957.263585760856,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 2,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.1778639131850928e-07,
+          "mu_real": 1.1778639131850928e-07,
+          "natural_frequency_rad_s": 957.263585760856,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i2_b",
+          "dominant_state_2": "i1_b",
+          "dominant_state_3": "i2_c",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": -954.8023429956706,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 3,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.227185416123204e-07,
+          "mu_real": 1.227185416123204e-07,
+          "natural_frequency_rad_s": 954.8023429956706,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "Vdc",
+          "dominant_state_2": "theta",
+          "dominant_state_3": "i2_a",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": -70.16475824568737,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 4,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.31054929273830484,
+          "mu_real": 0.31054929273830484,
+          "natural_frequency_rad_s": 70.16475824568737,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_b",
+          "dominant_state_2": "i1_a",
+          "dominant_state_3": "i1_c",
+          "exclusion_reason": "",
+          "lambda_imag": -95.1279199129091,
+          "lambda_real": -67.8782100972862,
+          "modal_frequency_hz": 15.140078680189427,
+          "mode_id": 5,
+          "mu_imag": -0.3225777471600488,
+          "mu_magnitude": 0.3226124563650893,
+          "mu_real": -0.004732234045804697,
+          "natural_frequency_rad_s": 116.86219471226858,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808397682793144
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_b",
+          "dominant_state_2": "i1_a",
+          "dominant_state_3": "i1_c",
+          "exclusion_reason": "",
+          "lambda_imag": 95.1279199129091,
+          "lambda_real": -67.8782100972862,
+          "modal_frequency_hz": 15.140078680189427,
+          "mode_id": 6,
+          "mu_imag": 0.3225777471600488,
+          "mu_magnitude": 0.3226124563650893,
+          "mu_real": -0.004732234045804697,
+          "natural_frequency_rad_s": 116.86219471226858,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808397682793144
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_a",
+          "dominant_state_2": "i1_b",
+          "dominant_state_3": "i1_c",
+          "exclusion_reason": "",
+          "lambda_imag": -95.12827874415828,
+          "lambda_real": -67.87757688044535,
+          "modal_frequency_hz": 15.140135789956469,
+          "mode_id": 7,
+          "mu_imag": -0.32258112323175436,
+          "mu_magnitude": 0.3226158611103961,
+          "mu_real": -0.0047342131914479835,
+          "natural_frequency_rad_s": 116.86211901205216,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.580834726036801
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_a",
+          "dominant_state_2": "i1_b",
+          "dominant_state_3": "i1_c",
+          "exclusion_reason": "",
+          "lambda_imag": 95.12827874415828,
+          "lambda_real": -67.87757688044535,
+          "modal_frequency_hz": 15.140135789956469,
+          "mode_id": 8,
+          "mu_imag": 0.32258112323175436,
+          "mu_magnitude": 0.3226158611103961,
+          "mu_real": -0.0047342131914479835,
+          "natural_frequency_rad_s": 116.86211901205216,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.580834726036801
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_c",
+          "dominant_state_2": "i1_b",
+          "dominant_state_3": "i1_a",
+          "exclusion_reason": "",
+          "lambda_imag": -95.12808537797397,
+          "lambda_real": -67.87681763157903,
+          "modal_frequency_hz": 15.14010501477241,
+          "mode_id": 9,
+          "mu_imag": -0.32258522050258026,
+          "mu_magnitude": 0.3226199435650062,
+          "mu_real": -0.004733233481398244,
+          "natural_frequency_rad_s": 116.86152061080561,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808312032635214
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_c",
+          "dominant_state_2": "i1_b",
+          "dominant_state_3": "i1_a",
+          "exclusion_reason": "",
+          "lambda_imag": 95.12808537797397,
+          "lambda_real": -67.87681763157903,
+          "modal_frequency_hz": 15.14010501477241,
+          "mode_id": 10,
+          "mu_imag": 0.32258522050258026,
+          "mu_magnitude": 0.3226199435650062,
+          "mu_real": -0.004733233481398244,
+          "natural_frequency_rad_s": 116.86152061080561,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808312032635214
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "theta",
+          "dominant_state_2": "i2_a",
+          "dominant_state_3": "i1_a",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": -18.759540935127845,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 11,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.7314992999083804,
+          "mu_real": 0.7314992999083804,
+          "natural_frequency_rad_s": 18.759540935127845,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_12_state_no_bess",
+          "classification": "neutral_phase_mode",
+          "dominant_state_1": "theta",
+          "dominant_state_2": "i2_a",
+          "dominant_state_3": "i1_a",
+          "exclusion_reason": "phase symmetry mode near mu=1",
+          "lambda_imag": 0.0,
+          "lambda_real": 6.341570639969865e-05,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 12,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.0000010569289985,
+          "mu_real": 1.0000010569289985,
+          "natural_frequency_rad_s": 6.341570639969865e-05,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": false,
+          "zeta": null
+        }
+      ],
+      "neutral_modes": [
+        12
+      ],
+      "period_s": 0.016666666666666666,
+      "period_solver_message": "The solver successfully reached the end of the integration interval.",
+      "periodicity": {
+        "abc_scaled_error_norm": 0.00038648717114009106,
+        "max_abs_scaled_residual": 0.0002846216124581247,
+        "omega_relative_error": 2.6958573865174055e-12,
+        "periodic_enough": true,
+        "scaled_total_residual_norm": 0.00013855859041519012,
+        "theta_increment_error_rad": 0.0002846216124581247,
+        "vdc_relative_error": 2.3556495298819074e-12
+      },
+      "real_part_criterion_pass": true,
+      "reason": "Floquet spectrum is strongly sensitive to perturbation step",
+      "sensitivity": {
+        "classification_stable": true,
+        "max_lambda_real_change": 20.392472338742778,
+        "max_mu_magnitude_change": 9.585092293207254e-07,
+        "strong_sensitivity": true
+      },
+      "settle_solver_message": "The solver successfully reached the end of the integration interval.",
+      "settling_time_s": 1.0,
+      "solver_success": true,
+      "state_count": 12,
+      "status": "REVIEW",
+      "unstable_modes": [],
+      "zeta_criterion_pass": true,
+      "zeta_min": 0.5808312032635214,
+      "zeta_min_mode": 9
+    },
+    "gfm_bess_pi_16_state_diagnostic": {
+      "architecture": "gfm_bess_pi_16_state_diagnostic",
+      "bess_slow_state_drift": {
+        "soc_bess": 2.5256007374352407e-07,
+        "vrc_bess": -3.543408455864268e-06,
+        "xi_bess_vdc": -0.07660951399239568,
+        "zdeg_bess": 1.1137899229320819e-05
+      },
+      "modes": [
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i2_a",
+          "dominant_state_2": "i1_a",
+          "dominant_state_3": "i2_b",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": -957.6987079562591,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 1,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.1693528993812645e-07,
+          "mu_real": 1.1693528993812645e-07,
+          "natural_frequency_rad_s": 957.6987079562591,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i2_b",
+          "dominant_state_2": "i1_b",
+          "dominant_state_3": "i2_a",
+          "exclusion_reason": "",
+          "lambda_imag": -3.8814095405735833,
+          "lambda_real": -953.3420987713049,
+          "modal_frequency_hz": 0.6177455145463283,
+          "mode_id": 2,
+          "mu_imag": -8.128586935284708e-09,
+          "mu_magnitude": 1.2574183260718068e-07,
+          "mu_real": 1.2547882108885057e-07,
+          "natural_frequency_rad_s": 953.3500000680223,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.9999917120714147
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i2_b",
+          "dominant_state_2": "i1_b",
+          "dominant_state_3": "i2_a",
+          "exclusion_reason": "",
+          "lambda_imag": 3.8814095405735833,
+          "lambda_real": -953.3420987713049,
+          "modal_frequency_hz": 0.6177455145463283,
+          "mode_id": 3,
+          "mu_imag": 8.128586935284708e-09,
+          "mu_magnitude": 1.2574183260718068e-07,
+          "mu_real": 1.2547882108885057e-07,
+          "natural_frequency_rad_s": 953.3500000680223,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.9999917120714147
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "Vdc",
+          "dominant_state_2": "xi_bess_vdc",
+          "dominant_state_3": "theta",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": -253.71505037796544,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 4,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.014573008808863624,
+          "mu_real": 0.014573008808863624,
+          "natural_frequency_rad_s": 253.71505037796544,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_a",
+          "dominant_state_2": "i1_c",
+          "dominant_state_3": "i1_b",
+          "exclusion_reason": "",
+          "lambda_imag": -95.1279100555571,
+          "lambda_real": -67.87820484245351,
+          "modal_frequency_hz": 15.140077111343128,
+          "mode_id": 5,
+          "mu_imag": -0.32257777618903555,
+          "mu_magnitude": 0.32261248461966524,
+          "mu_real": -0.00473218146421165,
+          "natural_frequency_rad_s": 116.86218363599168,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808397783656347
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_a",
+          "dominant_state_2": "i1_c",
+          "dominant_state_3": "i1_b",
+          "exclusion_reason": "",
+          "lambda_imag": 95.1279100555571,
+          "lambda_real": -67.87820484245351,
+          "modal_frequency_hz": 15.140077111343128,
+          "mode_id": 6,
+          "mu_imag": 0.32257777618903555,
+          "mu_magnitude": 0.32261248461966524,
+          "mu_real": -0.00473218146421165,
+          "natural_frequency_rad_s": 116.86218363599168,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808397783656347
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_b",
+          "dominant_state_2": "i1_a",
+          "dominant_state_3": "i1_c",
+          "exclusion_reason": "",
+          "lambda_imag": -95.12827876480196,
+          "lambda_real": -67.87757684770244,
+          "modal_frequency_hz": 15.140135793242012,
+          "mode_id": 7,
+          "mu_imag": -0.322581123406163,
+          "mu_magnitude": 0.32261586128645253,
+          "mu_real": -0.004734213305019193,
+          "natural_frequency_rad_s": 116.86211900983835,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808347257676201
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_b",
+          "dominant_state_2": "i1_a",
+          "dominant_state_3": "i1_c",
+          "exclusion_reason": "",
+          "lambda_imag": 95.12827876480196,
+          "lambda_real": -67.87757684770244,
+          "modal_frequency_hz": 15.140135793242012,
+          "mode_id": 8,
+          "mu_imag": 0.322581123406163,
+          "mu_magnitude": 0.32261586128645253,
+          "mu_real": -0.004734213305019193,
+          "natural_frequency_rad_s": 116.86211900983835,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808347257676201
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_c",
+          "dominant_state_2": "i1_b",
+          "dominant_state_3": "i1_a",
+          "exclusion_reason": "",
+          "lambda_imag": -95.12808969993226,
+          "lambda_real": -67.87682395802332,
+          "modal_frequency_hz": 15.140105702633434,
+          "mode_id": 9,
+          "mu_imag": -0.3225851861480101,
+          "mu_magnitude": 0.32261990954772285,
+          "mu_real": -0.004733256218984572,
+          "natural_frequency_rad_s": 116.86152780357976,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808312216498687
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "i1_c",
+          "dominant_state_2": "i1_b",
+          "dominant_state_3": "i1_a",
+          "exclusion_reason": "",
+          "lambda_imag": 95.12808969993226,
+          "lambda_real": -67.87682395802332,
+          "modal_frequency_hz": 15.140105702633434,
+          "mode_id": 10,
+          "mu_imag": 0.3225851861480101,
+          "mu_magnitude": 0.32261990954772285,
+          "mu_real": -0.004733256218984572,
+          "natural_frequency_rad_s": 116.86152780357976,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": 0.5808312216498687
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "theta",
+          "dominant_state_2": "i2_a",
+          "dominant_state_3": "i1_a",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": -18.75226398611336,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 11,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.7315880233403967,
+          "mu_real": 0.7315880233403967,
+          "natural_frequency_rad_s": 18.75226398611336,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "neutral_phase_mode",
+          "dominant_state_1": "xi_bess_vdc",
+          "dominant_state_2": "Vdc",
+          "dominant_state_3": "theta",
+          "exclusion_reason": "phase symmetry mode near mu=1",
+          "lambda_imag": 0.0,
+          "lambda_real": -0.057180270407218785,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 12,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.9990474494577865,
+          "mu_real": 0.9990474494577865,
+          "natural_frequency_rad_s": 0.057180270407218785,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": false,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "vrc_bess",
+          "dominant_state_2": "xi_bess_vdc",
+          "dominant_state_3": "zdeg_bess",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": -0.027793520502846853,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 13,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.9995368819305801,
+          "mu_real": 0.9995368819305801,
+          "natural_frequency_rad_s": 0.027793520502846853,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "zdeg_bess",
+          "dominant_state_2": "xi_bess_vdc",
+          "dominant_state_3": "vrc_bess",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": 1.4654943925051889e-12,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 14,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.0000000000000244,
+          "mu_real": 1.0000000000000244,
+          "natural_frequency_rad_s": 1.4654943925051889e-12,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "numerically_uncertain",
+          "dominant_state_1": "soc_bess",
+          "dominant_state_2": "vrc_bess",
+          "dominant_state_3": "zdeg_bess",
+          "exclusion_reason": "",
+          "lambda_imag": 0.0,
+          "lambda_real": 1.7253398709478685e-09,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 15,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.0000000000287557,
+          "mu_real": 1.0000000000287557,
+          "natural_frequency_rad_s": 1.7253398709478685e-09,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": true,
+          "zeta": null
+        },
+        {
+          "architecture": "gfm_bess_pi_16_state_diagnostic",
+          "classification": "neutral_phase_mode",
+          "dominant_state_1": "theta",
+          "dominant_state_2": "i1_a",
+          "dominant_state_3": "i2_a",
+          "exclusion_reason": "phase symmetry mode near mu=1",
+          "lambda_imag": 0.0,
+          "lambda_real": 4.178219246629587e-05,
+          "modal_frequency_hz": 0.0,
+          "mode_id": 16,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.000000696370117,
+          "mu_real": 1.000000696370117,
+          "natural_frequency_rad_s": 4.178219246629587e-05,
+          "perturbation_sensitivity": "strong",
+          "relevant_mode": false,
+          "zeta": null
+        }
+      ],
+      "neutral_modes": [
+        12,
+        16
+      ],
+      "period_s": 0.016666666666666666,
+      "period_solver_message": "The solver successfully reached the end of the integration interval.",
+      "periodicity": {
+        "abc_scaled_error_norm": 0.00038382780190358005,
+        "max_abs_scaled_residual": 0.0076609513992395685,
+        "omega_relative_error": 2.9557778601599806e-10,
+        "periodic_enough": true,
+        "scaled_total_residual_norm": 0.001918946476855526,
+        "theta_increment_error_rad": 0.00028266333206516947,
+        "vdc_relative_error": 1.2711982620460758e-05
+      },
+      "real_part_criterion_pass": false,
+      "reason": "slow BESS or integrator drift prevents a true periodic orbit",
+      "sensitivity": {
+        "classification_stable": true,
+        "max_lambda_real_change": 14.788124047462247,
+        "max_mu_magnitude_change": 5.101464741752437e-07,
+        "strong_sensitivity": true
+      },
+      "settle_solver_message": "The solver successfully reached the end of the integration interval.",
+      "settling_time_s": 1.0,
+      "solver_success": true,
+      "state_count": 16,
+      "status": "REVIEW",
+      "unstable_modes": [],
+      "zeta_criterion_pass": true,
+      "zeta_min": 0.5808312216498687,
+      "zeta_min_mode": 9
+    }
+  },
+  "limitations": [
+    "Numerical Floquet analysis, not an experimental validation.",
+    "The BESS/PI architecture contains slow states and is diagnostic.",
+    "No new multi-scenario tuner is implemented in this activity part."
+  ],
+  "method": "central-difference Jacobian of the one-electrical-period map",
+  "model_commit": "860f03695a9a89c7f4075f91434a579575ee7e72",
+  "neutral_modes": [
+    12
+  ],
+  "output_paths": {
+    "eigenvalues_csv": "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\outputs\\validation\\objective2_vsg_tuning\\eigenvalues.csv",
+    "small_signal_summary_json": "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\outputs\\validation\\objective2_vsg_tuning\\small_signal_summary.json"
+  },
+  "periodic_analysis_justification": "abc states and theta form a periodic orbit; an instantaneous RHS Jacobian is not used as the formal stability proof.",
+  "perturbation_steps": {
+    "base_factor": 1e-06,
+    "comparison_factor": 2e-06,
+    "state_scaled": true
+  },
+  "real_part_criterion": true,
+  "status": "REVIEW",
+  "tolerances": {
+    "neutral_tol": 0.005,
+    "periodic_residual_tol": 0.005,
+    "real_lambda_tol": 1e-05,
+    "solver_atol": 1e-08,
+    "solver_max_step_s": 5e-05,
+    "solver_rtol": 1e-06,
+    "unit_circle_tol": 0.005,
+    "zeta_min_required": 0.1
+  },
+  "unstable_modes": [],
+  "zeta_min": 0.5808312032635214,
+  "zeta_min_criterion": true,
+  "zeta_min_mode": 9
+}
