@@ -69,10 +69,11 @@ SCENARIO_WEIGHT = 0.25
 HARD_FAILURE_PENALTY = 1000.0
 DEFAULT_T_END_S = 2.0
 DEFAULT_ROCOF_DT_S = 1e-3
-DEFAULT_MAX_STEP_S = 5e-3
+DEFAULT_MAX_STEP_S = SIM_SOLVER_MAX_STEP_S_DEFAULT
 FINAL_WINDOW_S = 0.5
 LIMIT_ATOL = 1e-8
 IDENTITY_ATOL_W = 1e-8
+ROCOF_WINDOW = "post_event"
 
 NORMALIZATION_SCALES = {
     "frequency_deviation": 0.50,
@@ -159,6 +160,7 @@ def max_abs_rocof(
     frequency_hz: np.ndarray,
     *,
     dt_s: float = DEFAULT_ROCOF_DT_S,
+    t_event_s: float | None = None,
 ) -> float:
     """Compute RoCoF after interpolation to a uniform time grid."""
     time = np.asarray(time_s, dtype=float)
@@ -167,9 +169,16 @@ def max_abs_rocof(
         raise ValueError("time and frequency must be one-dimensional traces.")
     if dt_s <= 0.0:
         raise ValueError("dt_s must be positive.")
-    uniform_time = np.arange(float(time[0]), float(time[-1]) + 0.5 * dt_s, dt_s)
+    start_time = float(time[0]) if t_event_s is None else float(t_event_s)
+    if start_time >= float(time[-1]):
+        raise ValueError("t_event_s must be earlier than the final time.")
+    uniform_time = np.arange(start_time, float(time[-1]) + 0.5 * dt_s, dt_s)
     uniform_frequency = np.interp(uniform_time, time, frequency)
+    if uniform_frequency.size < 3:
+        raise ValueError("at least three post-event samples are required.")
     rocof = np.gradient(uniform_frequency, dt_s)
+    if t_event_s is not None:
+        rocof = rocof[1:]
     return float(np.max(np.abs(rocof)))
 
 
@@ -286,6 +295,12 @@ SCENARIOS = (
     "load_step_20_bess_pi_nominal_soh",
     "irradiance_drop_20_bess_pi",
 )
+FORMAL_OPERATING_SCENARIOS = (
+    "load_step_20_no_bess",
+    "load_step_20_bess_pi_nominal_soh",
+    "irradiance_drop_20_bess_pi",
+)
+EXTENDED_SEVERE_SCENARIO = "load_step_40_no_bess"
 
 
 def _initial_state(model: Microgrid):
@@ -354,7 +369,16 @@ def evaluate_scenario(
         if sol.success and states_finite
         else {}
     )
-    max_rocof = max_abs_rocof(sol.t, frequency_hz, dt_s=rocof_dt_s) if sol.success and states_finite else float("nan")
+    max_rocof = (
+        max_abs_rocof(
+            sol.t,
+            frequency_hz,
+            dt_s=rocof_dt_s,
+            t_event_s=MICROGRID_LOAD_STEP_TIME_S_DEFAULT,
+        )
+        if sol.success and states_finite
+        else float("nan")
+    )
     freq_ss_error = _final_mean(sol.t, frequency_hz) - GRID_FREQ_HZ_DEFAULT if sol.success and states_finite else float("nan")
     vdc_pre = float(dc_metrics.get("vdc_pre_step_v", np.nan))
     vdc_ss_error_pct = (
@@ -398,10 +422,11 @@ def evaluate_scenario(
     frequency_pass = bool(frequency_metrics.get("frequency_criteria_pass", False))
     vdc_min_pass = bool(dc_metrics.get("vdc_minimum_voltage_pass", False))
     severe_energy_review = bool(
-        scenario == "load_step_40_no_bess"
+        scenario == EXTENDED_SEVERE_SCENARIO
         and sol.success
         and states_finite
         and frequency_pass
+        and vdc_min_pass
         and float(dc_metrics.get("vdc_event_max_abs_deviation_pct", 0.0)) > 5.0
     )
     physical_identity_ok = bool(identity_residual <= IDENTITY_ATOL_W)
@@ -420,8 +445,6 @@ def evaluate_scenario(
         common_constraints_pass
         and vdc_min_pass
     )
-    if severe_energy_review and common_constraints_pass:
-        hard_constraints_pass = True
     status = "PASS"
     if not hard_constraints_pass:
         status = "FAIL"
@@ -458,10 +481,14 @@ def evaluate_scenario(
         "max_frequency_abs_deviation_hz": metrics_for_score["max_frequency_abs_deviation_hz"],
         "max_frequency_drop_hz": float(frequency_metrics.get("max_frequency_drop_hz", np.nan)),
         "max_abs_rocof_hz_per_s": max_rocof,
+        "rocof_window": ROCOF_WINDOW,
+        "rocof_event_time_s": float(MICROGRID_LOAD_STEP_TIME_S_DEFAULT),
+        "rocof_dt_s": float(rocof_dt_s),
         "frequency_recovery_time_s": metrics_for_score["frequency_recovery_time_s"],
         "frequency_steady_state_error_hz": metrics_for_score["frequency_steady_state_error_hz"],
         "vdc_event_max_abs_deviation_pct": metrics_for_score["vdc_event_max_abs_deviation_pct"],
         "vdc_min_post_step_v": float(dc_metrics.get("vdc_min_post_step_v", np.nan)),
+        "vdc_min_required_v": float(dc_metrics.get("vdc_min_required_v", np.nan)),
         "vdc_steady_state_error_pct": vdc_ss_error_pct,
         "i_bess_peak_abs_a": i_peak,
         "i_bess_rms_a": i_rms,
@@ -485,13 +512,44 @@ def rank_candidates(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(
         candidates,
         key=lambda item: (
-            not item["hard_constraints_pass_all"],
+            not item["formal_hard_constraints_pass"],
             not item.get("small_signal_accepted", False),
+            item["formal_aggregate_score"],
             item["aggregate_score"],
             item["M"],
             item["D"],
         ),
     )
+
+
+def _scenario_lookup(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return {str(row["scenario"]): row for row in rows}
+
+
+def _classify_extended_severe(row: dict[str, Any]) -> str:
+    if not row["solver_success"] or not row["states_finite"]:
+        return "FAIL"
+    if not row["frequency_criteria_pass"] or not row["vdc_minimum_voltage_pass"]:
+        return "FAIL"
+    if float(row["vdc_event_max_abs_deviation_pct"]) > 5.0:
+        return "REVIEW"
+    return "PASS"
+
+
+def _ranking_brief(ranking: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            "rank": item.get("rank"),
+            "M": item["M"],
+            "D": item["D"],
+            "formal_aggregate_score": item.get("formal_aggregate_score"),
+            "aggregate_score": item["aggregate_score"],
+            "small_signal_accepted": item.get("small_signal_accepted", False),
+            "formal_hard_constraints_pass": item.get("formal_hard_constraints_pass"),
+            "extended_severe_scenario_status": item.get("extended_severe_scenario_status"),
+        }
+        for item in ranking
+    ]
 
 
 def stability_accepts(report: dict[str, Any]) -> tuple[bool, str]:
@@ -530,6 +588,14 @@ def run_tuning(
 ) -> dict[str, Any]:
     if max_step_s <= 0.0:
         raise ValueError("max_step_s must be positive.")
+    previous_summary: dict[str, Any] | None = None
+    previous_summary_path = Path(output_dir) / SUMMARY_JSON_NAME
+    if previous_summary_path.exists():
+        try:
+            with previous_summary_path.open(encoding="utf-8") as json_file:
+                previous_summary = json.load(json_file)
+        except Exception:
+            previous_summary = None
     candidates = build_candidate_grid(m_values, d_values)
     rows: list[dict[str, Any]] = []
     candidate_summaries: list[dict[str, Any]] = []
@@ -548,22 +614,35 @@ def run_tuning(
             for scenario in SCENARIOS
         ]
         rows.extend(scenario_rows)
+        scenario_by_name = _scenario_lookup(scenario_rows)
+        formal_rows = [scenario_by_name[name] for name in FORMAL_OPERATING_SCENARIOS]
+        severe_row = scenario_by_name[EXTENDED_SEVERE_SCENARIO]
+        formal_hard_all = bool(all(row["hard_constraints_pass"] for row in formal_rows))
         hard_all = bool(all(row["hard_constraints_pass"] for row in scenario_rows))
+        formal_aggregate = aggregate_score(
+            [float(row["scenario_score"]) for row in formal_rows],
+            hard_constraints_pass=formal_hard_all,
+        )
         aggregate = aggregate_score(
             [float(row["scenario_score"]) for row in scenario_rows],
-            hard_constraints_pass=hard_all,
+            hard_constraints_pass=formal_hard_all,
         )
         candidate_summaries.append(
             {
                 **candidate,
                 "hard_constraints_pass_all": hard_all,
+                "formal_hard_constraints_pass": formal_hard_all,
                 "aggregate_score": aggregate,
+                "formal_aggregate_score": formal_aggregate,
                 "scenario_scores": {
                     row["scenario"]: row["scenario_score"] for row in scenario_rows
                 },
                 "scenario_statuses": {
                     row["scenario"]: row["scenario_status"] for row in scenario_rows
                 },
+                "extended_severe_scenario_status": _classify_extended_severe(severe_row),
+                "extended_severe_vdc_min_post_step_v": severe_row["vdc_min_post_step_v"],
+                "extended_severe_vdc_min_required_v": severe_row["vdc_min_required_v"],
                 "small_signal_checked": False,
                 "small_signal_accepted": False,
                 "small_signal_rejection_reason": "not evaluated",
@@ -573,7 +652,8 @@ def run_tuning(
     transient_ranking = sorted(
         candidate_summaries,
         key=lambda item: (
-            not item["hard_constraints_pass_all"],
+            not item["formal_hard_constraints_pass"],
+            item["formal_aggregate_score"],
             item["aggregate_score"],
             item["M"],
             item["D"],
@@ -583,8 +663,8 @@ def run_tuning(
     selected: dict[str, Any] | None = None
     analyzed: list[dict[str, Any]] = []
     for candidate in transient_ranking:
-        if not candidate["hard_constraints_pass_all"]:
-            candidate["small_signal_rejection_reason"] = "hard constraints failed"
+        if not candidate["formal_hard_constraints_pass"]:
+            candidate["small_signal_rejection_reason"] = "formal operating constraints failed"
             continue
         stability_report = analyze_point(
             float(candidate["M"]),
@@ -609,16 +689,22 @@ def run_tuning(
             selected = candidate
             break
 
+    formal_domain_selection_status = "FAIL"
+    extended_severe_scenario_status = "FAIL"
     if selected is None:
         global_status = "FAIL"
         selected = transient_ranking[0]
     else:
-        has_review = any(
+        has_formal_review = any(
             "REVIEW" in status
-            for candidate in candidate_summaries
-            for status in candidate["scenario_statuses"].values()
+            for scenario, status in selected["scenario_statuses"].items()
+            if scenario in FORMAL_OPERATING_SCENARIOS
         )
-        global_status = "REVIEW" if has_review else "PASS"
+        formal_domain_selection_status = "REVIEW" if has_formal_review else "PASS"
+        extended_severe_scenario_status = str(selected["extended_severe_scenario_status"])
+        global_status = "PASS"
+        if formal_domain_selection_status == "REVIEW" or extended_severe_scenario_status != "PASS":
+            global_status = "REVIEW"
 
     output_dir = Path(output_dir)
     if write and selected is not None:
@@ -630,8 +716,13 @@ def run_tuning(
             formal_only=False,
         )
 
-    for index, candidate in enumerate(rank_candidates(candidate_summaries), start=1):
+    corrected_ranking = rank_candidates(candidate_summaries)
+    for index, candidate in enumerate(corrected_ranking, start=1):
         candidate["rank"] = index
+    corrected_ranking = rank_candidates(candidate_summaries)
+    previous_ranking = (
+        previous_summary.get("ranking", []) if isinstance(previous_summary, dict) else []
+    )
 
     previous = next(
         item
@@ -648,12 +739,39 @@ def run_tuning(
         "aggregate_score_delta_selected_minus_previous": (
             selected["aggregate_score"] - previous["aggregate_score"]
         ),
+        "formal_aggregate_score_previous": previous["formal_aggregate_score"],
+        "formal_aggregate_score_selected": selected["formal_aggregate_score"],
+        "formal_aggregate_score_delta_selected_minus_previous": (
+            selected["formal_aggregate_score"] - previous["formal_aggregate_score"]
+        ),
     }
+    previous_selected = (
+        previous_summary.get("selected_point", {}) if isinstance(previous_summary, dict) else {}
+    )
+    selected_point_changed = bool(
+        previous_selected
+        and (
+            float(previous_selected.get("M", np.nan)) != float(selected["M"])
+            or float(previous_selected.get("D", np.nan)) != float(selected["D"])
+        )
+    )
     summary = {
         "model_commit": _git_commit(),
         "status": global_status,
+        "formal_domain_selection_status": formal_domain_selection_status,
+        "extended_severe_scenario_status": extended_severe_scenario_status,
+        "selected_point_valid_for_formal_operating_scenarios": bool(
+            selected.get("formal_hard_constraints_pass", False)
+            and selected.get("small_signal_accepted", False)
+        ),
+        "selected_point_severe_no_bess_valid": bool(
+            extended_severe_scenario_status == "PASS"
+        ),
+        "selection_label": "punto seleccionado dentro del dominio multi-escenario evaluado",
         "domain": {"M": list(limited_values("M", m_values, strictly_positive=True)), "D": list(limited_values("D", d_values, strictly_positive=False))},
         "scenarios": list(SCENARIOS),
+        "formal_operating_scenarios": list(FORMAL_OPERATING_SCENARIOS),
+        "extended_severe_scenario": EXTENDED_SEVERE_SCENARIO,
         "normalization_scales": NORMALIZATION_SCALES,
         "weights": OBJECTIVE_WEIGHTS,
         "scenario_weight": SCENARIO_WEIGHT,
@@ -665,10 +783,19 @@ def run_tuning(
             "solver_atol": SIM_SOLVER_ATOL_DEFAULT,
             "config_solver_max_step_s": SIM_SOLVER_MAX_STEP_S_DEFAULT,
             "tuning_solver_max_step_s": max_step_s,
+            "rocof_window": ROCOF_WINDOW,
+            "rocof_event_time_s": float(MICROGRID_LOAD_STEP_TIME_S_DEFAULT),
             "rocof_dt_s": rocof_dt_s,
         },
         "candidates": candidate_summaries,
-        "ranking": rank_candidates(candidate_summaries),
+        "ranking_previous": _ranking_brief(previous_ranking),
+        "ranking_corrected": _ranking_brief(corrected_ranking),
+        "ranking": corrected_ranking,
+        "selected_point_changed_vs_previous_summary": selected_point_changed,
+        "ranking_change_explanation": (
+            "Scores were recalculated with the central solver max_step, post-event RoCoF, "
+            "and formal selection separated from the extended severe no-BESS diagnostic."
+        ),
         "rejected_candidates": [
             item for item in candidate_summaries if not item.get("small_signal_accepted", False)
         ],
@@ -694,9 +821,11 @@ def run_tuning(
             writer = csv.DictWriter(csv_file, fieldnames=[
                 "candidate_id", "scenario", "M", "D", "solver_success", "states_finite",
                 "max_frequency_abs_deviation_hz", "max_frequency_drop_hz",
-                "max_abs_rocof_hz_per_s", "frequency_recovery_time_s",
+                "max_abs_rocof_hz_per_s", "rocof_window", "rocof_event_time_s",
+                "rocof_dt_s", "frequency_recovery_time_s",
                 "frequency_steady_state_error_hz", "vdc_event_max_abs_deviation_pct",
-                "vdc_min_post_step_v", "vdc_steady_state_error_pct",
+                "vdc_min_post_step_v", "vdc_min_required_v",
+                "vdc_minimum_voltage_pass", "vdc_steady_state_error_pct",
                 "i_bess_peak_abs_a", "i_bess_rms_a", "p_bess_peak_abs_w",
                 "energy_throughput_wh", "delta_soc", "current_utilization",
                 "power_utilization", "power_identity_residual_w",
@@ -710,6 +839,10 @@ def run_tuning(
 
     print(f"candidates_evaluated={len(candidates)}")
     print(f"scenarios_executed={len(SCENARIOS)}")
+    print(f"tuning_solver_max_step_s={max_step_s}")
+    print(f"rocof_window={ROCOF_WINDOW}")
+    print(f"formal_domain_selection_status={formal_domain_selection_status}")
+    print(f"extended_severe_scenario_status={extended_severe_scenario_status}")
     print(f"selected_M={selected['M']}")
     print(f"selected_D={selected['D']}")
     print(f"global_status={global_status}")

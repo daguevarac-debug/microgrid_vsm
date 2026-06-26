@@ -1467,10 +1467,10 @@
   "limitations": [
     "Numerical Floquet analysis, not an experimental validation.",
     "The BESS/PI architecture contains slow states and is diagnostic.",
-    "No new multi-scenario tuner is implemented in this activity part."
+    "The small-signal validation is executed independently; multi-scenario tuning evidence is reported in tuning_summary.json."
   ],
   "method": "central-difference Jacobian of the one-electrical-period map",
-  "model_commit": "28bfeceadef7055efd779db309e2732da38a9406",
+  "model_commit": "e20260b04c5286810579d7fc2db575f83f8784f7",
   "neutral_modes": [
     12
   ],

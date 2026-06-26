@@ -8,15 +8,17 @@ import unittest
 
 import numpy as np
 
-
 THIS_FILE = Path(__file__).resolve()
 SRC_DIR = THIS_FILE.parents[1]
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+from config import SIM_SOLVER_MAX_STEP_S_DEFAULT
 from validation.tune_objective2_vsg_parameters import (
+    DEFAULT_MAX_STEP_S,
     aggregate_score,
     build_candidate_grid,
+    evaluate_scenario,
     limited_values,
     max_abs_rocof,
     normalized_terms,
@@ -33,6 +35,9 @@ class TestTuneObjective2VSGParameters(unittest.TestCase):
         grid = build_candidate_grid()
         self.assertEqual(len(grid), 9)
         self.assertIn({"candidate_id": 9, "M": 80.0, "D": 1500.0}, grid)
+
+    def test_default_max_step_uses_central_config(self) -> None:
+        self.assertEqual(DEFAULT_MAX_STEP_S, SIM_SOLVER_MAX_STEP_S_DEFAULT)
 
     def test_reject_more_than_three_values(self) -> None:
         with self.assertRaises(ValueError):
@@ -83,8 +88,8 @@ class TestTuneObjective2VSGParameters(unittest.TestCase):
 
     def test_deterministic_ranking(self) -> None:
         ranked = rank_candidates([
-            {"M": 80.0, "D": 1500.0, "aggregate_score": 1.0, "hard_constraints_pass_all": True, "small_signal_accepted": True},
-            {"M": 20.0, "D": 200.0, "aggregate_score": 1.0, "hard_constraints_pass_all": True, "small_signal_accepted": True},
+            {"M": 80.0, "D": 1500.0, "aggregate_score": 1.0, "formal_aggregate_score": 1.0, "formal_hard_constraints_pass": True, "small_signal_accepted": True},
+            {"M": 20.0, "D": 200.0, "aggregate_score": 1.0, "formal_aggregate_score": 1.0, "formal_hard_constraints_pass": True, "small_signal_accepted": True},
         ])
         self.assertEqual(ranked[0]["M"], 20.0)
 
@@ -92,6 +97,29 @@ class TestTuneObjective2VSGParameters(unittest.TestCase):
         t = np.linspace(0, 1, 101)
         f = 60.0 + 2.0 * t
         self.assertAlmostEqual(max_abs_rocof(t, f, dt_s=0.01), 2.0, places=6)
+
+    def test_post_event_rocof_ignores_pre_event_transient(self) -> None:
+        t = np.linspace(0, 2, 2001)
+        f = np.full_like(t, 60.0)
+        f[t < 1.0] += 30.0 * np.sin(2.0 * np.pi * 20.0 * t[t < 1.0])
+        f[t >= 1.0] += 0.1 * (t[t >= 1.0] - 1.0)
+        rocof = max_abs_rocof(t, f, dt_s=0.001, t_event_s=1.0)
+        self.assertAlmostEqual(rocof, 0.1, places=6)
+
+    def test_severe_vdc_minimum_failure_remains_fail(self) -> None:
+        row = evaluate_scenario(
+            1,
+            "load_step_40_no_bess",
+            80.0,
+            1500.0,
+            t_end_s=2.0,
+            rocof_dt_s=0.001,
+            max_step_s=0.005,
+        )
+        self.assertLess(row["vdc_min_post_step_v"], row["vdc_min_required_v"])
+        self.assertFalse(row["vdc_minimum_voltage_pass"])
+        self.assertFalse(row["hard_constraints_pass"])
+        self.assertEqual(row["scenario_status"], "FAIL")
 
     def test_deeply_damped_mode_sensitivity(self) -> None:
         summary, modes = _modal_sensitivity(np.array([1e-6]), np.array([2e-6]), 1.0)
