@@ -14,6 +14,7 @@ if str(SRC_DIR) not in sys.path:
 
 from validation.validate_objective2_control_closure import (
     Criterion,
+    EVIDENCE_COMMITS,
     SELECTED_D,
     SELECTED_M,
     ZETA_MIN_EXPECTED,
@@ -121,6 +122,29 @@ class TestObjective2ControlClosure(unittest.TestCase):
     def test_csv_row_schema(self) -> None:
         row = _criterion("PASS").to_dict()
         self.assertEqual(list(row.keys()), CSV_COLUMNS)
+
+    def test_evidence_commit_traceability(self) -> None:
+        activity_21 = EVIDENCE_COMMITS[
+            "2261ec09fee84ace883eac4b37f1c69b11bff845"
+        ].lower()
+        activity_22 = EVIDENCE_COMMITS[
+            "860f03695a9a89c7f4075f91434a579575ee7e72"
+        ].lower()
+        activity_23 = EVIDENCE_COMMITS[
+            "28bfeceadef7055efd779db309e2732da38a9406"
+        ].lower()
+
+        self.assertTrue("diseno" in activity_21 or "actividad 2.1" in activity_21)
+        self.assertTrue(
+            "bess/bms" in activity_22
+            or "bess" in activity_22
+            or "actividad 2.2" in activity_22
+        )
+        self.assertTrue(
+            "pequena senal" in activity_23
+            or "floquet" in activity_23
+            or "actividad 2.3" in activity_23
+        )
 
 
 if __name__ == "__main__":

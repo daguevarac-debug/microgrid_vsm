@@ -364,8 +364,8 @@ python -m pytest src/validation/test_microgrid_bess_pi_connection.py -q
 
 | Commit | Evidencia aportada |
 | --- | --- |
-| `2261ec09fee84ace883eac4b37f1c69b11bff845` | Evidencia de restricciones BESS/BMS de la Actividad 2.2. |
-| `860f03695a9a89c7f4075f91434a579575ee7e72` | Documentacion y correcciones del diseno/diagrama VSG-BESS de la Actividad 2.1. |
-| `28bfeceadef7055efd779db309e2732da38a9406` | Base integrada previa a la sintonizacion multi-escenario. |
-| `e20260b04c5286810579d7fc2db575f83f8784f7` | Primera evidencia de sintonizacion VSG multi-escenario y pequena senal. |
-| `9563b46e02e38120e68d7725dad5217ad3019bf5` | Correccion de RoCoF postevento, factibilidad DC y separacion formal/severa. |
+| `2261ec09fee84ace883eac4b37f1c69b11bff845` | Actividad 2.1: consolidacion del diseno del controlador VSG-BESS y correccion del diagrama de bloques. |
+| `860f03695a9a89c7f4075f91434a579575ee7e72` | Actividad 2.2: evidencia reproducible de los quince criterios de limites y control BESS/BMS. |
+| `28bfeceadef7055efd779db309e2732da38a9406` | Actividad 2.3, primera parte: analisis periodico de estabilidad de pequena senal mediante multiplicadores de Floquet. |
+| `e20260b04c5286810579d7fc2db575f83f8784f7` | Actividad 2.3, segunda parte: sintonia VSG multi-escenario inicial e integracion de la comprobacion de pequena senal. |
+| `9563b46e02e38120e68d7725dad5217ad3019bf5` | Actividad 2.3, correccion final: RoCoF postevento, factibilidad fisica del enlace DC y separacion entre escenarios formales y escenario severo extendido. |
