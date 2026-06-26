@@ -1,0 +1,419 @@
+{
+  "criteria": [
+    {
+      "criterion_id": 1,
+      "criterion_name": "operacion nominal",
+      "expected_or_limit": "solver success and finite states/signals",
+      "limits": {
+        "expected_state_count": 16
+      },
+      "metrics": {
+        "max_vdc_over_vt_bess": 90.9393856237308,
+        "n_time_points": 3036,
+        "solver_message": "The solver successfully reached the end of the integration interval.",
+        "state_count": 16,
+        "t_end_s": 0.12
+      },
+      "notes": "Validacion dinamica corta; no es campana pesada ni validacion experimental. Vdc/vt_bess scale is a documented interpretation warning.",
+      "observed_value": "solver_success=True, samples=3036",
+      "scenario": "short_dynamic_nominal_gfm_bess_pi",
+      "software_failure": false,
+      "status": "REVIEW",
+      "tolerance": "rtol=1e-06, atol=1e-08"
+    },
+    {
+      "criterion_id": 2,
+      "criterion_name": "SoC proximo a soc_min dentro del rango",
+      "expected_or_limit": "interior SoC and discharge still available",
+      "limits": {
+        "soc_max": 0.9,
+        "soc_min": 0.1
+      },
+      "metrics": {
+        "p_max_w": 14553.0,
+        "p_ref_w": 1700.0
+      },
+      "notes": "",
+      "observed_value": "soc=0.108000000000, i_bess=5.151515151515",
+      "scenario": "deterministic_near_soc_min",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "soc_margin=0.008000000000"
+    },
+    {
+      "criterion_id": 3,
+      "criterion_name": "SoC proximo a soc_max dentro del rango",
+      "expected_or_limit": "interior SoC and charge still available",
+      "limits": {
+        "soc_max": 0.9,
+        "soc_min": 0.1
+      },
+      "metrics": {
+        "p_min_w": -14994.0,
+        "p_ref_w": -1700.0
+      },
+      "notes": "",
+      "observed_value": "soc=0.892000000000, i_bess=-4.857142857143",
+      "scenario": "deterministic_near_soc_max",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "soc_margin=0.008000000000"
+    },
+    {
+      "criterion_id": 4,
+      "criterion_name": "bloqueo de descarga exactamente en soc_min",
+      "expected_or_limit": "zero discharge current and zero positive power limit",
+      "limits": {
+        "soc_min": 0.1
+      },
+      "metrics": {
+        "anti_windup_active": true,
+        "p_ref_unsat_w": 1700.0,
+        "p_ref_w": 0.0
+      },
+      "notes": "",
+      "observed_value": "i_bess=0.000000000000, p_max=0.000000000000",
+      "scenario": "deterministic_soc_min_block",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "current_atol=1e-09"
+    },
+    {
+      "criterion_id": 5,
+      "criterion_name": "bloqueo de carga exactamente en soc_max",
+      "expected_or_limit": "zero charge current and zero negative power limit",
+      "limits": {
+        "soc_max": 0.9
+      },
+      "metrics": {
+        "anti_windup_active": true,
+        "p_ref_unsat_w": -1700.0,
+        "p_ref_w": 0.0
+      },
+      "notes": "",
+      "observed_value": "i_bess=0.000000000000, p_min=0.000000000000",
+      "scenario": "deterministic_soc_max_block",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "current_atol=1e-09"
+    },
+    {
+      "criterion_id": 6,
+      "criterion_name": "SoH alto, medio y degradado",
+      "expected_or_limit": "i_high > i_medium >= i_degraded; same for available power unless capped",
+      "limits": {
+        "i_bess_max_nominal_a": 66.0,
+        "p_bess_max_nominal_w": 22440.0
+      },
+      "metrics": {
+        "degraded": {
+          "i_available_a": 44.1,
+          "p_available_w": 14994.0,
+          "soh": 0.6681818181818182
+        },
+        "high": {
+          "i_available_a": 66.0,
+          "p_available_w": 22440.0,
+          "soh": 1.0
+        },
+        "medium": {
+          "i_available_a": 46.199999999999996,
+          "p_available_w": 15707.999999999998,
+          "soh": 0.7
+        }
+      },
+      "notes": "No power-availability tie occurred.",
+      "observed_value": "i=[66.000000, 46.200000, 44.100000]",
+      "scenario": "deterministic_soh_availability",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "current_atol=1e-09, power_atol=1e-08"
+    },
+    {
+      "criterion_id": 7,
+      "criterion_name": "saturacion deliberada de corriente",
+      "expected_or_limit": "unlimited request exceeds current-derived limit; current equals 1 A",
+      "limits": {
+        "i_limit_a": 1.0,
+        "p_limit_from_current_w": 330.0
+      },
+      "metrics": {
+        "binding_limit": "current",
+        "p_bess_dc_w": 330.0,
+        "p_max_w": 330.0,
+        "p_ref_w": 330.0
+      },
+      "notes": "Binding limit: current.",
+      "observed_value": "unsat=1000000.000000, i_bess=1.000000000000",
+      "scenario": "deterministic_current_saturation",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "current_atol=1e-09"
+    },
+    {
+      "criterion_id": 8,
+      "criterion_name": "saturacion deliberada de potencia",
+      "expected_or_limit": "unlimited request exceeds nominal power limit; final power equals 500 W",
+      "limits": {
+        "p_limit_w": 500.0
+      },
+      "metrics": {
+        "binding_limit": "power",
+        "i_bess_a": 1.5151515151515151,
+        "p_bess_dc_w": 500.0
+      },
+      "notes": "Binding limit: power.",
+      "observed_value": "unsat=1000000.000000, p_ref=500.000000000000",
+      "scenario": "deterministic_power_saturation",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "power_atol=1e-08"
+    },
+    {
+      "criterion_id": 9,
+      "criterion_name": "reduccion de disponibilidad al disminuir el SoH",
+      "expected_or_limit": "monotonic non-increase with decreasing SoH",
+      "limits": {},
+      "metrics": {
+        "degraded": {
+          "i_available_a": 44.1,
+          "p_available_w": 14994.0,
+          "soh": 0.6681818181818182
+        },
+        "high": {
+          "i_available_a": 66.0,
+          "p_available_w": 22440.0,
+          "soh": 1.0
+        },
+        "medium": {
+          "i_available_a": 46.199999999999996,
+          "p_available_w": 15707.999999999998,
+          "soh": 0.7
+        }
+      },
+      "notes": "No power-availability tie occurred.",
+      "observed_value": "availability decreases from high to medium and does not increase at degraded SoH",
+      "scenario": "deterministic_soh_monotonic_reduction",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "see metrics"
+    },
+    {
+      "criterion_id": 10,
+      "criterion_name": "operacion en carga y descarga",
+      "expected_or_limit": "positive discharge current and negative charge current",
+      "limits": {},
+      "metrics": {
+        "charge": {
+          "p_bess_dc_w": -1699.9999999999998,
+          "p_ref_w": -1700.0
+        },
+        "discharge": {
+          "p_bess_dc_w": 1700.0,
+          "p_ref_w": 1700.0
+        }
+      },
+      "notes": "",
+      "observed_value": "discharge_i=5.151515151515, charge_i=-4.857142857143",
+      "scenario": "deterministic_bidirectional_signs",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "current_atol=1e-09"
+    },
+    {
+      "criterion_id": 11,
+      "criterion_name": "BESS deshabilitado",
+      "expected_or_limit": "zero charge/discharge request and frozen integrator",
+      "limits": {},
+      "metrics": {
+        "anti_windup_active": true,
+        "p_ref_unsat_w": 1750.0
+      },
+      "notes": "",
+      "observed_value": "p_ref=0.000000000000, i_bess=0.000000000000",
+      "scenario": "deterministic_bess_disabled",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "exact zero from existing PI enable logic"
+    },
+    {
+      "criterion_id": 12,
+      "criterion_name": "anti-windup del PI externo",
+      "expected_or_limit": "freeze deeper into saturation, resume when error returns to interval",
+      "limits": {},
+      "metrics": {
+        "disabled": {
+          "anti_windup_active": true,
+          "bess_enabled": false,
+          "d_xi_vdc_dt": 0.0,
+          "p_bess_ref_unsat_w": 10000.0,
+          "p_bess_ref_w": 0.0,
+          "p_max_w": 0.0,
+          "p_min_w": 0.0,
+          "saturated": true,
+          "vdc_error_v": 10.0
+        },
+        "lower_saturation": {
+          "anti_windup_active": true,
+          "bess_enabled": true,
+          "d_xi_vdc_dt": 0.0,
+          "p_bess_ref_unsat_w": -10000.0,
+          "p_bess_ref_w": -100.0,
+          "p_max_w": 100.0,
+          "p_min_w": -100.0,
+          "saturated": true,
+          "vdc_error_v": -10.0
+        },
+        "return_to_interval": {
+          "anti_windup_active": false,
+          "bess_enabled": true,
+          "d_xi_vdc_dt": -10.0,
+          "p_bess_ref_unsat_w": 200.0,
+          "p_bess_ref_w": 100.0,
+          "p_max_w": 100.0,
+          "p_min_w": -100.0,
+          "saturated": true,
+          "vdc_error_v": -10.0
+        },
+        "upper_saturation": {
+          "anti_windup_active": true,
+          "bess_enabled": true,
+          "d_xi_vdc_dt": 0.0,
+          "p_bess_ref_unsat_w": 10000.0,
+          "p_bess_ref_w": 100.0,
+          "p_max_w": 100.0,
+          "p_min_w": -100.0,
+          "saturated": true,
+          "vdc_error_v": 10.0
+        }
+      },
+      "notes": "",
+      "observed_value": "d_xi_high=0.000000, d_xi_low=0.000000, d_xi_resume=-10.000000",
+      "scenario": "deterministic_pi_anti_windup",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "see metrics"
+    },
+    {
+      "criterion_id": 13,
+      "criterion_name": "estados y senales finitas",
+      "expected_or_limit": "all dynamic states and observed signals finite",
+      "limits": {},
+      "metrics": {
+        "signal_names": [
+          "Vdc",
+          "i_bess",
+          "i_bess_max_available",
+          "p_bess_dc",
+          "p_bess_ref_max_w",
+          "p_bess_ref_min_w",
+          "p_bess_ref_w",
+          "soc_bess",
+          "soh_bess",
+          "vt_bess"
+        ],
+        "state_shape": [
+          16,
+          3036
+        ]
+      },
+      "notes": "",
+      "observed_value": "states_finite=True, signals_finite=True",
+      "scenario": "short_dynamic_nominal_gfm_bess_pi",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "np.isfinite over trajectory"
+    },
+    {
+      "criterion_id": 14,
+      "criterion_name": "identidad p_bess_dc = Vdc*i_bess",
+      "expected_or_limit": "pointwise residual <= tolerance",
+      "limits": {},
+      "metrics": {
+        "max_abs_power_identity_residual_w": 0.0,
+        "max_actual_power_limit_excess_w": 0.0,
+        "max_current_limit_excess_a": 0.0,
+        "max_power_reference_limit_excess_w": 0.0,
+        "max_soc_limit_excess": 0.0,
+        "max_soh_limit_excess": 0.0
+      },
+      "notes": "",
+      "observed_value": "max_residual=0.000000000000e+00 W",
+      "scenario": "short_dynamic_nominal_gfm_bess_pi",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "identity_atol_w=1e-08"
+    },
+    {
+      "criterion_id": 15,
+      "criterion_name": "ausencia de violaciones operativas",
+      "expected_or_limit": "no current, power, SoC or SoH limit exceeded",
+      "limits": {
+        "i_bess_max_nominal_a": 66.0,
+        "p_bess_max_nominal_w": 22440.0,
+        "soc_max": 0.9,
+        "soc_min": 0.1,
+        "soh_min": 0.5
+      },
+      "metrics": {
+        "max_abs_power_identity_residual_w": 0.0,
+        "max_actual_power_limit_excess_w": 0.0,
+        "max_current_limit_excess_a": 0.0,
+        "max_power_reference_limit_excess_w": 0.0,
+        "max_soc_limit_excess": 0.0,
+        "max_soh_limit_excess": 0.0
+      },
+      "notes": "",
+      "observed_value": "max limit excesses recorded in metrics",
+      "scenario": "dynamic_and_deterministic_limit_checks",
+      "software_failure": false,
+      "status": "PASS",
+      "tolerance": "current=1e-09, power=1e-08, soc/soh=1e-08"
+    }
+  ],
+  "criteria_count": 15,
+  "equations_checked": {
+    "bess_power": "p_bess_dc = Vdc*i_bess",
+    "bess_sign": "i_bess > 0 discharge; i_bess < 0 charge",
+    "dc_balance": "dVdc/dt = (ipv + i_bess - idc_inv)/Cdc"
+  },
+  "interpretation_notes": [
+    "Internal validation evidence only; not experimental validation.",
+    "Vdc/vt_bess scale warnings are REVIEW items when invariants pass.",
+    "No VSG equation, M, D, state order or IEEE 33 coupling is modified."
+  ],
+  "model_commit": "2261ec09fee84ace883eac4b37f1c69b11bff845",
+  "output_paths": {
+    "summary_csv": "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\outputs\\validation\\objective2_bess_limits\\summary.csv",
+    "summary_json": "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\outputs\\validation\\objective2_bess_limits\\summary.json"
+  },
+  "parameters": {
+    "D": 1500.0,
+    "M": 80.0,
+    "controller": "GFMController",
+    "dynamic_t_end_s": 0.12,
+    "pi_ki_w_per_v_s": 10.0,
+    "pi_kp_w_per_v": 170.0,
+    "state_mapping": {
+      "x10": "omega",
+      "x11": "theta",
+      "x12": "soc_bess",
+      "x13": "vrc_bess",
+      "x14": "zdeg_bess",
+      "x15": "xi_bess_vdc only with external PI"
+    },
+    "vdc_ref_v": 340.0
+  },
+  "run_stamp": "deterministic_no_clock_dependency",
+  "status": "REVIEW",
+  "tolerances": {
+    "current_atol_a": 1e-09,
+    "identity_atol_w": 1e-08,
+    "limit_atol": 1e-08,
+    "power_atol_w": 1e-08,
+    "solver_atol": 1e-08,
+    "solver_max_step_s": 5e-05,
+    "solver_rtol": 1e-06
+  },
+  "validation_id": "objective2_bess_control_limits_v1"
+}
