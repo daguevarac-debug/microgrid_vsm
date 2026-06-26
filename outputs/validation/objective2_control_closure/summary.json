@@ -1,0 +1,371 @@
+{
+  "activity_statuses": {
+    "2.1": "PASS",
+    "2.2": "REVIEW",
+    "2.3": "REVIEW"
+  },
+  "blocking_counts": {
+    "FAIL": 0,
+    "PASS": 28,
+    "REVIEW": 0
+  },
+  "blocking_failures": 0,
+  "closure_decision": "Objective 2 technically closed within the implemented scope, with documented limitations.",
+  "commit": "9563b46e02e38120e68d7725dad5217ad3019bf5",
+  "criteria": [
+    {
+      "activity": "2.1",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.1-01",
+      "description": "Design document and SVG exist.",
+      "details": "Objective 2.1 design Markdown and vector diagram are present.",
+      "evidence": "docs/objective_2_virtual_inertia_controller_design.md; docs/figures/objective_2_vsg_bess_block_diagram.svg",
+      "scope": "documentation",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.1",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.1-02",
+      "description": "Protected equations are documented.",
+      "details": "VSG, power feedback, frequency, BESS power and DC-link equations found.",
+      "evidence": "docs/objective_2_virtual_inertia_controller_design.md; docs/objective_2_activities_2_1_to_2_3_closure.md",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.1",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.1-03",
+      "description": "M, D, alpha and selected point are documented correctly.",
+      "details": "Selected VSG point and alpha convention verified.",
+      "evidence": "docs/objective_2_virtual_inertia_controller_design.md",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.1",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.1-04",
+      "description": "State mappings for omega, theta, BESS and PI are documented.",
+      "details": "Protected GFM/BESS/PI state indexes found.",
+      "evidence": "docs/objective_2_virtual_inertia_controller_design.md",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.1",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.1-05",
+      "description": "FOVIC is not presented as implemented.",
+      "details": "The design is explicitly the classical VSG strategy.",
+      "evidence": "docs/objective_2_virtual_inertia_controller_design.md",
+      "scope": "documentation",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.1",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.1-06",
+      "description": "The SVG is valid XML.",
+      "details": "SVG parsed with xml.etree.ElementTree.",
+      "evidence": "docs/figures/objective_2_vsg_bess_block_diagram.svg",
+      "scope": "documentation",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.2",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.2-01",
+      "description": "Exactly fifteen BESS/BMS criteria are reported with unique IDs.",
+      "details": "criteria_count=15",
+      "evidence": "outputs/validation/objective2_bess_limits/summary.csv",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.2",
+      "blocking": false,
+      "criterion_id": "OBJ2-2.2-02",
+      "description": "BESS/BMS status count is 14 PASS, 1 REVIEW, 0 FAIL.",
+      "details": "PASS=14, REVIEW=1, FAIL=0",
+      "evidence": "outputs/validation/objective2_bess_limits/summary.json",
+      "scope": "diagnostic",
+      "status": "REVIEW"
+    },
+    {
+      "activity": "2.2",
+      "blocking": false,
+      "criterion_id": "OBJ2-2.2-03",
+      "description": "The REVIEW is the documented Vdc/vt_bess scale interpretation.",
+      "details": "REVIEW is interpretive and not a software failure.",
+      "evidence": "outputs/validation/objective2_bess_limits/summary.csv",
+      "scope": "diagnostic",
+      "status": "REVIEW"
+    },
+    {
+      "activity": "2.2",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.2-04",
+      "description": "Power identity residual is negligible.",
+      "details": "max_abs_power_identity_residual_w=0.0",
+      "evidence": "outputs/validation/objective2_bess_limits/summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.2",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.2-05",
+      "description": "No SoC, SoH, current or power operational excess is reported.",
+      "details": "All operational excess metrics are zero.",
+      "evidence": "outputs/validation/objective2_bess_limits/summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.2",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.2-06",
+      "description": "Anti-windup, disabled BESS, charge and discharge are covered.",
+      "details": "Criteria 10, 11 and 12 cover bidirectional signs, disabled BESS and PI anti-windup.",
+      "evidence": "outputs/validation/objective2_bess_limits/summary.csv",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-01",
+      "description": "Tuning results contain 36 rows, nine candidates and four scenarios.",
+      "details": "Expected 9 x 4 multi-scenario table.",
+      "evidence": "outputs/validation/objective2_vsg_tuning/tuning_results.csv",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-02",
+      "description": "Ranking contains unique positions 1 through 9.",
+      "details": "Ranking positions are deterministic and unique.",
+      "evidence": "outputs/validation/objective2_vsg_tuning/tuning_summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-03",
+      "description": "Selected point is M=80, D=1500 at rank 1.",
+      "details": "M=80.0, D=1500.0, rank=1",
+      "evidence": "outputs/validation/objective2_vsg_tuning/tuning_summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-04",
+      "description": "Formal aggregate score matches corrected evidence.",
+      "details": "formal_aggregate_score=0.13438663777278462",
+      "evidence": "outputs/validation/objective2_vsg_tuning/tuning_summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-05",
+      "description": "The three formal operating scenarios pass.",
+      "details": "formal_domain_selection_status=PASS",
+      "evidence": "outputs/validation/objective2_vsg_tuning/tuning_summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-06",
+      "description": "No global optimum is claimed.",
+      "details": "The selected point is limited to the evaluated domain.",
+      "evidence": "outputs/validation/objective2_vsg_tuning/tuning_summary.json; docs/objective_2_activities_2_1_to_2_3_closure.md",
+      "scope": "documentation",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-07",
+      "description": "Solver and RoCoF settings match corrected evidence.",
+      "details": "max_step=5e-5, rocof_window=post_event, rocof_dt=0.001",
+      "evidence": "outputs/validation/objective2_vsg_tuning/tuning_summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-08",
+      "description": "Selected point is valid for formal scenarios and not for severe no-BESS.",
+      "details": "Formal selection and severe diagnostic are separated.",
+      "evidence": "outputs/validation/objective2_vsg_tuning/tuning_summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-09",
+      "description": "Formal 12-state small-signal architecture passes.",
+      "details": "Formal architecture has no unstable modes.",
+      "evidence": "outputs/validation/objective2_vsg_tuning/small_signal_summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-10",
+      "description": "Exactly one formal neutral phase mode is reported.",
+      "details": "Neutral mode 12 is the phase symmetry mode.",
+      "evidence": "outputs/validation/objective2_vsg_tuning/eigenvalues.csv",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-11",
+      "description": "Formal zeta margin exceeds the 0.10 threshold.",
+      "details": "zeta_min=0.5808312032635214, margin=0.48083120326352147",
+      "evidence": "outputs/validation/objective2_vsg_tuning/small_signal_summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": true,
+      "criterion_id": "OBJ2-2.3-12",
+      "description": "Formal perturbation sensitivity is acceptable.",
+      "details": "No formal mode is strongly sensitive under the recorded perturbation check.",
+      "evidence": "outputs/validation/objective2_vsg_tuning/small_signal_summary.json",
+      "scope": "formal",
+      "status": "PASS"
+    },
+    {
+      "activity": "2.3",
+      "blocking": false,
+      "criterion_id": "OBJ2-2.3-13",
+      "description": "BESS 16-state small-signal case is diagnostic REVIEW.",
+      "details": "Slow BESS/PI states prevent treating it as a closed periodic orbit.",
+      "evidence": "outputs/validation/objective2_vsg_tuning/small_signal_summary.json",
+      "scope": "diagnostic",
+      "status": "REVIEW"
+    },
+    {
+      "activity": "2.3",
+      "blocking": false,
+      "criterion_id": "OBJ2-2.3-14",
+      "description": "Extended severe no-BESS case remains a non-blocking diagnostic FAIL.",
+      "details": "status=FAIL; scope=extended_diagnostic; blocking=false; Vdc_min=313.8643954758725; Vdc_min_required=327.5020881285063",
+      "evidence": "outputs/validation/objective2_vsg_tuning/tuning_results.csv",
+      "scope": "diagnostic",
+      "status": "FAIL"
+    },
+    {
+      "activity": "cross",
+      "blocking": true,
+      "criterion_id": "OBJ2-CROSS-01",
+      "description": "The same selected point appears across design, tuning and stability.",
+      "details": "M=80 and D=1500 are consistent.",
+      "evidence": "docs/objective_2_virtual_inertia_controller_design.md; outputs/validation/objective2_vsg_tuning/tuning_summary.json",
+      "scope": "cross_activity",
+      "status": "PASS"
+    },
+    {
+      "activity": "cross",
+      "blocking": true,
+      "criterion_id": "OBJ2-CROSS-02",
+      "description": "The same zeta threshold and determining mode are reported.",
+      "details": "zeta_min_required=0.10 and determining mode=9.",
+      "evidence": "outputs/validation/objective2_vsg_tuning/small_signal_summary.json; docs/objective_2_activities_2_1_to_2_3_closure.md",
+      "scope": "cross_activity",
+      "status": "PASS"
+    },
+    {
+      "activity": "cross",
+      "blocking": true,
+      "criterion_id": "OBJ2-CROSS-03",
+      "description": "The closure document declares the main limitations.",
+      "details": "The closure decision keeps REVIEW as a documented limitation state.",
+      "evidence": "docs/objective_2_activities_2_1_to_2_3_closure.md",
+      "scope": "documentation",
+      "status": "PASS"
+    },
+    {
+      "activity": "cross",
+      "blocking": true,
+      "criterion_id": "OBJ2-CROSS-04",
+      "description": "The closure document does not contain local absolute paths.",
+      "details": "Only relative repository paths are used.",
+      "evidence": "docs/objective_2_activities_2_1_to_2_3_closure.md",
+      "scope": "documentation",
+      "status": "PASS"
+    },
+    {
+      "activity": "cross",
+      "blocking": true,
+      "criterion_id": "OBJ2-CROSS-05",
+      "description": "The closure document does not claim experimental validation.",
+      "details": "Internal reproducible validation is distinguished from experiments.",
+      "evidence": "docs/objective_2_activities_2_1_to_2_3_closure.md",
+      "scope": "documentation",
+      "status": "PASS"
+    },
+    {
+      "activity": "cross",
+      "blocking": true,
+      "criterion_id": "OBJ2-CROSS-06",
+      "description": "The IEEE 33 coupling is not described as bidirectional co-simulation.",
+      "details": "IEEE 33 remains one-way postprocessing.",
+      "evidence": "docs/objective_2_activities_2_1_to_2_3_closure.md",
+      "scope": "documentation",
+      "status": "PASS"
+    }
+  ],
+  "criteria_total": 32,
+  "diagnostic_counts": {
+    "FAIL": 1,
+    "PASS": 0,
+    "REVIEW": 3
+  },
+  "diagnostic_failures": 1,
+  "evidence_commits": {
+    "2261ec09fee84ace883eac4b37f1c69b11bff845": "Objective 2.2 BESS/BMS control-limit evidence.",
+    "28bfeceadef7055efd779db309e2732da38a9406": "Pre-tuning Objective 2 integration baseline used as tuning base.",
+    "860f03695a9a89c7f4075f91434a579575ee7e72": "Objective 2 design documentation and diagram corrections.",
+    "9563b46e02e38120e68d7725dad5217ad3019bf5": "Corrected post-event RoCoF, DC feasibility and formal/severe split.",
+    "e20260b04c5286810579d7fc2db575f83f8784f7": "Initial multi-scenario VSG tuning and small-signal integration."
+  },
+  "global_status": "REVIEW",
+  "limitations": [
+    "Vdc/vt_bess scale warning in the BESS/BMS validation.",
+    "BESS/PI small-signal case remains diagnostic REVIEW because slow states prevent a closed periodic orbit.",
+    "The 40 percent load-step without BESS is an extended non-blocking diagnostic FAIL.",
+    "No experimental validation is claimed.",
+    "No global optimum is claimed."
+  ],
+  "review_count": 3,
+  "selected_point": {
+    "D": 1500.0,
+    "M": 80.0,
+    "alpha": "no aplicable"
+  },
+  "status_counts": {
+    "FAIL": 1,
+    "PASS": 28,
+    "REVIEW": 3
+  },
+  "timestamp_utc": "2026-06-26T15:09:57.339351+00:00"
+}

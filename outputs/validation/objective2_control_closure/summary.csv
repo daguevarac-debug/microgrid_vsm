@@ -1,0 +1,33 @@
+criterion_id,activity,scope,blocking,description,status,evidence,details
+OBJ2-2.1-01,2.1,documentation,True,Design document and SVG exist.,PASS,docs/objective_2_virtual_inertia_controller_design.md; docs/figures/objective_2_vsg_bess_block_diagram.svg,Objective 2.1 design Markdown and vector diagram are present.
+OBJ2-2.1-02,2.1,formal,True,Protected equations are documented.,PASS,docs/objective_2_virtual_inertia_controller_design.md; docs/objective_2_activities_2_1_to_2_3_closure.md,"VSG, power feedback, frequency, BESS power and DC-link equations found."
+OBJ2-2.1-03,2.1,formal,True,"M, D, alpha and selected point are documented correctly.",PASS,docs/objective_2_virtual_inertia_controller_design.md,Selected VSG point and alpha convention verified.
+OBJ2-2.1-04,2.1,formal,True,"State mappings for omega, theta, BESS and PI are documented.",PASS,docs/objective_2_virtual_inertia_controller_design.md,Protected GFM/BESS/PI state indexes found.
+OBJ2-2.1-05,2.1,documentation,True,FOVIC is not presented as implemented.,PASS,docs/objective_2_virtual_inertia_controller_design.md,The design is explicitly the classical VSG strategy.
+OBJ2-2.1-06,2.1,documentation,True,The SVG is valid XML.,PASS,docs/figures/objective_2_vsg_bess_block_diagram.svg,SVG parsed with xml.etree.ElementTree.
+OBJ2-2.2-01,2.2,formal,True,Exactly fifteen BESS/BMS criteria are reported with unique IDs.,PASS,outputs/validation/objective2_bess_limits/summary.csv,criteria_count=15
+OBJ2-2.2-02,2.2,diagnostic,False,"BESS/BMS status count is 14 PASS, 1 REVIEW, 0 FAIL.",REVIEW,outputs/validation/objective2_bess_limits/summary.json,"PASS=14, REVIEW=1, FAIL=0"
+OBJ2-2.2-03,2.2,diagnostic,False,The REVIEW is the documented Vdc/vt_bess scale interpretation.,REVIEW,outputs/validation/objective2_bess_limits/summary.csv,REVIEW is interpretive and not a software failure.
+OBJ2-2.2-04,2.2,formal,True,Power identity residual is negligible.,PASS,outputs/validation/objective2_bess_limits/summary.json,max_abs_power_identity_residual_w=0.0
+OBJ2-2.2-05,2.2,formal,True,"No SoC, SoH, current or power operational excess is reported.",PASS,outputs/validation/objective2_bess_limits/summary.json,All operational excess metrics are zero.
+OBJ2-2.2-06,2.2,formal,True,"Anti-windup, disabled BESS, charge and discharge are covered.",PASS,outputs/validation/objective2_bess_limits/summary.csv,"Criteria 10, 11 and 12 cover bidirectional signs, disabled BESS and PI anti-windup."
+OBJ2-2.3-01,2.3,formal,True,"Tuning results contain 36 rows, nine candidates and four scenarios.",PASS,outputs/validation/objective2_vsg_tuning/tuning_results.csv,Expected 9 x 4 multi-scenario table.
+OBJ2-2.3-02,2.3,formal,True,Ranking contains unique positions 1 through 9.,PASS,outputs/validation/objective2_vsg_tuning/tuning_summary.json,Ranking positions are deterministic and unique.
+OBJ2-2.3-03,2.3,formal,True,"Selected point is M=80, D=1500 at rank 1.",PASS,outputs/validation/objective2_vsg_tuning/tuning_summary.json,"M=80.0, D=1500.0, rank=1"
+OBJ2-2.3-04,2.3,formal,True,Formal aggregate score matches corrected evidence.,PASS,outputs/validation/objective2_vsg_tuning/tuning_summary.json,formal_aggregate_score=0.13438663777278462
+OBJ2-2.3-05,2.3,formal,True,The three formal operating scenarios pass.,PASS,outputs/validation/objective2_vsg_tuning/tuning_summary.json,formal_domain_selection_status=PASS
+OBJ2-2.3-06,2.3,documentation,True,No global optimum is claimed.,PASS,outputs/validation/objective2_vsg_tuning/tuning_summary.json; docs/objective_2_activities_2_1_to_2_3_closure.md,The selected point is limited to the evaluated domain.
+OBJ2-2.3-07,2.3,formal,True,Solver and RoCoF settings match corrected evidence.,PASS,outputs/validation/objective2_vsg_tuning/tuning_summary.json,"max_step=5e-5, rocof_window=post_event, rocof_dt=0.001"
+OBJ2-2.3-08,2.3,formal,True,Selected point is valid for formal scenarios and not for severe no-BESS.,PASS,outputs/validation/objective2_vsg_tuning/tuning_summary.json,Formal selection and severe diagnostic are separated.
+OBJ2-2.3-09,2.3,formal,True,Formal 12-state small-signal architecture passes.,PASS,outputs/validation/objective2_vsg_tuning/small_signal_summary.json,Formal architecture has no unstable modes.
+OBJ2-2.3-10,2.3,formal,True,Exactly one formal neutral phase mode is reported.,PASS,outputs/validation/objective2_vsg_tuning/eigenvalues.csv,Neutral mode 12 is the phase symmetry mode.
+OBJ2-2.3-11,2.3,formal,True,Formal zeta margin exceeds the 0.10 threshold.,PASS,outputs/validation/objective2_vsg_tuning/small_signal_summary.json,"zeta_min=0.5808312032635214, margin=0.48083120326352147"
+OBJ2-2.3-12,2.3,formal,True,Formal perturbation sensitivity is acceptable.,PASS,outputs/validation/objective2_vsg_tuning/small_signal_summary.json,No formal mode is strongly sensitive under the recorded perturbation check.
+OBJ2-2.3-13,2.3,diagnostic,False,BESS 16-state small-signal case is diagnostic REVIEW.,REVIEW,outputs/validation/objective2_vsg_tuning/small_signal_summary.json,Slow BESS/PI states prevent treating it as a closed periodic orbit.
+OBJ2-2.3-14,2.3,diagnostic,False,Extended severe no-BESS case remains a non-blocking diagnostic FAIL.,FAIL,outputs/validation/objective2_vsg_tuning/tuning_results.csv,status=FAIL; scope=extended_diagnostic; blocking=false; Vdc_min=313.8643954758725; Vdc_min_required=327.5020881285063
+OBJ2-CROSS-01,cross,cross_activity,True,"The same selected point appears across design, tuning and stability.",PASS,docs/objective_2_virtual_inertia_controller_design.md; outputs/validation/objective2_vsg_tuning/tuning_summary.json,M=80 and D=1500 are consistent.
+OBJ2-CROSS-02,cross,cross_activity,True,The same zeta threshold and determining mode are reported.,PASS,outputs/validation/objective2_vsg_tuning/small_signal_summary.json; docs/objective_2_activities_2_1_to_2_3_closure.md,zeta_min_required=0.10 and determining mode=9.
+OBJ2-CROSS-03,cross,documentation,True,The closure document declares the main limitations.,PASS,docs/objective_2_activities_2_1_to_2_3_closure.md,The closure decision keeps REVIEW as a documented limitation state.
+OBJ2-CROSS-04,cross,documentation,True,The closure document does not contain local absolute paths.,PASS,docs/objective_2_activities_2_1_to_2_3_closure.md,Only relative repository paths are used.
+OBJ2-CROSS-05,cross,documentation,True,The closure document does not claim experimental validation.,PASS,docs/objective_2_activities_2_1_to_2_3_closure.md,Internal reproducible validation is distinguished from experiments.
+OBJ2-CROSS-06,cross,documentation,True,The IEEE 33 coupling is not described as bidirectional co-simulation.,PASS,docs/objective_2_activities_2_1_to_2_3_closure.md,IEEE 33 remains one-way postprocessing.
