@@ -1,0 +1,745 @@
+{
+  "candidates": [
+    {
+      "D": 200.0,
+      "M": 20.0,
+      "aggregate_score": 0.8973149041254633,
+      "candidate_id": 1,
+      "hard_constraints_pass_all": true,
+      "rank": 9,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.5437210582286359,
+        "load_step_20_bess_pi_nominal_soh": 0.46401831445328007,
+        "load_step_20_no_bess": 0.7823786881534587,
+        "load_step_40_no_bess": 1.7991415556664787
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 850.0,
+      "M": 20.0,
+      "aggregate_score": 0.8509003946116225,
+      "candidate_id": 2,
+      "hard_constraints_pass_all": true,
+      "rank": 8,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.5196816153470533,
+        "load_step_20_bess_pi_nominal_soh": 0.4237542339429735,
+        "load_step_20_no_bess": 0.7449985443517664,
+        "load_step_40_no_bess": 1.7151671848046968
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 1500.0,
+      "M": 20.0,
+      "aggregate_score": 0.8365644899055489,
+      "candidate_id": 3,
+      "hard_constraints_pass_all": true,
+      "rank": 7,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.5097968194497371,
+        "load_step_20_bess_pi_nominal_soh": 0.41371880183260223,
+        "load_step_20_no_bess": 0.7299513194309589,
+        "load_step_40_no_bess": 1.6927910189088973
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 200.0,
+      "M": 50.0,
+      "aggregate_score": 0.6349720819209426,
+      "candidate_id": 4,
+      "hard_constraints_pass_all": true,
+      "rank": 6,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.3085938296343344,
+        "load_step_20_bess_pi_nominal_soh": 0.24934319360921683,
+        "load_step_20_no_bess": 0.5052414619212714,
+        "load_step_40_no_bess": 1.4767098425189478
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 850.0,
+      "M": 50.0,
+      "aggregate_score": 0.6008082331443495,
+      "candidate_id": 5,
+      "hard_constraints_pass_all": true,
+      "rank": 5,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.285173415439149,
+        "load_step_20_bess_pi_nominal_soh": 0.21544588694448014,
+        "load_step_20_no_bess": 0.4692644348836496,
+        "load_step_40_no_bess": 1.4333491953101192
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 1500.0,
+      "M": 50.0,
+      "aggregate_score": 0.5946678881928755,
+      "candidate_id": 6,
+      "hard_constraints_pass_all": true,
+      "rank": 4,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.2824718160129571,
+        "load_step_20_bess_pi_nominal_soh": 0.2098864304632715,
+        "load_step_20_no_bess": 0.4637655071701872,
+        "load_step_40_no_bess": 1.422547799125086
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 200.0,
+      "M": 80.0,
+      "aggregate_score": 0.5652931856498489,
+      "candidate_id": 7,
+      "hard_constraints_pass_all": true,
+      "rank": 3,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.2489193823064244,
+        "load_step_20_bess_pi_nominal_soh": 0.1942256213496383,
+        "load_step_20_no_bess": 0.43379866161268393,
+        "load_step_40_no_bess": 1.384229077330649
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 850.0,
+      "M": 80.0,
+      "aggregate_score": 0.5369648731909463,
+      "candidate_id": 8,
+      "hard_constraints_pass_all": true,
+      "rank": 2,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.22635146235466425,
+        "load_step_20_bess_pi_nominal_soh": 0.16233988157421708,
+        "load_step_20_no_bess": 0.39810339195630184,
+        "load_step_40_no_bess": 1.3610647568786023
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 1500.0,
+      "M": 80.0,
+      "aggregate_score": 0.531588301421809,
+      "candidate_id": 9,
+      "hard_constraints_pass_all": true,
+      "rank": 1,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.22339859726113015,
+        "load_step_20_bess_pi_nominal_soh": 0.1574655835898366,
+        "load_step_20_no_bess": 0.3942001037759661,
+        "load_step_40_no_bess": 1.3512889210603034
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": true,
+      "small_signal_checked": true,
+      "small_signal_rejection_reason": "",
+      "small_signal_status": "PASS",
+      "unstable_modes": [],
+      "zeta_min": 0.5808312032635214,
+      "zeta_min_mode": 9
+    }
+  ],
+  "comparison_selected_vs_previous": {
+    "aggregate_score_delta_selected_minus_previous": 0.0,
+    "aggregate_score_previous": 0.531588301421809,
+    "aggregate_score_selected": 0.531588301421809,
+    "previous_D": 1500.0,
+    "previous_M": 80.0,
+    "selected_D": 1500.0,
+    "selected_M": 80.0
+  },
+  "domain": {
+    "D": [
+      200.0,
+      850.0,
+      1500.0
+    ],
+    "M": [
+      20.0,
+      50.0,
+      80.0
+    ]
+  },
+  "hard_failure_penalty": 1000.0,
+  "limitations": [
+    "No global optimum is claimed.",
+    "The severe no-BESS scenario may retain the documented DC energy deficit.",
+    "Objective weights are design scales, not universal standards."
+  ],
+  "model_commit": "28bfeceadef7055efd779db309e2732da38a9406",
+  "no_global_optimum_claimed": true,
+  "normalization_scales": {
+    "bess_current_stress": 1.0,
+    "bess_power_stress": 1.0,
+    "frequency_deviation": 0.5,
+    "frequency_recovery": 5.0,
+    "rocof": 5.0,
+    "soc_excursion": 1.0,
+    "steady_frequency_error": 0.1,
+    "steady_vdc_error": 5.0,
+    "vdc_event_deviation": 5.0
+  },
+  "previous_point": {
+    "D": 1500.0,
+    "M": 80.0
+  },
+  "ranking": [
+    {
+      "D": 1500.0,
+      "M": 80.0,
+      "aggregate_score": 0.531588301421809,
+      "candidate_id": 9,
+      "hard_constraints_pass_all": true,
+      "rank": 1,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.22339859726113015,
+        "load_step_20_bess_pi_nominal_soh": 0.1574655835898366,
+        "load_step_20_no_bess": 0.3942001037759661,
+        "load_step_40_no_bess": 1.3512889210603034
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": true,
+      "small_signal_checked": true,
+      "small_signal_rejection_reason": "",
+      "small_signal_status": "PASS",
+      "unstable_modes": [],
+      "zeta_min": 0.5808312032635214,
+      "zeta_min_mode": 9
+    },
+    {
+      "D": 850.0,
+      "M": 80.0,
+      "aggregate_score": 0.5369648731909463,
+      "candidate_id": 8,
+      "hard_constraints_pass_all": true,
+      "rank": 2,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.22635146235466425,
+        "load_step_20_bess_pi_nominal_soh": 0.16233988157421708,
+        "load_step_20_no_bess": 0.39810339195630184,
+        "load_step_40_no_bess": 1.3610647568786023
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 200.0,
+      "M": 80.0,
+      "aggregate_score": 0.5652931856498489,
+      "candidate_id": 7,
+      "hard_constraints_pass_all": true,
+      "rank": 3,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.2489193823064244,
+        "load_step_20_bess_pi_nominal_soh": 0.1942256213496383,
+        "load_step_20_no_bess": 0.43379866161268393,
+        "load_step_40_no_bess": 1.384229077330649
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 1500.0,
+      "M": 50.0,
+      "aggregate_score": 0.5946678881928755,
+      "candidate_id": 6,
+      "hard_constraints_pass_all": true,
+      "rank": 4,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.2824718160129571,
+        "load_step_20_bess_pi_nominal_soh": 0.2098864304632715,
+        "load_step_20_no_bess": 0.4637655071701872,
+        "load_step_40_no_bess": 1.422547799125086
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 850.0,
+      "M": 50.0,
+      "aggregate_score": 0.6008082331443495,
+      "candidate_id": 5,
+      "hard_constraints_pass_all": true,
+      "rank": 5,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.285173415439149,
+        "load_step_20_bess_pi_nominal_soh": 0.21544588694448014,
+        "load_step_20_no_bess": 0.4692644348836496,
+        "load_step_40_no_bess": 1.4333491953101192
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 200.0,
+      "M": 50.0,
+      "aggregate_score": 0.6349720819209426,
+      "candidate_id": 4,
+      "hard_constraints_pass_all": true,
+      "rank": 6,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.3085938296343344,
+        "load_step_20_bess_pi_nominal_soh": 0.24934319360921683,
+        "load_step_20_no_bess": 0.5052414619212714,
+        "load_step_40_no_bess": 1.4767098425189478
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 1500.0,
+      "M": 20.0,
+      "aggregate_score": 0.8365644899055489,
+      "candidate_id": 3,
+      "hard_constraints_pass_all": true,
+      "rank": 7,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.5097968194497371,
+        "load_step_20_bess_pi_nominal_soh": 0.41371880183260223,
+        "load_step_20_no_bess": 0.7299513194309589,
+        "load_step_40_no_bess": 1.6927910189088973
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 850.0,
+      "M": 20.0,
+      "aggregate_score": 0.8509003946116225,
+      "candidate_id": 2,
+      "hard_constraints_pass_all": true,
+      "rank": 8,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.5196816153470533,
+        "load_step_20_bess_pi_nominal_soh": 0.4237542339429735,
+        "load_step_20_no_bess": 0.7449985443517664,
+        "load_step_40_no_bess": 1.7151671848046968
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 200.0,
+      "M": 20.0,
+      "aggregate_score": 0.8973149041254633,
+      "candidate_id": 1,
+      "hard_constraints_pass_all": true,
+      "rank": 9,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.5437210582286359,
+        "load_step_20_bess_pi_nominal_soh": 0.46401831445328007,
+        "load_step_20_no_bess": 0.7823786881534587,
+        "load_step_40_no_bess": 1.7991415556664787
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    }
+  ],
+  "rejected_candidates": [
+    {
+      "D": 200.0,
+      "M": 20.0,
+      "aggregate_score": 0.8973149041254633,
+      "candidate_id": 1,
+      "hard_constraints_pass_all": true,
+      "rank": 9,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.5437210582286359,
+        "load_step_20_bess_pi_nominal_soh": 0.46401831445328007,
+        "load_step_20_no_bess": 0.7823786881534587,
+        "load_step_40_no_bess": 1.7991415556664787
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 850.0,
+      "M": 20.0,
+      "aggregate_score": 0.8509003946116225,
+      "candidate_id": 2,
+      "hard_constraints_pass_all": true,
+      "rank": 8,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.5196816153470533,
+        "load_step_20_bess_pi_nominal_soh": 0.4237542339429735,
+        "load_step_20_no_bess": 0.7449985443517664,
+        "load_step_40_no_bess": 1.7151671848046968
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 1500.0,
+      "M": 20.0,
+      "aggregate_score": 0.8365644899055489,
+      "candidate_id": 3,
+      "hard_constraints_pass_all": true,
+      "rank": 7,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.5097968194497371,
+        "load_step_20_bess_pi_nominal_soh": 0.41371880183260223,
+        "load_step_20_no_bess": 0.7299513194309589,
+        "load_step_40_no_bess": 1.6927910189088973
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 200.0,
+      "M": 50.0,
+      "aggregate_score": 0.6349720819209426,
+      "candidate_id": 4,
+      "hard_constraints_pass_all": true,
+      "rank": 6,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.3085938296343344,
+        "load_step_20_bess_pi_nominal_soh": 0.24934319360921683,
+        "load_step_20_no_bess": 0.5052414619212714,
+        "load_step_40_no_bess": 1.4767098425189478
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 850.0,
+      "M": 50.0,
+      "aggregate_score": 0.6008082331443495,
+      "candidate_id": 5,
+      "hard_constraints_pass_all": true,
+      "rank": 5,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.285173415439149,
+        "load_step_20_bess_pi_nominal_soh": 0.21544588694448014,
+        "load_step_20_no_bess": 0.4692644348836496,
+        "load_step_40_no_bess": 1.4333491953101192
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 1500.0,
+      "M": 50.0,
+      "aggregate_score": 0.5946678881928755,
+      "candidate_id": 6,
+      "hard_constraints_pass_all": true,
+      "rank": 4,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.2824718160129571,
+        "load_step_20_bess_pi_nominal_soh": 0.2098864304632715,
+        "load_step_20_no_bess": 0.4637655071701872,
+        "load_step_40_no_bess": 1.422547799125086
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 200.0,
+      "M": 80.0,
+      "aggregate_score": 0.5652931856498489,
+      "candidate_id": 7,
+      "hard_constraints_pass_all": true,
+      "rank": 3,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.2489193823064244,
+        "load_step_20_bess_pi_nominal_soh": 0.1942256213496383,
+        "load_step_20_no_bess": 0.43379866161268393,
+        "load_step_40_no_bess": 1.384229077330649
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    },
+    {
+      "D": 850.0,
+      "M": 80.0,
+      "aggregate_score": 0.5369648731909463,
+      "candidate_id": 8,
+      "hard_constraints_pass_all": true,
+      "rank": 2,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.22635146235466425,
+        "load_step_20_bess_pi_nominal_soh": 0.16233988157421708,
+        "load_step_20_no_bess": 0.39810339195630184,
+        "load_step_40_no_bess": 1.3610647568786023
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": false,
+      "small_signal_checked": false,
+      "small_signal_rejection_reason": "not evaluated"
+    }
+  ],
+  "scenario_weight": 0.25,
+  "scenarios": [
+    "load_step_20_no_bess",
+    "load_step_40_no_bess",
+    "load_step_20_bess_pi_nominal_soh",
+    "irradiance_drop_20_bess_pi"
+  ],
+  "selected_point": {
+    "D": 1500.0,
+    "M": 80.0,
+    "aggregate_score": 0.531588301421809,
+    "candidate_id": 9,
+    "hard_constraints_pass_all": true,
+    "rank": 1,
+    "scenario_scores": {
+      "irradiance_drop_20_bess_pi": 0.22339859726113015,
+      "load_step_20_bess_pi_nominal_soh": 0.1574655835898366,
+      "load_step_20_no_bess": 0.3942001037759661,
+      "load_step_40_no_bess": 1.3512889210603034
+    },
+    "scenario_statuses": {
+      "irradiance_drop_20_bess_pi": "PASS",
+      "load_step_20_bess_pi_nominal_soh": "PASS",
+      "load_step_20_no_bess": "PASS",
+      "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+    },
+    "small_signal_accepted": true,
+    "small_signal_checked": true,
+    "small_signal_rejection_reason": "",
+    "small_signal_status": "PASS",
+    "unstable_modes": [],
+    "zeta_min": 0.5808312032635214,
+    "zeta_min_mode": 9
+  },
+  "small_signal_analyzed_candidates": [
+    {
+      "D": 1500.0,
+      "M": 80.0,
+      "aggregate_score": 0.531588301421809,
+      "candidate_id": 9,
+      "hard_constraints_pass_all": true,
+      "rank": 1,
+      "scenario_scores": {
+        "irradiance_drop_20_bess_pi": 0.22339859726113015,
+        "load_step_20_bess_pi_nominal_soh": 0.1574655835898366,
+        "load_step_20_no_bess": 0.3942001037759661,
+        "load_step_40_no_bess": 1.3512889210603034
+      },
+      "scenario_statuses": {
+        "irradiance_drop_20_bess_pi": "PASS",
+        "load_step_20_bess_pi_nominal_soh": "PASS",
+        "load_step_20_no_bess": "PASS",
+        "load_step_40_no_bess": "REVIEW_SEVERE_ENERGY_DEFICIT"
+      },
+      "small_signal_accepted": true,
+      "small_signal_checked": true,
+      "small_signal_rejection_reason": "",
+      "small_signal_status": "PASS",
+      "unstable_modes": [],
+      "zeta_min": 0.5808312032635214,
+      "zeta_min_mode": 9
+    }
+  ],
+  "stability_status": "PASS",
+  "status": "REVIEW",
+  "tolerances": {
+    "config_solver_max_step_s": 5e-05,
+    "identity_atol_w": 1e-08,
+    "limit_atol": 1e-08,
+    "rocof_dt_s": 0.001,
+    "solver_atol": 1e-08,
+    "solver_rtol": 1e-06,
+    "tuning_solver_max_step_s": 0.005
+  },
+  "weights": {
+    "bess_current_stress": 0.05,
+    "bess_power_stress": 0.05,
+    "frequency_deviation": 0.25,
+    "frequency_recovery": 0.1,
+    "rocof": 0.1,
+    "soc_excursion": 0.05,
+    "steady_frequency_error": 0.1,
+    "steady_vdc_error": 0.1,
+    "vdc_event_deviation": 0.2
+  },
+  "zeta_min": 0.5808312032635214,
+  "zeta_min_mode": 9
+}

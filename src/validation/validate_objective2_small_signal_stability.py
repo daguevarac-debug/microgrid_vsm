@@ -211,21 +211,27 @@ def _constant_profiles_model(controller: GFMController) -> Microgrid:
     )
 
 
-def build_formal_model() -> Microgrid:
+def build_formal_model(
+    inertia_m: float = GFM_SELECTED_M,
+    damping_d: float = GFM_SELECTED_D,
+) -> Microgrid:
     return _constant_profiles_model(
         GFMController(
             p_ref=_reference_active_power_w(),
-            inertia_m=GFM_SELECTED_M,
-            damping_d=GFM_SELECTED_D,
+            inertia_m=inertia_m,
+            damping_d=damping_d,
         )
     )
 
 
-def build_bess_pi_model() -> MicrogridWithBESSPI:
+def build_bess_pi_model(
+    inertia_m: float = GFM_SELECTED_M,
+    damping_d: float = GFM_SELECTED_D,
+) -> MicrogridWithBESSPI:
     controller = GFMController(
         p_ref=_reference_active_power_w(),
-        inertia_m=GFM_SELECTED_M,
-        damping_d=GFM_SELECTED_D,
+        inertia_m=inertia_m,
+        damping_d=damping_d,
     )
     pi = DCLinkBESSPIController(
         vdc_ref_v=SIM_VDC0_V_DEFAULT,
@@ -341,30 +347,76 @@ def _match_eigenvalues(reference: np.ndarray, comparison: np.ndarray) -> list[in
     return matches
 
 
-def _sensitivity(
+def _stable_flag(mu: complex) -> str:
+    if abs(mu - 1.0) <= NEUTRAL_TOL:
+        return "neutral"
+    if abs(mu) > 1.0 + UNIT_CIRCLE_TOL:
+        return "unstable"
+    if abs(abs(mu) - 1.0) <= UNIT_CIRCLE_TOL:
+        return "near_unit"
+    return "stable"
+
+
+def _modal_sensitivity(
     eigvals_a: np.ndarray,
     eigvals_b: np.ndarray,
     period_s: float,
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     matches = _match_eigenvalues(eigvals_a, eigvals_b)
     paired = eigvals_b[matches]
     mu_mag_change = np.abs(np.abs(eigvals_a) - np.abs(paired))
     lambda_a = np.asarray([mu_to_lambda(mu, period_s) for mu in eigvals_a])
     lambda_b = np.asarray([mu_to_lambda(mu, period_s) for mu in paired])
     real_change = np.abs(np.real(lambda_a) - np.real(lambda_b))
-    stable_a = np.abs(eigvals_a) < 1.0 - UNIT_CIRCLE_TOL
-    stable_b = np.abs(paired) < 1.0 - UNIT_CIRCLE_TOL
-    classification_stable = bool(np.array_equal(stable_a, stable_b))
+
+    records: list[dict[str, Any]] = []
+    strong_flags: list[bool] = []
+    classification_stable = True
+    for index, (mu_a, mu_b, delta_mu, delta_real) in enumerate(
+        zip(eigvals_a, paired, mu_mag_change, real_change),
+        start=1,
+    ):
+        flag_a = _stable_flag(mu_a)
+        flag_b = _stable_flag(mu_b)
+        classification_changed = flag_a != flag_b
+        classification_stable = classification_stable and not classification_changed
+        near_unit = bool(
+            abs(abs(mu_a) - 1.0) <= 5.0 * UNIT_CIRCLE_TOL
+            or abs(abs(mu_b) - 1.0) <= 5.0 * UNIT_CIRCLE_TOL
+        )
+        deeply_damped = bool(abs(mu_a) < 1e-4 and abs(mu_b) < 1e-4)
+        if deeply_damped:
+            sensitive = bool(classification_changed or delta_mu > SENSITIVITY_MU_TOL)
+        elif near_unit:
+            sensitive = bool(
+                classification_changed
+                or delta_mu > SENSITIVITY_MU_TOL
+                or delta_real > SENSITIVITY_LAMBDA_TOL
+            )
+        else:
+            sensitive = bool(classification_changed or delta_mu > SENSITIVITY_MU_TOL)
+        strong_flags.append(sensitive)
+        records.append(
+            {
+                "mode_id": index,
+                "paired_mu_real": float(np.real(mu_b)),
+                "paired_mu_imag": float(np.imag(mu_b)),
+                "delta_mu_magnitude": float(delta_mu),
+                "delta_lambda_real": float(delta_real),
+                "classification_a": flag_a,
+                "classification_b": flag_b,
+                "classification_changed": bool(classification_changed),
+                "near_unit_circle": near_unit,
+                "deeply_damped": deeply_damped,
+                "individual_sensitive": sensitive,
+            }
+        )
     return {
         "max_mu_magnitude_change": float(np.max(mu_mag_change)),
         "max_lambda_real_change": float(np.max(real_change)),
         "classification_stable": classification_stable,
-        "strong_sensitivity": bool(
-            np.max(mu_mag_change) > SENSITIVITY_MU_TOL
-            or np.max(real_change) > SENSITIVITY_LAMBDA_TOL
-            or not classification_stable
-        ),
-    }
+        "strong_sensitivity": bool(any(strong_flags)),
+    }, records
 
 
 def _analyze_architecture(
@@ -399,13 +451,14 @@ def _analyze_architecture(
     eigvals_a, eigvecs_a = np.linalg.eig(jac_a)
     eigvals_b = np.linalg.eigvals(jac_b)
     eigvals, eigvecs = _sorted_eigs(eigvals_a, eigvecs_a)
-    sensitivity = _sensitivity(eigvals, eigvals_b, period_s)
+    sensitivity, modal_sensitivity = _modal_sensitivity(eigvals, eigvals_b, period_s)
 
     modes: list[dict[str, Any]] = []
     zeta_values: list[tuple[int, float]] = []
     neutral_modes: list[int] = []
     unstable_modes: list[int] = []
     for mode_index, (mu, vec) in enumerate(zip(eigvals, eigvecs.T), start=1):
+        sensitivity_record = modal_sensitivity[mode_index - 1]
         lamb = mu_to_lambda(mu, period_s)
         values = modal_values(mu, period_s)
         classification, relevant, exclusion = classify_mode(
@@ -414,7 +467,7 @@ def _analyze_architecture(
             vec,
             scales,
             names,
-            sensitivity_flag=bool(sensitivity["strong_sensitivity"]),
+            sensitivity_flag=bool(sensitivity_record["individual_sensitive"]),
         )
         dominant = _dominant_states(vec, scales, names)
         if classification == "neutral_phase_mode":
@@ -438,8 +491,18 @@ def _analyze_architecture(
                 "dominant_state_2": dominant[1],
                 "dominant_state_3": dominant[2],
                 "perturbation_sensitivity": (
-                    "strong" if sensitivity["strong_sensitivity"] else "acceptable"
+                    "strong"
+                    if sensitivity_record["individual_sensitive"]
+                    else "acceptable"
                 ),
+                "delta_mu_magnitude": sensitivity_record["delta_mu_magnitude"],
+                "delta_lambda_real": sensitivity_record["delta_lambda_real"],
+                "sensitivity_classification_changed": sensitivity_record[
+                    "classification_changed"
+                ],
+                "near_unit_circle_sensitivity": sensitivity_record[
+                    "near_unit_circle"
+                ],
             }
         )
 
@@ -507,6 +570,7 @@ def _analyze_architecture(
         "periodicity": residual,
         "bess_slow_state_drift": bess_drift,
         "sensitivity": sensitivity,
+        "modal_sensitivity": modal_sensitivity,
         "neutral_modes": neutral_modes,
         "unstable_modes": unstable_modes,
         "zeta_min": zeta_min,
@@ -518,9 +582,11 @@ def _analyze_architecture(
     return summary, modes
 
 
-def _overall_status(formal: dict[str, Any], bess: dict[str, Any]) -> str:
+def _overall_status(formal: dict[str, Any], bess: dict[str, Any] | None) -> str:
     if formal["status"] == "FAIL":
         return "FAIL"
+    if bess is None:
+        return formal["status"]
     if (
         formal["status"] == "PASS"
         and bess["status"] != "REVIEW"
@@ -554,19 +620,26 @@ def run_validation(
     write: bool = True,
     settling_time_s: float = 1.0,
     perturbation_factor: float = 1e-6,
+    inertia_m: float = GFM_SELECTED_M,
+    damping_d: float = GFM_SELECTED_D,
+    formal_only: bool = False,
 ) -> dict[str, Any]:
     formal_summary, formal_modes = _analyze_architecture(
         architecture="gfm_12_state_no_bess",
-        model=build_formal_model(),
+        model=build_formal_model(inertia_m=inertia_m, damping_d=damping_d),
         settling_time_s=settling_time_s,
         perturbation_factor=perturbation_factor,
     )
-    bess_summary, bess_modes = _analyze_architecture(
-        architecture="gfm_bess_pi_16_state_diagnostic",
-        model=build_bess_pi_model(),
-        settling_time_s=settling_time_s,
-        perturbation_factor=perturbation_factor,
-    )
+    if formal_only:
+        bess_summary = None
+        bess_modes: list[dict[str, Any]] = []
+    else:
+        bess_summary, bess_modes = _analyze_architecture(
+            architecture="gfm_bess_pi_16_state_diagnostic",
+            model=build_bess_pi_model(inertia_m=inertia_m, damping_d=damping_d),
+            settling_time_s=settling_time_s,
+            perturbation_factor=perturbation_factor,
+        )
     modes = formal_modes + bess_modes
     global_status = _overall_status(formal_summary, bess_summary)
     output_dir = Path(output_dir)
@@ -580,13 +653,12 @@ def run_validation(
             "Jacobian is not used as the formal stability proof."
         ),
         "model_commit": _git_commit(),
-        "M": GFM_SELECTED_M,
-        "D": GFM_SELECTED_D,
+        "M": float(inertia_m),
+        "D": float(damping_d),
         "alpha": ALPHA_NOT_APPLICABLE,
         "status": global_status,
         "architectures": {
             formal_summary["architecture"]: formal_summary,
-            bess_summary["architecture"]: bess_summary,
         },
         "tolerances": {
             "neutral_tol": NEUTRAL_TOL,
@@ -638,6 +710,8 @@ def run_validation(
             "small_signal_summary_json": str(summary_json),
         },
     }
+    if bess_summary is not None:
+        report["architectures"][bess_summary["architecture"]] = bess_summary
     clean = _json_ready(report)
 
     if write:
@@ -663,6 +737,10 @@ def run_validation(
                     "dominant_state_2",
                     "dominant_state_3",
                     "perturbation_sensitivity",
+                    "delta_mu_magnitude",
+                    "delta_lambda_real",
+                    "sensitivity_classification_changed",
+                    "near_unit_circle_sensitivity",
                 ),
             )
             writer.writeheader()
@@ -678,8 +756,12 @@ def run_validation(
     print(f"formal_unstable_modes={formal_summary['unstable_modes']}")
     print(f"formal_zeta_min={formal_summary['zeta_min']}")
     print(f"formal_zeta_min_mode={formal_summary['zeta_min_mode']}")
-    print(f"bess_status={bess_summary['status']}")
-    print(f"bess_reason={bess_summary['reason']}")
+    if bess_summary is None:
+        print("bess_status=SKIPPED")
+        print("bess_reason=formal_only")
+    else:
+        print(f"bess_status={bess_summary['status']}")
+        print(f"bess_reason={bess_summary['reason']}")
     print(f"global_status={global_status}")
     if write:
         print(f"eigenvalues_csv={eigenvalues_csv}")
@@ -689,12 +771,34 @@ def run_validation(
     return clean
 
 
+def analyze_point(
+    inertia_m: float,
+    damping_d: float,
+    *,
+    formal_only: bool = True,
+    settling_time_s: float = 1.0,
+    perturbation_factor: float = 1e-6,
+) -> dict[str, Any]:
+    """Analyze one ``(M, D)`` point and return evidence without writing files."""
+    return run_validation(
+        write=False,
+        settling_time_s=settling_time_s,
+        perturbation_factor=perturbation_factor,
+        inertia_m=inertia_m,
+        damping_d=damping_d,
+        formal_only=formal_only,
+    )
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR_DEFAULT)
     parser.add_argument("--no-write", action="store_true")
     parser.add_argument("--settling-time", type=float, default=1.0)
     parser.add_argument("--perturbation-factor", type=float, default=1e-6)
+    parser.add_argument("--m", type=float, default=GFM_SELECTED_M)
+    parser.add_argument("--d", type=float, default=GFM_SELECTED_D)
+    parser.add_argument("--formal-only", action="store_true")
     return parser.parse_args()
 
 
@@ -705,6 +809,9 @@ def main() -> int:
         write=not args.no_write,
         settling_time_s=args.settling_time,
         perturbation_factor=args.perturbation_factor,
+        inertia_m=args.m,
+        damping_d=args.d,
+        formal_only=args.formal_only,
     )
     return 1 if report["status"] == "FAIL" else 0
 
