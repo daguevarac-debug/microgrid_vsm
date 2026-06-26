@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="920" viewBox="0 0 1400 920" role="img" aria-labelledby="title desc">
+  <title id="title">Objective 2 VSG-BESS microgrid block diagram</title>
+  <desc id="desc">Block diagram of the implemented PV DC-link BESS VSG inverter LCL PCC and load architecture with feedback, limits, UVLO and optional PI.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2937"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d4ed8"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .block { fill: #ffffff; stroke: #334155; stroke-width: 2; rx: 8; }
+      .energy { fill: #ecfeff; stroke: #155e75; }
+      .control { fill: #eff6ff; stroke: #1d4ed8; }
+      .limit { fill: #fff7ed; stroke: #c2410c; }
+      .state { fill: #f0fdf4; stroke: #15803d; }
+      .optional { fill: #faf5ff; stroke: #7e22ce; stroke-dasharray: 7 5; }
+      .text { font-family: Arial, Helvetica, sans-serif; fill: #0f172a; font-size: 18px; }
+      .small { font-size: 14px; fill: #334155; }
+      .tiny { font-size: 12px; fill: #475569; }
+      .title { font-size: 24px; font-weight: 700; }
+      .label { font-size: 15px; fill: #1f2937; }
+      .line { stroke: #1f2937; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .line2 { stroke: #1d4ed8; stroke-width: 2.5; fill: none; marker-end: url(#arrow-blue); }
+      .dash { stroke-dasharray: 7 5; }
+      .bidir { marker-start: url(#arrow); marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1400" height="920"/>
+  <text class="text title" x="48" y="48">Objective 2.1 implemented classical VSG-BESS architecture</text>
+  <text class="text small" x="48" y="76">One global ODE solver integrates plant, omega, theta, BESS states and optional PI state.</text>
+
+  <!-- Energy path -->
+  <rect class="block energy" x="55" y="170" width="135" height="82"/>
+  <text class="text" x="92" y="203">PV</text>
+  <text class="text small" x="75" y="226">single-diode</text>
+
+  <rect class="block energy" x="245" y="156" width="150" height="110"/>
+  <text class="text" x="282" y="193">DC link</text>
+  <text class="text small" x="275" y="218">state Vdc</text>
+  <text class="text tiny" x="265" y="242">dVdc/dt balance</text>
+
+  <rect class="block energy" x="455" y="156" width="170" height="110"/>
+  <text class="text" x="491" y="190">Averaged</text>
+  <text class="text" x="491" y="214">inverter</text>
+  <text class="text small" x="480" y="240">v_inv, idc_inv</text>
+
+  <rect class="block energy" x="685" y="156" width="150" height="110"/>
+  <text class="text" x="732" y="193">LCL</text>
+  <text class="text small" x="713" y="218">i1, vc, i2</text>
+  <text class="text tiny" x="710" y="242">abc dynamics</text>
+
+  <rect class="block energy" x="895" y="156" width="140" height="110"/>
+  <text class="text" x="941" y="193">PCC</text>
+  <text class="text small" x="922" y="218">v_pcc, i2</text>
+  <text class="text tiny" x="920" y="242">P_e feedback</text>
+
+  <rect class="block energy" x="1095" y="170" width="165" height="82"/>
+  <text class="text" x="1132" y="203">R-L load</text>
+  <text class="text small" x="1125" y="226">balanced 3-phase</text>
+
+  <path class="line" d="M 190 211 L 245 211"/>
+  <path class="line" d="M 395 211 L 455 211"/>
+  <path class="line" d="M 625 211 L 685 211"/>
+  <path class="line" d="M 835 211 L 895 211"/>
+  <path class="line" d="M 1035 211 L 1095 211"/>
+  <text class="text label" x="205" y="196">ipv</text>
+  <text class="text label" x="410" y="196">Vdc</text>
+  <text class="text label" x="639" y="196">v_inv</text>
+  <text class="text label" x="849" y="196">i2</text>
+
+  <!-- BESS and BMS -->
+  <rect class="block energy" x="220" y="365" width="200" height="112"/>
+  <text class="text" x="254" y="398">BESS-SLB</text>
+  <text class="text small" x="246" y="423">Thevenin 1RC</text>
+  <text class="text tiny" x="244" y="447">SoC, Vrc, zdeg</text>
+  <text class="text tiny" x="244" y="466">p_bess_dc = Vdc*i_bess</text>
+
+  <path class="line bidir" d="M 320 365 L 320 266"/>
+  <text class="text label" x="330" y="317">i_bess</text>
+  <text class="text tiny" x="330" y="338">+ discharge</text>
+  <text class="text tiny" x="330" y="354">- charge</text>
+
+  <rect class="block limit" x="55" y="365" width="130" height="112"/>
+  <text class="text" x="88" y="398">BMS</text>
+  <text class="text tiny" x="75" y="422">SoC, SoH</text>
+  <text class="text tiny" x="75" y="440">current limit</text>
+  <text class="text tiny" x="75" y="458">power limit</text>
+  <path class="line" d="M 185 421 L 220 421"/>
+
+  <!-- VSG controller -->
+  <rect class="block control" x="510" y="385" width="285" height="180"/>
+  <text class="text" x="560" y="420">GFM / classical VSG</text>
+  <text class="text small" x="538" y="450">dtheta/dt = omega</text>
+  <text class="text small" x="538" y="474">domega/dt = (P_ref_eff - P_e</text>
+  <text class="text small" x="538" y="497">- D*(omega - omega_ref))/M</text>
+  <text class="text tiny" x="538" y="523">M = 80, D = 1500</text>
+  <text class="text tiny" x="538" y="542">frequency_hz = omega/(2*pi)</text>
+
+  <rect class="block state" x="835" y="395" width="145" height="70"/>
+  <text class="text" x="865" y="423">States</text>
+  <text class="text small" x="858" y="447">omega, theta</text>
+
+  <path class="line2" d="M 795 430 L 835 430"/>
+  <path class="line2" d="M 650 385 L 650 266"/>
+  <text class="text label" x="660" y="330">theta to synthesis</text>
+
+  <!-- Saturation and limits -->
+  <rect class="block limit" x="500" y="635" width="190" height="120"/>
+  <text class="text" x="535" y="668">P_ref_eff</text>
+  <text class="text tiny" x="525" y="694">PV + signed BESS</text>
+  <text class="text tiny" x="525" y="713">SoC/SoH/current/power</text>
+  <text class="text tiny" x="525" y="732">saturation before VSG</text>
+
+  <rect class="block limit" x="735" y="635" width="175" height="120"/>
+  <text class="text" x="772" y="668">UVLO</text>
+  <text class="text small" x="768" y="693">and modulation</text>
+  <text class="text tiny" x="764" y="716">m_ctrl &lt;= m_base</text>
+  <text class="text tiny" x="764" y="735">zero bridge below UVLO</text>
+
+  <path class="line2" d="M 595 635 L 595 565"/>
+  <path class="line2" d="M 822 635 L 590 266"/>
+
+  <path class="line2" d="M 965 266 C 965 330 760 330 760 385"/>
+  <text class="text label" x="862" y="326">P_e = v_pcc^T*i2</text>
+
+  <path class="line2 dash" d="M 420 421 C 455 421 470 475 510 475"/>
+  <text class="text tiny" x="418" y="410">signed p_bess_dc, limits</text>
+
+  <!-- Optional PI -->
+  <rect class="block optional" x="960" y="635" width="240" height="135"/>
+  <text class="text" x="993" y="668">Optional DC-link PI</text>
+  <text class="text small" x="990" y="694">x[15] = xi_bess_vdc</text>
+  <text class="text tiny" x="990" y="718">P_bess_ref = sat(kp*e + ki*xi)</text>
+  <text class="text tiny" x="990" y="739">conditional anti-windup</text>
+  <text class="text tiny" x="990" y="758">does not modify VSG M or D</text>
+  <path class="line2 dash" d="M 320 156 L 320 118 L 1080 118 L 1080 635"/>
+  <text class="text tiny" x="995" y="108">Vdc feedback</text>
+  <path class="line2 dash" d="M 960 735 C 900 735 900 785 820 785 L 420 785 L 420 455"/>
+  <text class="text tiny" x="610" y="777">signed BESS power request</text>
+
+  <!-- Balance equation -->
+  <rect class="block" x="55" y="620" width="365" height="135"/>
+  <text class="text" x="88" y="653">Protected DC balance</text>
+  <text class="text small" x="85" y="684">dVdc/dt = (ipv + i_bess - idc_inv)/Cdc</text>
+  <text class="text small" x="85" y="710">i_bess &gt; 0 discharge into DC bus</text>
+  <text class="text small" x="85" y="734">i_bess &lt; 0 charge from DC bus</text>
+
+  <!-- State order note -->
+  <rect class="block" x="55" y="800" width="1250" height="78"/>
+  <text class="text small" x="80" y="828">Protected GFM mapping: x[10] = omega, x[11] = theta, x[12] = soc_bess, x[13] = vrc_bess, x[14] = zdeg_bess.</text>
+  <text class="text small" x="80" y="854">External PI only: x[15] = xi_bess_vdc. Classical VSG selected: alpha is not applicable.</text>
+</svg>
