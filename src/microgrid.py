@@ -228,17 +228,6 @@ class HardwarePlant:
         # del intercambio BESS<->bus DC durante la integracion incremental.
         return (ipv + i_bess - idc_inv) / self.dcp.Cdc
 
-    def lcl_derivatives(
-        self,
-        v_inv: np.ndarray,
-        v_pcc: np.ndarray,
-        i1: np.ndarray,
-        vc: np.ndarray,
-        i2: np.ndarray,
-    ):
-        """Delegate LCL state derivatives."""
-        return self.lcl.calculate_derivatives(v_inv, v_pcc, i1, vc, i2)
-
 
 # ---------------------------------------------------------------------------
 # Microgrid

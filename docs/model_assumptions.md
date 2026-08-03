@@ -158,10 +158,13 @@ Interpretacion fisica:
 Integracion del filtro LCL en la dinamica de la microrred (baseline):
 
 - El inversor entrega la tension trifasica `v_inv`.
-- Esta `v_inv` entra al filtro mediante `plant.lcl_derivatives(v_inv, v_pcc, i1, vc, i2)`.
-- La carga/PCC se representa en el baseline como `v_pcc = i2 * R_load`.
-- El filtro devuelve `di1dt`, `dvcdt` y `di2dt`, que se insertan en el vector
-  de derivadas del sistema dinamico.
+- Esta `v_inv` entra al filtro mediante
+  `plant.lcl_derivatives_with_rl_load(v_inv, i1, vc, i2, load)`.
+- La carga/PCC se representa en el baseline como
+  `v_pcc = R_load*i2 + L_load*di2/dt`, sustituida en la ecuacion del inductor
+  del lado de red sin agregar un nuevo estado.
+- El filtro devuelve `di1dt`, `dvcdt`, `di2dt` y `v_pcc`, que se insertan en el
+  vector de derivadas del sistema dinamico.
 - Esta subtarea confirma la integracion ya existente; no implementa una nueva
   funcionalidad.
 

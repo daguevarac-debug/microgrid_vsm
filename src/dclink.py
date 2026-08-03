@@ -32,19 +32,3 @@ class DCLinkParams:
     def __post_init__(self) -> None:
         self.Cdc = _positive_float("DCLinkParams.Cdc", self.Cdc)
         self.Vmin = _positive_float("DCLinkParams.Vmin", self.Vmin)
-
-
-def i_load_const_power(Vdc: float, P: float, Vmin: float = DCLINK_VMIN_DEFAULT) -> float:
-    """Constant-power DC load: I = P / V."""
-    Vdc = _finite_float("Vdc", Vdc)
-    P = _finite_float("P", P)
-    Vmin = _positive_float("Vmin", Vmin)
-    Veff = max(Vdc, Vmin)
-    return P / Veff
-
-
-def i_load_resistor(Vdc: float, R: float) -> float:
-    """Resistive DC load: I = V / R."""
-    Vdc = _finite_float("Vdc", Vdc)
-    R = _positive_float("R", R)
-    return Vdc / R
