@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+.pytest_cache/
 *.pyc
 *.pyo
 *.pyd
@@ -19,6 +20,7 @@ env/
 Thumbs.db
 
 # Generated figures/results
+outputs/objective3/
 outputs/*.png
 outputs/validation/**/*.png
 outputs/validation/braco_fig5b_sl_*/aligned_curves.csv

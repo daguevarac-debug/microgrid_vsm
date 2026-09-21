@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "name": "Synthetic two-bus interface test ONLY",
+  "provenance": "Invented software fixture; no relation to San Andres or Cundinamarca",
+  "synthetic": true,
+  "base_mva": 1.0,
+  "frequency_hz": 60.0,
+  "pcc_bus": "test_pcc",
+  "buses": [{"id": "test_slack", "vn_kv": 12.66}, {"id": "test_pcc", "vn_kv": 12.66}],
+  "lines": [{"id": "test_line", "from_bus": "test_slack", "to_bus": "test_pcc",
+             "length_km": 1.0, "r_ohm_per_km": 0.2, "x_ohm_per_km": 0.1,
+             "c_nf_per_km": 0.0, "max_i_ka": 0.1}],
+  "loads": [{"id": "test_load", "bus": "test_pcc", "p_mw": 0.01, "q_mvar": 0.002}],
+  "generators": [],
+  "slack": {"bus": "test_slack", "vm_pu": 1.0, "va_degree": 0.0}
+}
