@@ -51,7 +51,7 @@ from config import (
     MICROGRID_UVLO_V_DEFAULT,
     SIM_VDC0_V_DEFAULT,
 )
-from controllers.base import ControlOutput, InverterControllerBase
+from controllers.base import InverterControllerBase
 from controllers.grid_following import GridFollowingController
 from dclink import DCLinkParams
 from inverter_source import GridFormingInverter, validate_dc_bus_capability
