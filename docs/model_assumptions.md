@@ -9,8 +9,9 @@ Los supuestos de este documento delimitan el alcance del modelo físico-matemát
 y dinámico usado en la Actividad 1.3. El modelo corresponde a un baseline trazable
 para una microrred PV + BESS-SLB, orientado a estudiar coherencia eléctrica y
 operación preliminar del conjunto PV + BESS-SLB + bus DC + inversor + filtro LCL
-+ carga/PCC. No representa todavía una validación experimental, un diseño óptimo
-final ni una estrategia grid-forming/VSG completamente integrada.
++ carga/PCC. El Objetivo 2 añade el VSG clásico integrado y validado internamente,
+con el alcance de `objective_2_activities_2_1_to_2_3_closure.md`. No representa
+validación experimental ni diseño óptimo global.
 
 - Temperatura constante: no se implementa un modelo térmico dinámico. La
   temperatura se trata como condición asumida o entrada de los submodelos que la
@@ -26,10 +27,10 @@ final ni una estrategia grid-forming/VSG completamente integrada.
 - Alcance de validez: el baseline es adecuado para validación práctica interna y
   análisis preliminar de coherencia dinámica del sistema implementado, no para
   certificar desempeño experimental ni optimización final.
-- Limitaciones conocidas: siguen pendientes la integración final del BESS con
-  convertidor DC/DC y BMS detallados, el control grid-forming/VSG acoplado a la
-  planta completa, la estrategia final de inercia virtual y la validación formal
-  con escenarios experimentales o perfiles medidos.
+- Limitaciones conocidas: siguen pendientes el convertidor DC/DC y BMS
+  detallados, FOVIC y la validación experimental o con perfiles medidos.
+  El VSG clásico acoplado a la planta completa ya pertenece al baseline cerrado
+  del Objetivo 2; sus resultados `REVIEW` conservan las limitaciones declaradas.
 
 ## BESS-SLB
 
@@ -158,8 +159,10 @@ Interpretacion fisica:
 Integracion del filtro LCL en la dinamica de la microrred (baseline):
 
 - El inversor entrega la tension trifasica `v_inv`.
-- Esta `v_inv` entra al filtro mediante `plant.lcl_derivatives(v_inv, v_pcc, i1, vc, i2)`.
-- La carga/PCC se representa en el baseline como `v_pcc = i2 * R_load`.
+- En la ruta activa R-L, `v_inv` entra mediante
+  `plant.lcl_derivatives_with_rl_load(v_inv, i1, vc, i2, load)`.
+- El PCC completo es `v_pcc = R_load*i2 + L_load*di2/dt`.
+  `pcc_voltage()` y `lcl_derivatives()` conservan la ruta resistiva histórica.
 - El filtro devuelve `di1dt`, `dvcdt` y `di2dt`, que se insertan en el vector
   de derivadas del sistema dinamico.
 - Esta subtarea confirma la integracion ya existente; no implementa una nueva
@@ -755,16 +758,16 @@ La prueba mide el impacto de la disponibilidad de soporte del BESS dependiente
 del SoH sobre la respuesta integrada baseline. No es una validacion final del
 control ni de una estrategia BMS.
 
-El impacto sobre frecuencia no se interpreta todavia como resultado final,
-porque el modelo actual sigue siendo baseline/grid-following y no esta acoplado
-a grid-forming/VSG. Cualquier diagnostico de frecuencia queda fuera de las
-metricas formales hasta activar esa etapa.
+Esta comparación histórica usa el baseline grid-following y no permite métricas
+dinámicas de frecuencia. Las campañas GFM del Objetivo 2 sí usan
+`frequency_hz = omega/(2*pi)`, con `GFMController` activo y `x[10] = omega`.
 
 Simplificaciones validas para esta etapa:
 
 - Acople BESS-bus DC idealizado (sin modelo explicito del convertidor DC/DC).
 - `idc_inv` modelado unidireccional DC->AC en el baseline.
-- `p_available` del controlador referido a disponibilidad FV.
+- En grid-following, `p_available` se refiere a disponibilidad FV. En GFM,
+  la referencia usa disponibilidad DC neta e incluye la potencia BESS firmada.
 - No se incluye carga DC adicional ni perdidas explicitas del bus DC.
 
 Alcance de validacion en esta etapa:

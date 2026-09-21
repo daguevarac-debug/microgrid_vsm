@@ -209,6 +209,8 @@ python src/validation/validate_islanded_operation_scenarios.py
   `docs/objective_1_closure_criteria.md`.
 - Cierre formal del Objetivo 2:
   `docs/objective_2_closure_criteria.md`.
+- Cierre consolidado más reciente de Actividades 2.1–2.3 (sintonía y pequeña señal):
+  `docs/objective_2_activities_2_1_to_2_3_closure.md`.
 - Supuestos y limitaciones:
   `docs/model_assumptions.md`.
 - Estructura GFM:
@@ -229,6 +231,33 @@ python src/validation/validate_islanded_operation_scenarios.py
 - Modelo ZIP completo, desbalance, motores, armónicos y cargas no lineales.
 - Validación experimental, HIL o prototipo físico.
 - Co-simulación dinámica bidireccional con IEEE 33.
+
+## Siguiente fase: Objetivo 3
+
+Los Objetivos 1 y 2 quedan como baseline acumulativo; el cierre del Objetivo 2
+es `REVIEW` con limitaciones declaradas. Incluye VSG clásico, sintonía
+multi-escenario y pequeña señal numérica, conservando el fallo de factibilidad
+DC del caso severo extendido sin BESS. La red real o representativa de Colombia
+todavía no se ha recibido (opciones mencionadas: San Andrés o Cundinamarca).
+
+Guía operativa y contrato de datos: [Preparación del Objetivo 3](docs/objective_3_preparation.md).
+Contexto maestro: [Contexto de trabajo](docs/chatgpt_work_context.md).
+
+```bash
+# Verificar únicamente la interfaz con datos sintéticos identificados
+python src/objective3_main.py src/validation/fixtures/objective3_synthetic.json
+
+# Ensayo completo: escenario local existente + dos flujos estáticos
+# Q=0 es una hipótesis del ensayo sintético, pendiente de definir para la red real
+python src/objective3_main.py src/validation/fixtures/objective3_synthetic.json --run-baseline --q-pcc-mvar 0
+
+# Pruebas rápidas de la interfaz
+python -m pytest src/validation/test_objective3_interface.py -q
+```
+
+Cada ejecución crea su propia carpeta en `outputs/objective3/` (no versionada),
+con datos normalizados y resumen trazable. No constituye un caso académico
+validado; los adaptadores desde PowerFactory/pandapower esperan el archivo real.
 
 ## Alcance académico
 

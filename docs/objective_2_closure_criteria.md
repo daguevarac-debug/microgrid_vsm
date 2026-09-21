@@ -1,5 +1,13 @@
 # Criterio formal de cierre del Objetivo 2
 
+Actualización de alcance: el cierre consolidado de las Actividades 2.1–2.3 está
+en `objective_2_activities_2_1_to_2_3_closure.md`: Objetivo 2 técnicamente cerrado
+en `REVIEW`, con limitaciones declaradas. Incluye sintonía multi-escenario y
+análisis numérico periódico de pequeña señal (12 estados formal, 16 diagnóstico).
+El `REVIEW` de la campaña integrada descrita aquí y el `FAIL` de factibilidad DC
+del escenario severo extendido de sintonía usan criterios distintos; ambos se
+conservan. El análisis numérico no equivale a una demostración formal global.
+
 ## Propósito del documento
 
 Este documento define el criterio formal de terminado del Objetivo 2 para el

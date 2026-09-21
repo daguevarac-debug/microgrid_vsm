@@ -1,5 +1,10 @@
 # Criterio formal de cierre del Objetivo 1
 
+Nota de vigencia: este documento conserva el alcance del cierre del Objetivo 1.
+Las referencias a GFM integrado como trabajo posterior describen esa etapa;
+el VSG clásico ya quedó integrado y cerrado en el Objetivo 2, según
+`objective_2_activities_2_1_to_2_3_closure.md`. La siguiente fase es el Objetivo 3.
+
 ## Propósito del documento
 
 Este documento define el criterio de terminado del Objetivo 1 en el alcance
