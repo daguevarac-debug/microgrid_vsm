@@ -62,7 +62,7 @@ def slopes(es, train):
 def residual(x, es, ids, slope, discharge=False):
     r0, r1, tau, v0 = x
     return np.concatenate([(predict(es[k], r0, r1, tau, v0, slope[k])-es[k]['v'])[
-        (es[k]['step'] == 6) if discharge else (es[k]['step'] != 5)] for k in ids])
+        (es[k]['step'] == 6) if discharge else np.isin(es[k]['step'], (6, 7, 8))] for k in ids])
 
 
 def fit(es, ids, slope, discharge=False, v0_fixed=None):
