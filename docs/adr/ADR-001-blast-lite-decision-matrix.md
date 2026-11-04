@@ -1,0 +1,16 @@
+# ADR-001 — Matriz de decisiones aprobadas y puerta BAT26-33
+
+| Tema | Decisión propuesta | Tipo | Riesgo / límite | Aprobación o condición antes de BAT26-33 |
+|---|---|---|---|---|
+| Método de capacidad | BLAST-Lite Leaf preferido para estudios de degradación calendario y cíclica; la ley lineal se conserva como referencia y alternativa de regresión excluyente | **Aprobada metodológicamente** | Sin validación independiente para el perfil de tesis; dominio cíclico estrecho | Integración y validación física quedan para BAT26-33 |
+| Transferencia a caso | `retention=q(t)/q(t0)` aplicada a `Q_case`; preservar estado e historia BLAST | **Aprobada como hipótesis de modelado** | No reidentifica parámetros ni demuestra transferencia a 44.1/43.5 Ah | No usar `qNew` o 0.7 sobre `Q_case`; no presentarla como validación experimental |
+| Capacidades | 66 nominal; 46 atributo BLAST; 46.2 = `0.7·66`; 44.1 tesis; 43.5 experimento Braco | Convención de referencia | 46 y 46.2 discrepan 0.2 Ah; muestras no necesariamente coinciden | Mantener trazabilidad y no equiparar casos |
+| SoC en cambio de snapshot | Preservar SoC fraccional; evento de contabilidad, sin corriente/energía/Ah/EFC artificiales | **Aprobada provisionalmente para escenarios** | No conserva automáticamente `SoC·Qeff`; no validada físicamente; límites pueden dejar caso no factible | Reportar violaciones sin clipping/rebase |
+| Tiempo | Reportar sensibilidad entre particiones anidadas; declarar no convergencia mientras no exista tolerancia fundada | **Política aprobada** | 32→64 sigue cambiando q; refinar más inventaría muestras | Mantener etiqueta “no convergencia demostrada” hasta tolerancia justificada |
+| Datos de entrada | Exigir SoC, Tcelda, tiempo e I de grupo 2p con unidades, signo y procedencia | Puerta experimental | T ambiente no sustituye Tcelda; topología/sensores pueden diferir | No usar perfiles sin trazabilidad ni proclamar validación experimental |
+| Coexistencia de leyes | Una sola ley puede actualizar Qeff/SoH en cada ejecución; `z_deg` diagnóstico en modo BLAST | **Aprobada como requisito de diseño** | Doble conteo de capacidad; incertidumbre separada de `R0(SoH)` | Prueba de exclusividad + regresiones Objective 1/BESS/PI/GFM antes de integración |
+| Alcance BAT26-32 | Selección metodológica cerrada con limitaciones explícitas | **Aprobada** | No cierra evidencia física ni autoriza conexión del adaptador en BAT26-32 | BAT26-33 implementa y valida el puente; no afirmar validación experimental |
+
+**Plan BAT26-33:** inspeccionar diffs locales; aislar el adaptador en `src/bess/blast_lite_adapter.py`; usar `CapacitySnapshot` por ventanas con estado/historia BLAST persistentes; seleccionar explícitamente modo BLAST o lineal sin doble actualización; conservar SoC fraccional sin throughput ficticio; añadir pruebas del contrato/exclusividad y ejecutar regresiones Objective 1, BESS, invariantes y GFM/PI relevantes. Criterios detallados y archivos candidatos constan en el ADR principal. En esta tarea no se implementó el puente.
+
+Véase [ADR-001-blast-lite-capacity-aging.md](ADR-001-blast-lite-capacity-aging.md) para fundamentos, cifras observadas, incertidumbres, referencias y plan de validación.

@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
+from bess.aging_capacity import CapacitySnapshot
 from bess.model import SecondLifeBattery1RC
 from config import (
     BESS_COUPLED_I_MAX_DEFAULT,
@@ -522,6 +523,10 @@ class MicrogridWithBESS(Microgrid):
         i_bess_max: float = BESS_COUPLED_I_MAX_DEFAULT,
         p_bess_max_w: float = BESS_COUPLED_P_MAX_W_DEFAULT,
         bess_excel_path: str | Path | None = None,
+        *,
+        capacity_snapshot: CapacitySnapshot | None = None,
+        aging_mode: str | None = None,
+        blast_profile_kind: str | None = None,
     ):
         super().__init__(
             irradiance_profile=irradiance_profile,
@@ -558,17 +563,41 @@ class MicrogridWithBESS(Microgrid):
         else:
             self.bess = bess_model
 
+        # A snapshot must not silently select the optional aging mechanism.
+        if aging_mode is None:
+            aging_mode = "linear"
+        if aging_mode not in ("linear", "blast"):
+            raise ValueError("aging_mode must be 'linear' or 'blast'")
+        if (aging_mode == "blast") != (capacity_snapshot is not None):
+            raise ValueError("blast requires a snapshot; linear forbids one")
+        if aging_mode == "blast" and blast_profile_kind != "synthetic":
+            raise ValueError("blast requires an explicitly synthetic profile")
+        if aging_mode == "linear" and blast_profile_kind is not None:
+            raise ValueError("linear mode does not accept a BLAST profile kind")
+        self.aging_mode = aging_mode
+        if capacity_snapshot is not None:
+            self.bess.validate_capacity_snapshot(capacity_snapshot)
+        self._capacity_snapshot = capacity_snapshot
+
         self._last_i_bess = 0.0
         self._last_soc_bess = float(self.bess.soc_initial)
-        self._last_soh_bess = float(self.bess.soh_init_case)
+        self._last_soh_bess = float(self._bess_soh(0.0))
         self._last_vt_bess = float(
             self.bess.terminal_voltage(
                 soc=self.bess.soc_initial,
                 v_rc=0.0,
                 i_bess=0.0,
-                soh=self.bess.soh_init_case,
+                soh=self._bess_soh(0.0),
             )
         )
+
+    def _bess_soh(self, z_deg: float) -> float:
+        if self._capacity_snapshot is None:
+            return self.bess.soh_from_z_deg(z_deg)
+        z_eval = _finite_float("z_deg", z_deg)
+        if z_eval < 0.0:
+            raise ValueError(f"z_deg must be >= 0, got {z_eval}.")
+        return self._capacity_snapshot.soh
 
     def initial_state_with_bess(self, vdc0: float = SIM_VDC0_V_DEFAULT) -> list[float]:
         """Return controller-specific initial state augmented with BESS states."""
@@ -637,7 +666,7 @@ class MicrogridWithBESS(Microgrid):
         vrc_bess = x[13]
         zdeg_bess = x[14]
 
-        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        soh_bess = self._bess_soh(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
         i_bess = self._compute_i_bess(
             Vdc=Vdc,
@@ -671,7 +700,8 @@ class MicrogridWithBESS(Microgrid):
             t=t,
             x=[soc_bess, vrc_bess, zdeg_bess],
             i_bess=i_bess,
-            soh=self.bess.soh_init_case,
+            soh=soh_bess,
+            capacity_snapshot=self._capacity_snapshot,
         )
 
         vt_bess = self.bess.terminal_voltage(
@@ -721,7 +751,7 @@ class MicrogridWithBESS(Microgrid):
         vrc_bess = x[13]
         zdeg_bess = x[14]
 
-        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        soh_bess = self._bess_soh(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
         i_bess = self._compute_i_bess(
             Vdc=Vdc,

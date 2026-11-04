@@ -1,0 +1,46 @@
+
+--- Case A: Rest ---
+soc_ini=0.600000, soc_fin=0.600000
+vrc_ini=0.120000, vrc_fin=0.000075
+vt_ini=3.360000, vt_fin=3.479925
+vt_min=3.360000, vt_max=3.479925
+status=PASS
+
+--- Case B: Constant Discharge ---
+soc_ini=0.600000, soc_fin=0.581061
+vrc_ini=0.000000, vrc_fin=0.195889
+vt_ini=3.192000, vt_fin=2.980959
+vt_min=2.980959, vt_max=3.192000
+status=PASS
+
+--- Case C: Constant Charge ---
+soc_ini=0.600000, soc_fin=0.618939
+vrc_ini=0.000000, vrc_fin=-0.197465
+vt_ini=3.768000, vt_fin=3.980617
+vt_min=3.768000, vt_max=3.980617
+status=PASS
+
+--- Case D: Pulse Discharge-Rest-Charge ---
+soc_ini=0.600000, soc_fin=0.593687
+vrc_ini=0.000000, vrc_fin=-0.130859
+vt_ini=3.192000, vt_fin=3.797809
+vt_min=2.980984, vt_max=3.797809
+status=PASS
+
+--- Case E1: SoH 0.90 ---
+soc_ini=0.600000, soc_fin=0.566330
+vrc_ini=0.000000, vrc_fin=0.195294
+vt_ini=3.216000, vt_fin=2.993770
+vt_min=2.993770, vt_max=3.216000
+status=PASS
+
+--- Case E2: SoH 0.60 ---
+soc_ini=0.600000, soc_fin=0.549495
+vrc_ini=0.000000, vrc_fin=0.194542
+vt_ini=3.144000, vt_fin=2.909054
+vt_min=2.909054, vt_max=3.144000
+status=PASS
+
+Validation plots saved to: C:\Users\hp\AppData\Local\Temp\bat26_33_1f9abb01e07e4927aa0ca13a9938c014\outputs\validation\bess_step2
+
+Overall status: PASS

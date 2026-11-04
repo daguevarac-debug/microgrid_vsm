@@ -1,0 +1,45 @@
+{
+  "source": "BLAST-Lite GitHub codigo publico; reproduce forma incremental y coeficientes pero NO invoca paquete BLAST instalado",
+  "not_validation": true,
+  "sensitivity": "Q0 44.1Ah es transformacion hipotesis no un ajuste calibrado de NissanLeaf66Ah",
+  "EFC": "EFC fijados como input; no convertir ciclos de Braco ni incorporar RPT",
+  "T_SoC": "constantes durante el horizonte. Modelos mas completos promedian kcal instantaneo en trayectorias T/SoC",
+  "steps": {
+    "365": {
+      "days": 365.0,
+      "EFC_controlados": 183.0,
+      "temp_C": 25.0,
+      "SoC_medio": 0.5,
+      "n_pasos": 365,
+      "k_cal": 0.00387800860446317,
+      "qLoss_cal": 0.06003882749838779,
+      "qLoss_cyc": 0.02102837472494566,
+      "q_relativo": 0.9189327977766665
+    },
+    "3650": {
+      "days": 365.0,
+      "EFC_controlados": 183.0,
+      "temp_C": 25.0,
+      "SoC_medio": 0.5,
+      "n_pasos": 3650,
+      "k_cal": 0.00387800860446317,
+      "qLoss_cal": 0.05992924448275138,
+      "qLoss_cyc": 0.021041344303706362,
+      "q_relativo": 0.9190294112135422
+    },
+    "36500": {
+      "days": 365.0,
+      "EFC_controlados": 183.0,
+      "temp_C": 25.0,
+      "SoC_medio": 0.5,
+      "n_pasos": 36500,
+      "k_cal": 0.00387800860446317,
+      "qLoss_cal": 0.05991405054689114,
+      "qLoss_cyc": 0.021043157664248892,
+      "q_relativo": 0.91904279178886
+    }
+  },
+  "files": [
+    "BAT26-32_BLAST_caso_controlado_Q0_y_calendario.csv"
+  ]
+}

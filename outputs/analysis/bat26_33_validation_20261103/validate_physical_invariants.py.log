@@ -1,0 +1,7 @@
+no_bess_dc_balance_pass=True
+bess_dc_balance_pass=True
+bess_power_identity_pass=True
+soc_bounds_pass=True
+charge_discharge_signs_pass=True
+overall_status=PASS
+output_path=C:\Users\hp\AppData\Local\Temp\bat26_33_1f9abb01e07e4927aa0ca13a9938c014\outputs\validation\physical_invariants\gfm_physical_invariants_summary.json

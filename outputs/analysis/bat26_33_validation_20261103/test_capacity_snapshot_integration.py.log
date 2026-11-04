@@ -1,0 +1,11 @@
+test_incompatible_or_below_limit_snapshots_are_rejected (test_capacity_snapshot_integration.TestCapacitySnapshotIntegration.test_incompatible_or_below_limit_snapshots_are_rejected) ... ok
+test_initial_capacity_and_one_hour_coulomb_counting (test_capacity_snapshot_integration.TestCapacitySnapshotIntegration.test_initial_capacity_and_one_hour_coulomb_counting) ... ok
+test_legacy_linear_mode_remains_independent (test_capacity_snapshot_integration.TestCapacitySnapshotIntegration.test_legacy_linear_mode_remains_independent) ... ok
+test_new_window_uses_new_snapshot_without_linear_fade (test_capacity_snapshot_integration.TestCapacitySnapshotIntegration.test_new_window_uses_new_snapshot_without_linear_fade) ... ok
+test_snapshot_is_frozen_and_capacity_independent_of_throughput (test_capacity_snapshot_integration.TestCapacitySnapshotIntegration.test_snapshot_is_frozen_and_capacity_independent_of_throughput) ... ok
+test_snapshot_mode_preserves_states_and_supervision_in_both_architectures (test_capacity_snapshot_integration.TestCapacitySnapshotIntegration.test_snapshot_mode_preserves_states_and_supervision_in_both_architectures) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.010s
+
+OK

@@ -1,0 +1,90 @@
+{
+  "bess_pi_20pct": {
+    "all_dynamic_invariants_pass": true,
+    "bess_current_coherence_pass": true,
+    "bess_power_equation": "p_bess_dc = Vdc * i_bess",
+    "bess_power_identity_pass": true,
+    "dc_balance_equation": "dVdc_dt = (ipv + i_bess - idc_inv) / Cdc",
+    "dc_balance_pass": true,
+    "i_bess_max_a": 0.0,
+    "i_bess_min_a": -2.4177518039698365,
+    "max_abs_bess_current_reconstruction_residual_a": 0.0,
+    "max_abs_bess_power_identity_residual_w": 0.0,
+    "max_abs_dc_balance_residual_v_per_s": 0.0,
+    "max_allowed_bess_power_identity_residual_w": 9.338739906819795e-08,
+    "max_allowed_dc_balance_residual_v_per_s": 5.586407331867011e-07,
+    "p_bess_dc_max_w": 0.0,
+    "p_bess_dc_min_w": -833.8739906819795,
+    "sample_count": 1001,
+    "sign_convention": "i_bess > 0 injects into DC bus (discharge); i_bess < 0 absorbs from DC bus (charge)",
+    "signals_finite": true,
+    "soc_bounds_pass": true,
+    "soc_final": 0.600042657555817,
+    "soc_max_allowed": 0.9,
+    "soc_max_observed": 0.600042657555817,
+    "soc_min_allowed": 0.1,
+    "soc_min_observed": 0.6,
+    "solver_message": "The solver successfully reached the end of the integration interval.",
+    "solver_success": true
+  },
+  "controller": {
+    "D": 1500.0,
+    "M": 80.0,
+    "class": "GFMController"
+  },
+  "equations_verified": {
+    "bess_power": "p_bess_dc = Vdc * i_bess",
+    "dc_balance": "dVdc_dt = (ipv + i_bess - idc_inv) / Cdc",
+    "soc_bounds": "soc_min <= SoC <= soc_max"
+  },
+  "invariants_pass": true,
+  "no_bess_20pct": {
+    "dc_balance_pass": true,
+    "equation": "dVdc_dt = (ipv + 0 - idc_inv) / Cdc",
+    "idc_inv_max_a": 12.598660173016238,
+    "idc_inv_min_a": 0.0,
+    "ipv_max_a": 11.152814663734022,
+    "ipv_min_a": 7.769503314761273,
+    "max_abs_dc_balance_residual_v_per_s": 0.0,
+    "max_allowed_dc_balance_residual_v_per_s": 5.586407331867011e-07,
+    "sample_count": 1001,
+    "sign_convention_preserved": true,
+    "signals_finite": true,
+    "solver_message": "The solver successfully reached the end of the integration interval.",
+    "solver_success": true
+  },
+  "output_path": "C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_33_1f9abb01e07e4927aa0ca13a9938c014\\outputs\\validation\\physical_invariants\\gfm_physical_invariants_summary.json",
+  "sign_convention_probes": {
+    "both_signs_pass": true,
+    "charge_probe": {
+      "current_and_soc_sign_pass": true,
+      "d_soc_dt_per_s": 3.140172110986243e-06,
+      "dc_link_bess_contribution_v_per_s": -249.26686217008796,
+      "dc_link_contribution_sign_pass": true,
+      "expected_dc_link_bess_contribution_v_per_s": -249.26686217008796,
+      "expected_mode": "charge",
+      "i_bess_a": -0.49853372434017595,
+      "p_bess_dc_w": -170.0,
+      "power_identity_pass": true,
+      "probe_pass": true,
+      "vdc_probe_v": 341.0
+    },
+    "discharge_probe": {
+      "current_and_soc_sign_pass": true,
+      "d_soc_dt_per_s": -3.158698200136604e-06,
+      "dc_link_bess_contribution_v_per_s": 250.73746312684364,
+      "dc_link_contribution_sign_pass": true,
+      "expected_dc_link_bess_contribution_v_per_s": 250.73746312684364,
+      "expected_mode": "discharge",
+      "i_bess_a": 0.5014749262536873,
+      "p_bess_dc_w": 170.0,
+      "power_identity_pass": true,
+      "probe_pass": true,
+      "vdc_probe_v": 339.0
+    },
+    "reference_vdc_v": 340.0
+  },
+  "solver_checks_pass": true,
+  "status": "PASS",
+  "task": "Verificar invariantes fisicos del balance DC y BESS"
+}

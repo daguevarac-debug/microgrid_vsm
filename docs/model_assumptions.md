@@ -815,3 +815,47 @@ Respaldo conceptual general:
   proyecto (sin reclamar citas textuales aqui).
 
 
+
+
+### Instantánea opcional de capacidad para una ventana rápida
+
+`MicrogridWithBESS` y `MicrogridWithBESSPI` aceptan `capacity_snapshot`
+(`CapacitySnapshot`) al construir el modelo. La instantánea es inmutable y
+se mantiene fija durante la integración; se construye otra instancia para una
+nueva ventana. `Q_eff = Q0 * retention_since_case_start` y
+`SoH = Q_eff / Q_nom` alimentan la dinámica, el voltaje y la supervisión.
+El caso 66 Ah / 44.1 Ah / retención 1 inicia en 44.1 Ah y SoH 44.1/66.
+Las referencias deben coincidir con las del modelo BESS; una instantánea por
+debajo de los límites de simulación se rechaza, sin recorte silencioso.
+
+Sin instantánea sigue vigente la ley lineal original. Con instantánea, `zdeg`
+permanece como contador diagnóstico de Ah y no modifica la capacidad ni el SoH.
+No se actualiza automáticamente el SoC entre ventanas: la convención de esa
+transición aún requiere decisión y validación. Tampoco se implementa BLAST-Lite.
+La ley existente de resistencia `R0(SoH)` permanece activa según
+`r0_soh_sensitivity`; para una comparación que mantenga R0 constante debe
+configurarse explícitamente en cero. La corriente de bus usada por el modelo
+acoplado no está acreditada como corriente física del par 2p: faltan topología
+y conversión DC/DC para interpretar el conteo de Ah o una futura entrada BLAST.
+
+### Adaptador algebraico DC/DC independiente
+
+El adaptador `bess.dc_dc_adapter` no está conectado a la microrred ni al solver.
+Los límites opcionales `unit_discharge_available_a` y `unit_charge_available_a`
+se suministran externamente por unidad y por evaluación; pueden incorporar la
+supervisión de SoH, pero el adaptador no calcula ninguna ley de degradación.
+Se limitan a los máximos configurados y pueden ser cero. Si se omiten, se
+utilizan los máximos configurados originales. Los resultados exponen los límites
+efectivos del bus como `bus_charge_limit_w` (no positivo) y
+`bus_discharge_limit_w` (no negativo), tras aplicar límites de SoC, tensión,
+corriente y potencia.
+
+Si la tensión de unidad a corriente nula está fuera de límites, o la OCV o la
+tensión del bus no son positivas, `protection_status` identifica la condición y el adaptador
+ordena intercambio nulo con disponibilidad nula. La tensión de unidad se devuelve
+sin recortar: potencia nula no certifica que el estado eléctrico sea válido. La
+protección es conservadora, sin corriente correctiva ni enclavamiento interno;
+se evalúa de nuevo en cada llamada. Un futuro integrador debe gestionar el evento,
+decidir parada o protección y no continuar suponiendo operación normal. Los
+errores de configuración siguen rechazándose. Esta interfaz es una aproximación
+algebraica, no un convertidor DC/DC detallado ni una validación experimental.
