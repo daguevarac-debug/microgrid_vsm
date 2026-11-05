@@ -158,7 +158,7 @@ def _plots(out: Path, rows: list[dict]) -> list[str]:
         ax.axhline(MIN_SOH * 100, linestyle="--", color="gray",
                    label="Límite de operación SoH = 50 %")
         if zoom:
-            lower = max(0.0, min(min(sohc), min(sohr), MIN_SOH * 100) - 1.0)
+            lower = max(0.0, min(min(sohc), min(sohr)) - 0.5)
             upper = min(100.0, max(max(sohc), max(sohr)) + 1.0)
             ax.set_ylim(lower, upper)
         else:
