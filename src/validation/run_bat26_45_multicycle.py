@@ -317,7 +317,7 @@ def main() -> int:
             ["git", "rev-parse", "HEAD"], cwd=REPO, text=True,
             capture_output=True, check=False).stdout.strip(),
         "python_version": sys.version.split()[0],
-        "blas_lite_version": importlib.metadata.version("BLAST-Lite"),
+        "blast_lite_version": importlib.metadata.version("BLAST-Lite"),
         "original_hashes": audited_hashes,
         "inputs_sha256": {name: _sha(REPO / name) for name in (
             "src/validation/run_bat26_45_multicycle.py", "src/bess/aging_capacity.py",
