@@ -57,7 +57,7 @@ La fila A supone además que el BESS ya descarga antes y después, con eficienci
 
 ## Sensibilidades, protecciones y límites
 
-Para B sin FV, η_inv=0,97, η_d=0,95 y Vpack=240 V: al variar Vdc hipotéticamente 306/340/374 V (−10/0/+10 %), Ibus es 14,150/12,735/11,577 A. Son **puntos de sensibilidad**, no dominio permitido ni resultados de simulación. A 340 V la razón Vbus/Vpack sobre 240–398,4 V es 1,4167–0,8534; a los puntos de bus 306–374 V y extremos de pack resulta 0,7681–1,5583. No se supone regulación AC válida a todas esas tensiones: modulación, márgenes y control deben evaluarse dinámicamente. Con Pbus fijo de 4,330 kW y ηd=0,95, Ipack a 240/360/398,4 V es 18,991/12,660/11,441 A, antes de límites dependientes del estado.
+Para B sin FV, η_inv=0,97, η_d=0,95 y Vpack=240 V: al variar Vdc hipotéticamente 306/340/374 V (−10/0/+10 %), Ibus es 14,150/12,735/11,577 A. Son **puntos de sensibilidad**, no dominio permitido ni resultados de simulación. A 340 V la razón Vbus/Vpack sobre 240–398,4 V es 1,4167–0,8534; a los puntos de bus 306–374 V y extremos de pack resulta 0,7681–1,5583. No se supone regulación AC válida a todas esas tensiones: modulación, márgenes y control deben evaluarse dinámicamente. Con Pbus fijo de 4,330 kW y ηd=0,95, Ipack a 240/360/398,4 V es 18,991/12,660/11,440 A, antes de límites dependientes del estado.
 
 Para B sin FV y Vpack=240 V:
 
