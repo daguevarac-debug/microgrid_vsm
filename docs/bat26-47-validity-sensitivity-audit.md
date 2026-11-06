@@ -57,3 +57,36 @@ El ensayo GFM de BAT26-46 quedó en absorción; esta tarea **no debe declarar va
 Documentar en los dos JSON los deltas numéricos y anexar tablas de sensibilidad. Si la sensibilidad temporal no es despreciable o el modelo puede abandonar su dominio, dejar la decisión de validez como `REVIEW` explícito. Definir una solicitud de datos: una misma pareja 2p de Leaf reutilizada con corriente, tensión terminal, temperatura de celda, RPT de capacidad repetidos (mismos límites de tensión y T), HPPC, identificador de muestra/pack y separación por grupo entre calibración/validación. Sin estos datos NO es justificable publicar MAE/RMSE de envejecimiento ni atribuir precisión experimental al BLAST transferido.
 
 **Estado inicial:** protocolo y código preparados, sin nuevas ejecuciones. BAT26-47 permanece inProgress hasta revisar cifras reales y redactar un dictamen que distinga validez numérica de evidencia experimental.
+
+## Resultados de ejecución (Codex Cloud; informe comunicado el 6-11-2026)
+
+**Estado de implementación: PASS numérico. Estado de validación experimental: REVIEW / NOT_EVALUABLE.** El usuario entregó los resultados del ejecutor en la rama de PR #43, commit `8e24752cf85abe95152044e1259d2d513b31c4fe`. Los seis tests de contrato pasaron. Esta revisión registra cifras comunicadas por Codex, pero **no inspeccionó directamente los archivos completos de los dos JSON en el espacio de trabajo remoto**. No se modificaron parámetros físicos ni los hashes de BLAST.
+
+### Ensayo de sensibilidad del 1RC
+
+Se ejecutaron **32 casos** (dos capacidades 44,1 y 35,854 Ah × cuatro corrientes de puerto −8/+4/+8/+16 A × cuatro máximos pasos temporales 120/60/30/15 s) y seis variantes adicionales de la pendiente provisional `k_R` (0, 1, 2) para +8 A y paso 60 s. Todos conservaron estados finitos, límites de SoC/SoH y corriente, tensión terminal positiva, convenio de signos y contabilidad de throughput. Comparados con el máximo paso de 15 s, las diferencias máximas absolutas fueron **1,67×10⁻¹³ puntos porcentuales de SoC** y **3,96×10⁻⁸ Wh de energía terminal**. Esto acredita consistencia numérica en el rango ensayado, no exactitud del 1RC físico.
+
+| Capacidad inicial (Ah) | Energía con k_R=0 (Wh) | k_R=1 (Wh) | k_R=2 (Wh) | Rango (Wh) |
+| ---: | ---: | ---: | ---: | ---: |
+| 44,100 | 29,688 | 29,668 | 29,647 | 0,041 |
+| 35,854 | 29,605 | 29,577 | 29,549 | 0,057 |
+
+El valor de SoC final fue indistinguible al variar `k_R`, de acuerdo con el conteo de carga; la energía terminal sí depende del supuesto de resistencia. **k_R=0,1,2** no define límites de incertidumbre ni corresponde a un ajuste de la pareja Leaf 2p.
+
+### Sensibilidad a partición BLAST tras 100 días
+
+Las tres ejecuciones se realizaron con idénticos perfiles sintéticos SoC/temperatura, 129 muestras y 128 intervalos físicos por jornada, cambiando exclusivamente el agrupamiento de esas muestras en ventanas. El intérprete y versión declarados y auditados fueron **Python 3.12.10**, **BLAST-Lite 1.1.0** con ambas huellas SHA-256 originales coincidentes.
+
+| Ventanas/día | SoH final (%) | Qeff final (Ah) | EFC BLAST |
+| ---: | ---: | ---: | ---: |
+| 1 | 64,049385 | 42,272594 | 77,876407 |
+| 2 | 64,038716 | 42,265553 | 77,849515 |
+| 4 | 64,041229 | 42,267211 | 77,853695 |
+
+Respecto al caso de una ventana, el de dos arroja **−0,010669 puntos porcentuales de SoH**, **−0,007041 Ah** de Qeff y **−0,026892 EFC**. El de cuatro arroja **−0,008156 puntos porcentuales de SoH**, **−0,005383 Ah** de Qeff y **−0,022713 EFC**. La sucesión de resultados **no es monótona con el número de ventanas**; no se ha establecido convergencia temporal ni existe umbral de error físico predeterminado para aceptarla.
+
+### Dictamen y alcance de cierre
+
+Se cumplen las pruebas de consistencia y sensibilidad numérica previstas por BAT26-47 y queda trazada la **ausencia de validación externa independiente**. Aún no se han adquirido/auditado series de envejecimiento compatibles con una pareja Nissan Leaf 2p de segunda vida y RPT comparables, ni se ha identificado físicamente OCV/R0/R1/C1; tampoco hay verificación de transferencia de corriente mediante DC/DC ni ensayo de soporte GFM en descarga. En estas condiciones, **no** corresponde publicar MAE, RMSE, intervalos de confianza ni predicciones de vida en campo. La comparación experimental, la calibración y la extrapolación permanecen **REVIEW** aunque ambas campañas informen **PASS numérico**.
+
+Los informes originales fueron declarados en Codex Cloud en `outputs/analysis/bat26_47_ecm_sensitivity/run_20261106T145424_655368Z/summary.json` y `outputs/analysis/bat26_47_blast_partition/run_20261106T145447_557519Z/summary.json`, sin garantía de persistencia/versionado en GitHub. Siguiente trabajo: especificar en BAT26-48 entradas, límites y costo de degradación para despacho, sin afirmar que la optimización o validación de batería ya esté completa.
