@@ -35,4 +35,23 @@ Se genera una carpeta única bajo outputs/analysis/bat26_46_soh_levels/ con summ
 ## Criterio y limitaciones
 Para cerrar BAT26-46 se deben revisar los cuatro niveles, verificar diferencias de SoC y capacidad, comprobar que las cuatro simulaciones GFM no violan invariantes, y describir en términos cuantitativos el efecto de SoH. La falta de calibración eléctrica 2p, convertidor DC/DC, datos experimentales y validez del envejecimiento queda reservada a BAT26-47. Las variables y el costo de desgaste para despacho corresponden a BAT26-48.
 
-Estado del PR: protocolo y código preparados; pruebas y campañas pendientes de ejecución.
+## Resultado de la ejecución (reporte Codex Cloud, 6-11-2026)
+
+El usuario compartió el informe de ejecución de BAT26-46, basado en el commit `351eb2a2566c2aa7bc0a75d8a8cbcc89b4d8f1b9` y en las capacidades redondeadas de BAT26-45. El ejecutor compiló y la campaña concluyó con **PASS**. El archivo de tests contiene **tres métodos y los tres pasaron**; no se deben afirmar cuatro pruebas. Las cuatro simulaciones GFM también pasaron sus invariantes y criterios.
+
+| Ciclos BAT26-45 | Qeff inicial (Ah) | SoH (%) | SoC final tras 1 h a 8 A | Ah utilizables SoC 0,6→0,1 | Autonomía ideal a 8 A (h) | Energía terminal modelada (Wh) |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 | 44.100 | 66.818 | 0.418592 | 22.050 | 2.756 | 29.668 |
+| 100 | 42.273 | 64.050 | 0.410752 | 21.137 | 2.642 | 29.650 |
+| 500 | 39.038 | 59.148 | 0.395069 | 19.519 | 2.440 | 29.616 |
+| 1000 | 35.854 | 54.324 | 0.376870 | 17.927 | 2.241 | 29.577 |
+
+La caída de SoC por 8 Ah extraídos pasa de **18.141 a 22.313 puntos porcentuales**. La carga ideal disponible entre SoC 0,6 y 0,1 disminuye **4,123 Ah** (aproximadamente 18,7 %) y la autonomía ideal baja **0,515 h** (aproximadamente 18,7 %). La energía terminal estimada para una **misma transferencia de 8 Ah** cambia muy poco (29,668 a 29,577 Wh), porque el horizonte se mantiene en una hora; no es evidencia de que la energía máxima almacenable se conserve ni se debe extrapolarla al banco o al bus DC.
+
+En las cuatro simulaciones seleccionadas GFM (M=80; D=1500; carga 3,0 kW y escalón a 3,6 kW), se reportaron **PASS** con caída máxima de frecuencia **0,002975 Hz**, desviación máxima del bus DC **0,9023 %**, corriente DC máxima absoluta **2,4009 A** y potencia DC máxima absoluta **827,82 W**, sin diferencias perceptibles entre los cuatro casos en las cifras entregadas. El BESS estuvo **absorbiendo/cargando** en todos: **no hubo descarga** y, por tanto, estos resultados **no prueban la capacidad de soporte de descarga bajo carga creciente**. Los límites de corriente disponibles disminuyeron de 44,100 a 35,854 A y los de potencia DC de aproximadamente 14,994 a 12,190 kW, pero en esta perturbación no fueron vinculantes.
+
+La corriente de 8 A corresponde al puerto equivalente del grupo 2p usado en el ensayo aislado 1RC. La corriente de 2,4009 A y la potencia de 827,82 W corresponden a los intercambios modelados en el bus DC idealizado del ensayo GFM; **no deben convertirse ni compararse directamente sin una topología DC/DC y un mapeo físico justificado**.
+
+Evidencia reportada por usuario desde Codex Cloud: `outputs/analysis/bat26_46_soh_levels/run_20261106T134134_370846Z/summary.json`, `comparison.csv`, `soc_same_current.png` y `available_charge_vs_cycles.png`. Las cifras provienen del informe de Codex aportado por el usuario; el resumen completo y las figuras del espacio de trabajo no se inspeccionaron directamente aquí ni están versionados automáticamente en GitHub.
+
+**Dictamen:** BAT26-46 satisface el criterio de comparación sintética de cuatro SoH bajo demanda igual y documenta la reducción de reserva de Ah/autonomía. No demuestra un efecto visible de SoH en las métricas GFM del caso ensayado ni comportamiento físico de soporte en descarga. Ese límite deberá ser explícito en BAT26-47 y en la presentación al director; queda pendiente validar la caracterización OCV/R1/C1, R0(SoH), el grupo 2p y el convertidor DC/DC.
