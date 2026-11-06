@@ -156,3 +156,12 @@ Las fuentes externas siguientes se contrastaron en páginas editoriales; en el c
 **Zhuang, J., Bach, A., van Vlijmen, B. H. C., Reichelstein, S. J., Chueh, W., Onori, S., y Benson, S. M. (2025)**. *Technoeconomic decision support for second-life batteries*. Applied Energy, artículo 125800. [DOI 10.1016/j.apenergy.2025.125800](https://doi.org/10.1016/j.apenergy.2025.125800). Marcos técnico-económicos para usos de segunda vida; no precio del grupo 2p colombiano.
 
 **Material ya suministrado:** Braco (2020, 2021, 2023) como evidencia experimental Leaf y Tran (2021) como metodología ECM en química LFP diferente. Auditorías propias de GitHub **docs/bat26-35-ecm-parameter-evidence.md**, **docs/bat26-38-validation-test-plan.md** y **docs/bat26-47-validity-sensitivity-audit.md**, con sus límites físicos y numéricos explícitos.
+
+
+## Confirmación de pruebas y alcance de cierre (6 de noviembre de 2026)
+
+Codex Cloud informó que las **7/7 pruebas de contrato** ejecutadas en el checkout del PR #44 concluyeron con PASS, sin modificar ecuaciones de planta, BLAST, controladores, costos ni fuentes. Se verificaron las convenciones de corriente de la pareja 2p frente al bus DC, el balance SoC con Qeff congelada, la ausencia de doble aplicación del SoH inicial, la diferenciación de EFC nominal respecto a BLAST, el rechazo de límites inválidos y el bloqueo explícito de campos de potencia/energía DC hasta definir la interfaz física.
+
+El usuario comunicó asimismo que los DOI citados resuelven a publicaciones pertinentes. Esta revisión bibliográfica **corrobora la motivación conceptual**, no implica lectura de todos los anexos ni verificación de las ecuaciones originales página por página; por tanto, estas se preservan como **propuestas de la tesis**. El precio en COP, la topología real de banco/DC/DC, los parámetros BMS/eficiencia, el dimensionamiento en IEEE 33 y la validación experimental permanecen abiertos. **BAT26-48 se cierra como especificación de interfaz, no como implementación de optimización económica o despacho físico.**
+
+La evidencia numérica es el reporte de Codex Cloud facilitado por el usuario; no se adjuntaron logs del checkout a este repositorio. BAT26-49 revisará las páginas de fuentes primarias, las ecuaciones, las unidades y los supuestos antes de preparar el dossier del director.
