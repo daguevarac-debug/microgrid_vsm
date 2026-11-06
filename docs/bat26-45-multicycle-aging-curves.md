@@ -80,3 +80,8 @@ A los 1000 ciclos la pérdida nativa `qLoss_t` fue **0.09582** y la cíclica `qL
 Evidencias en workspace de Codex Cloud: `outputs/analysis/bat26_45_multicycle/run_20261105T211126_668639Z/summary.json`, `cycle_history.csv`, `soh_vs_cycles_full.png`, `soh_vs_cycles_zoom.png`, `capacity_vs_cycles.png`. Piloto: `outputs/analysis/bat26_45_multicycle/run_20261105T211115_381076Z/summary.json`. Estos archivos no tienen garantizada persistencia en GitHub y no deben citarse como adjuntos publicados.
 
 **Dictamen de software:** la campaña satisface el criterio de BAT26-45 de trazar SoH frente al uso durante un horizonte largo, con las limitaciones de transferencia de capacidad, sensibilidad temporal y carácter sintético explicitadas. El siguiente trabajo debe tratar el enlace con el despacho sin confundir los 1000 ciclos diarios con 1000 EFC ni declarar calibración física del grupo 2p.
+
+
+### Nota de nomenclatura agregada en BAT26-49 (sin alterar resultados históricos)
+
+Los valores 80/200/400/800 denominados «EFC nominal» en la tabla BAT26-45 son la **suma de excursiones fraccionales de SoC**: por jornada se obtiene Σ|ΔSoC|/2=0.8. Esta convención no equivale automáticamente a `sum(|I|Δt)/(2Q_ref)` si `Q_ref` es fija y la capacidad efectiva disminuye; el throughput en Ah de cada ciclo puede variar. Tampoco equivale al contador nativo `efc` de BLAST, que arrojó 711.452 tras 1000 jornadas. BAT26-49 exige conservar las tres etiquetas separadas y evitar comparaciones físicas o económicas entre contadores heterogéneos. **Se conservan las tablas, el ejecutor y las curvas originales por trazabilidad; no se recalculan resultados.**
