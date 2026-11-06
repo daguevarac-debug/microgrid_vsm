@@ -49,6 +49,9 @@ class Leaf48ModulePack:
     vdc_nominal_v: float = 340.0
 
     def __post_init__(self) -> None:
+        for name in ("n_modules_series", "series_2p_units_per_module", "n_parallel_strings"):
+            if type(getattr(self, name)) is not int:
+                raise ValueError(f"{name} must be an integer")
         if (self.n_modules_series != 48 or self.series_2p_units_per_module != 2
                 or self.n_parallel_strings != 1):
             raise ValueError("BAT26-53 approved exactly 48 modules 2s2p in one string")

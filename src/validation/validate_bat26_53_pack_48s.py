@@ -90,6 +90,8 @@ def run() -> dict[str, object]:
 
     for invalid in [
         {"n_modules_series": 24},
+        {"n_modules_series": 48.0},
+        {"n_parallel_strings": True},
         {"q_nom_ref_ah": 44.1},
         {"soc_min": 0.9, "soc_max": 0.1},
         {"module_v_min": 8.4},
