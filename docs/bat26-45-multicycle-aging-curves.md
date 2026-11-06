@@ -60,4 +60,23 @@ Este ensayo no debe confundirse con predicción de vida remanente validada. Los 
 
 Tampoco se ha calibrado la transferencia de la referencia BLAST de 46/46,2 Ah a los 44,1 Ah de la tesis, ni implementado la degradación nativa dentro del control VSG a escala de 1000 días. Esta última integración y la validación física con perfiles 2p, temperatura medida, convertidor y degradación observada requieren trabajos posteriores.
 
-**Estado actual:** ejecutor, prueba de perfil y metodología preparados para revisión; campaña piloto y campaña de 1000 ciclos **pendientes**. BAT26-45 permanecerá en progreso hasta inspeccionar evidencia numérica y figuras.
+**Estado de ejecución:** Codex Cloud informó **PASS** para piloto de 100 ciclos y campaña de 1000 ciclos; cuatro pruebas del perfil sintético superadas, Python BLAST 3.12.10, BLAST-Lite 1.1.0 y ambos hashes auditados confirmados. Los resultados resumidos se registran a continuación. El informe y las figuras están en el espacio de trabajo de Codex; **no** se han incorporado automáticamente al repositorio público.
+
+## Resultados numéricos de la campaña (reporte Codex Cloud, 5-11-2026)
+
+La ejecución corresponde al commit `959362a62bd2499953360b76e5e4c41185ecbb73`, previo al añadido de esta sección documental. El usuario proporcionó el informe final de Codex y las cifras siguientes; la copia completa de `summary.json` y los PNG **no fue inspeccionada directamente desde esta revisión**.
+
+| Ciclos diarios / días | SoH del caso ciclado (%) | Qeff (Ah) | EFC BLAST | EFC nominal |
+| ---: | ---: | ---: | ---: | ---: |
+| 100 | 64.049 | 42.273 | 77.876 | 80 |
+| 250 | 61.975 | 40.904 | 190.976 | 200 |
+| 500 | 59.148 | 39.038 | 372.152 | 400 |
+| 1000 | 54.324 | 35.854 | 711.452 | 800 |
+
+El caso inicia en **SoH 66.81818 % y Qeff 44.1 Ah**. A los 1000 ciclos se estima una reducción absoluta de **12.494 puntos porcentuales de SoH** y **8.246 Ah** de capacidad. El caso calendario de igual duración finaliza en SoH **60.422 %** y Qeff **39.879 Ah**. La diferencia de **6.098 puntos porcentuales** entre perfiles no corresponde exclusivamente a la degradación cíclica, pues el esfuerzo calendario depende del perfil de SoC. El SoH del caso ciclado permanece por encima del piso operativo establecido de 50 % y no se prolonga la extrapolación.
+
+A los 1000 ciclos la pérdida nativa `qLoss_t` fue **0.09582** y la cíclica `qLoss_EFC` fue **0.09117**. A los 100 ciclos, una partición de dos ventanas por jornada en lugar de una modificó SoH en **−0.01067 puntos porcentuales** y EFC en **−0.02689**. Estas diferencias indican sensibilidad numérica del método por ventanas y no establecen por sí mismas un margen experimental aceptable.
+
+Evidencias en workspace de Codex Cloud: `outputs/analysis/bat26_45_multicycle/run_20261105T211126_668639Z/summary.json`, `cycle_history.csv`, `soh_vs_cycles_full.png`, `soh_vs_cycles_zoom.png`, `capacity_vs_cycles.png`. Piloto: `outputs/analysis/bat26_45_multicycle/run_20261105T211115_381076Z/summary.json`. Estos archivos no tienen garantizada persistencia en GitHub y no deben citarse como adjuntos publicados.
+
+**Dictamen de software:** la campaña satisface el criterio de BAT26-45 de trazar SoH frente al uso durante un horizonte largo, con las limitaciones de transferencia de capacidad, sensibilidad temporal y carácter sintético explicitadas. El siguiente trabajo debe tratar el enlace con el despacho sin confundir los 1000 ciclos diarios con 1000 EFC ni declarar calibración física del grupo 2p.
