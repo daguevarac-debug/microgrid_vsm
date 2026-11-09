@@ -208,3 +208,79 @@ en esta tarea.
 Los dos códigos 124 originales significan `BLOCKED: límite de 240 s`, no PASS
 ni FAIL. El histórico previo de BAT26-55 registra resultados de `cf0a9f0` y de
 la corrección, pero no sustituye la medición actual. No se fusiona ningún PR.
+
+## N2 — protecciones pack–bus–GFM (2026-11-09)
+
+**PASS numérico interno**: 39/39 comprobaciones estáticas y 70/70 dinámicas
+reconstruidas, con cuatro integraciones globales de 15 estados completadas.
+Son comprobaciones nuevas, no los 95 checks originales de Cloud. Se mantienen
+`GFMController`, M=80, D=1500, snapshot 44.1 Ah, fixture DC/DC hipotético y
+el perfil E de N1. La evidencia completa está en
+`outputs/validation/bat26_55_n2_protections.json`. La rama partió del commit
+`4224c4d58e59d5942e2869b847f8172e97f4eeb3`; el código ejecutado incluía los
+cambios locales de N2. Python 3.14.0, NumPy 2.3.5, SciPy 1.16.3; UTC
+23:40:37–23:43:53; duración total monotónica 195.709 s.
+Tras la corrida se añadieron al JSON únicamente la anotación REVIEW y el
+código de salida; luego se añadió al runner el guardado parcial `BLOCKED` y
+la prevención de sobrescritura. Las comprobaciones estáticas del runner final
+se volvieron a ejecutar; no se repitieron los solves por cambios de reporte.
+
+| SoC inicial | Vdc inicial | nfev | Integración (s) | Comprobaciones | Vdc máximo (V) |
+|---:|---:|---:|---:|---:|---:|
+| 0.10 | 330 | 149972 | 43.946 | 18/18 | 353.579 |
+| 0.10 | 350 | 149852 | 44.407 | 17/17 | 353.579 |
+| 0.90 | 330 | 149846 | 48.508 | 17/17 | 399.775 |
+| 0.90 | 350 | 149840 | 56.366 | 18/18 | 399.775 |
+
+Los estados aceptados de throughput fueron no negativos en las cuatro
+trayectorias. La tolerancia de SoC usada para evaluar límites es 1e-9; el
+mayor SoC aceptado fue 0.900000000113391. Las pruebas estáticas comprueban
+bloqueo direccional y recuperación, subtensión/sobretensión del pack y bus
+nulo/negativo para ambas solicitudes y reposo. Los ensayos dinámicos prueban
+respuesta inicial, bloqueo cuando comienza en la dirección prohibida,
+recuperación, finitud, límites declarados e identidades algebraicas de potencia.
+
+**REVIEW de diseño**: durante el bloqueo de carga, Vdc llegó a 399.775 V.
+Actualmente no se modela una protección superior de tensión del bus; no se
+infiere que el valor sea seguro ni se presenta como protección actuante.
+La evaluación es numérica, no validación experimental ni de hardware.
+**FAIL** se reserva para checks fallidos, integración incompleta o excepción;
+no se convierte ese REVIEW en fallo de software ni en protección implementada.
+
+### Diagnóstico y corrección
+
+El chequeo estricto anterior fue reproducido con RK45 y el modelo N2: desde
+SoC=0.90, Vdc=339.999 V, una evaluación interna recibió
+`z_deg=-1.7799833744101956e-13 Ah` en `t=8.269636213425761e-7 s`; el último
+estado aceptado era `z_deg=1.0036913816616821e-14 Ah` en
+`t=9.99626355469048e-8 s`. El diagnóstico reproduce el mecanismo, no afirma
+reproducir exactamente los valores reportados en Cloud. Las etapas de RK45
+pueden emplear coeficientes negativos aunque la derivada sea no negativa.
+
+Solo dentro de `MicrogridWithBESS.system_dynamics`, valores de trabajo entre
+`-1e-9` y cero Ah se evalúan como cero. El umbral coincide numéricamente con
+el `atol=1e-9` Ah del estado en N1/N2; no es un límite físico configurable ni
+una proyección de estados aceptados. Los valores más negativos se rechazan y
+los métodos públicos de estado y diagnóstico permanecen estrictos. No cambia
+`dz_deg/dt=abs(I_pack)/3600`, el vector, ni la ley de capacidad. La solución
+no modifica el RHS propio de la arquitectura opcional de 16 estados.
+
+Una primera campaña exploratoria completó los cuatro solves, pero el validador
+marcó erróneamente FAIL porque exigía bloqueo también al caso que arranca en
+sentido permitido y se aleja del límite. Se corrigió ese criterio antes de la
+campaña final; sus resultados no se mezclan con los de la tabla.
+
+Reproducción desde la raíz (usar el Python del entorno con dependencias):
+
+```powershell
+.venv/Scripts/python.exe -B src/validation/validate_bat26_55_n2_protections.py --static --output "$env:TEMP/bat26_n2_static.json"
+.venv/Scripts/python.exe -B src/validation/validate_bat26_55_n2_protections.py --output "$env:TEMP/bat26_n2_new.json"
+.venv/Scripts/python.exe -B -m unittest discover -s src/validation -p test_bess_zdeg_rhs_tolerance.py -v
+```
+
+Las pruebas puntuales de snapshot (6), interfaz de controlador (7), tolerancia
+(1), puertos BAT26-55 (7) y adaptador DC/DC (15) pasaron; estas dos últimas
+se ejecutaron como comprobaciones algebraicas pertinentes, pese a estar también
+listadas entre las regresiones anteriores. No se repitieron las campañas N1,
+N3, N4 ni los validadores históricos dinámicos. `py_compile` y
+`git diff --check` pasaron. N3 y N4 siguen pendientes; BAT26-55 no está cerrada.

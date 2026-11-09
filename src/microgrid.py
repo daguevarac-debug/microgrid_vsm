@@ -753,7 +753,11 @@ class MicrogridWithBESS(Microgrid):
         theta = x[11]
         soc_bess = x[12]
         vrc_bess = x[13]
+        # RK45 internal stages can undershoot zero while throughput starts at rest.
+        # This tolerance is 1e-9 Ah; accepted states remain the solver's output.
         zdeg_bess = x[14]
+        if -1e-9 <= zdeg_bess < 0.0:
+            zdeg_bess = 0.0
 
         soh_bess = self._bess_soh(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
