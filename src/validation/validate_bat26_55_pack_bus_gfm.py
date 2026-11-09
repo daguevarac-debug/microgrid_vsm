@@ -10,6 +10,7 @@ import math
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 from scipy.integrate import solve_ivp
@@ -56,6 +57,81 @@ def adapter_common(parameters: DCDCParameters) -> dict[str, object]:
 
 
 class TestBAT26_55Ports(unittest.TestCase):
+    def test_bus_current_request_and_signed_integrated_power_balance(self):
+        pack = Leaf48ModulePack()
+        model = build_model(pack, build_battery(44.1), fixture_parameters(pack), irradiance=200.0)
+        state = model.initial_state_with_bess()
+        for vdc in (330.0, 350.0):
+            state[0] = vdc
+            current = model._compute_i_bess(vdc, state[12], pack.capacity().soh)
+            signals = model.integrated_signals(0.2, state)
+            self.assertEqual(current, 5.0 if vdc == 330.0 else -5.0)
+            self.assertAlmostEqual(signals["p_bus"], vdc * current, places=9)
+            self.assertEqual(signals["dcdc_saturated"], 0.0)
+            self.assertAlmostEqual(signals["p_pack"] - signals["p_bus"],
+                                   signals["p_dcdc_loss"], places=9)
+            self.assertGreaterEqual(signals["p_dcdc_loss"], 0.0)
+            if current > 0:
+                self.assertAlmostEqual(signals["p_bus"], ETA_DCDC * signals["p_pack"], places=9)
+                self.assertGreater(signals["i_pack"], 0)
+            else:
+                self.assertAlmostEqual(signals["p_pack"], ETA_DCDC * signals["p_bus"], places=9)
+                self.assertLess(signals["i_pack"], 0)
+        self.assertEqual(330.0 * 5.0, 1650.0)
+
+    def test_saturation_stages_and_protection_are_distinct(self):
+        pack = Leaf48ModulePack()
+        model = build_model(pack, build_battery(44.1), fixture_parameters(pack), irradiance=200.0)
+        state = model.initial_state_with_bess()
+        state[0] = 200.0
+        model.p_bess_max_w = 1000.0
+        s = model.integrated_signals(0.2, state)
+        self.assertEqual(s["p_bus"], 1000.0)
+        self.assertEqual((s["dcdc_saturated"], s["dcdc_supervision_saturated"],
+                          s["dcdc_adapter_saturated"]), (1.0, 1.0, 0.0))
+        # Exercise the separate power clamp even if the normal current
+        # supervisor already enforces the same bus-power limit.
+        with patch.object(model, "_compute_i_bess", return_value=10.0):
+            s = model.integrated_signals(0.2, state)
+        self.assertEqual(s["p_bus"], 1000.0)
+        self.assertEqual(s["dcdc_supervision_saturated"], 1.0)
+        model.p_bess_max_w = 22440.0
+        model.dcdc_parameters = fixture_parameters(pack, unit_current_a=1.0)
+        state[0] = 330.0
+        s = model.integrated_signals(0.2, state)
+        self.assertEqual((s["dcdc_saturated"], s["dcdc_supervision_saturated"],
+                          s["dcdc_adapter_saturated"]), (1.0, 0.0, 1.0))
+        state[13] = 2.0  # zero-current unit undervoltage
+        s = model.integrated_signals(0.2, state)
+        self.assertEqual(s["dcdc_protection_status"], "unit_undervoltage")
+        self.assertEqual(s["p_bus"], 0.0)
+        self.assertEqual(s["dcdc_soc_blocked"], 0.0)
+
+    def test_soc_contract_boundaries_and_rhs_interleaving(self):
+        pack = Leaf48ModulePack()
+        for incompatible in (Leaf48ModulePack(soc_min=0.20),
+                             Leaf48ModulePack(soc_max=0.80)):
+            with self.assertRaisesRegex(ValueError, "SoC limits"):
+                build_model(incompatible, build_battery(44.1),
+                            fixture_parameters(pack), irradiance=200.0)
+        model = build_model(pack, build_battery(44.1), fixture_parameters(pack), irradiance=200.0)
+        x = model.initial_state_with_bess()
+        for soc, vdc, blocked in ((.1, 330., True), (.1, 350., False),
+                                  (.9, 350., True), (.9, 330., False)):
+            x[12], x[0] = soc, vdc
+            s = model.integrated_signals(.2, x)
+            self.assertEqual(bool(s["dcdc_soc_blocked"]), blocked)
+            self.assertEqual(s["i_bus"] == 0.0, blocked)
+            if blocked:
+                self.assertEqual(s["dcdc_saturated"], 1.0)
+                self.assertEqual(s["dcdc_supervision_saturated"], 1.0)
+        x[12], x[0] = .6, 330.
+        first = model.system_dynamics(.2, x)
+        y = x.copy()
+        y[0] = 350.
+        model.system_dynamics(.1, y)
+        self.assertEqual(first, model.system_dynamics(.2, x))
+
     def test_discharge_charge_and_power_conservation(self):
         pack = Leaf48ModulePack()
         p = fixture_parameters(pack)
@@ -135,6 +211,16 @@ class TestBAT26_55Ports(unittest.TestCase):
         historical = MicrogridWithBESS()
         self.assertIsNone(historical.dcdc_parameters)
         self.assertIsNone(historical.leaf_pack)
+        x = historical.initial_state_with_bess()
+        for voltage in (330.0, 350.0):
+            x[0] = voltage
+            signals = historical.integrated_signals(.2, x)
+            expected = historical.kp_bess * (historical.vdc_ref - voltage)
+            self.assertAlmostEqual(signals["i_bess"], expected, places=12)
+            self.assertEqual(signals["i_pack"], signals["i_bess"])
+            self.assertEqual(signals["p_bess_dc"], voltage * expected)
+            self.assertAlmostEqual(historical.system_dynamics(.2, x)[12],
+                                   -expected / (3600 * historical.bess.q_init_case_ah), places=12)
         with self.assertRaises(ValueError):
             MicrogridWithBESS(leaf_pack=Leaf48ModulePack())
         with self.assertRaises(ValueError):

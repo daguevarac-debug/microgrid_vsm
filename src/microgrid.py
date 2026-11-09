@@ -602,6 +602,9 @@ class MicrogridWithBESS(Microgrid):
             if (not np.isclose(self.bess.q_nom_ref_ah, leaf_pack.q_nom_ref_ah)
                     or not np.isclose(self.bess.q_init_case_ah, leaf_pack.q_init_case_ah)):
                 raise ValueError("Leaf48ModulePack capacities must match the ECM capacity case")
+            if (not np.isclose(self.bess.soc_min, leaf_pack.soc_min, rtol=0, atol=1e-12)
+                    or not np.isclose(self.bess.soc_max, leaf_pack.soc_max, rtol=0, atol=1e-12)):
+                raise ValueError("Leaf48ModulePack SoC limits must match the ECM limits")
         self.leaf_pack = leaf_pack
         self.dcdc_parameters = dcdc_parameters
 
@@ -637,17 +640,17 @@ class MicrogridWithBESS(Microgrid):
         unit_ch_available = min(params.unit_charge_max_a, self.i_bess_max * soh_bess)
         ocv = self.bess.ocv(soc_bess)
         r0 = self.bess.r0(soh_bess)
-        vzero = ocv - vrc_bess
-        vpack_zero = params.n_series * vzero
+        raw_current = self.kp_bess * (self.vdc_ref - Vdc)
         i_request = self._compute_i_bess(Vdc, soc_bess, soh_bess)
-        if i_request >= 0.0:
-            p_request = i_request * max(vpack_zero, 0.0) * params.eta_discharge
-        else:
-            p_request = i_request * max(vpack_zero, 0.0) / params.eta_charge
-        # Preserve the battery-side nominal power supervision in addition to
-        # the independently configured converter limits.
+        # The legacy request is a bus current, not a pack current. Efficiency
+        # is applied only by convert_power when mapping between ports.
+        p_request = max(float(Vdc), 0.0) * i_request
+        p_request_unclipped = p_request
         p_bus_available = self._available_p_bess_max_w(soh_bess)
         p_request = float(np.clip(p_request, -p_bus_available, p_bus_available))
+        supervision_saturated = (i_request != raw_current or p_request != p_request_unclipped)
+        soc_blocked = ((soc_bess <= self.bess.soc_min and raw_current > 0.0)
+                       or (soc_bess >= self.bess.soc_max and raw_current < 0.0))
         converted = convert_power(
             parameters=params, bus_power_request_w=p_request,
             bus_voltage_v=max(float(Vdc), 0.0), ocv_v=ocv, vrc_v=vrc_bess,
@@ -670,7 +673,10 @@ class MicrogridWithBESS(Microgrid):
             "i_bus_limit": float(ibus_limit),
             "v_pack": float(vpack), "p_pack": float(ppack),
             "p_loss": float(converted.loss_power_w),
-            "saturated": float(converted.saturated),
+            "saturated": float(supervision_saturated or converted.saturated),
+            "supervision_saturated": float(supervision_saturated),
+            "adapter_saturated": float(converted.saturated),
+            "soc_blocked": float(soc_blocked),
             "protection_status": converted.protection_status,
         }
 
@@ -885,6 +891,10 @@ class MicrogridWithBESS(Microgrid):
             "p_dcdc_loss": float(ports["p_loss"]),
             "dcdc_saturated": float(ports["saturated"]),
             "dcdc_protection_status": ports["protection_status"],
+            **({"dcdc_supervision_saturated": float(ports["supervision_saturated"]),
+                "dcdc_adapter_saturated": float(ports["adapter_saturated"]),
+                "dcdc_soc_blocked": float(ports["soc_blocked"])}
+               if self.dcdc_parameters is not None else {}),
             "p_bess_dc": p_bess_dc,
             "p_bess_dc_max": float(self.p_bess_max_w),
             "i_bess_max_available": float(i_bess_max_available),

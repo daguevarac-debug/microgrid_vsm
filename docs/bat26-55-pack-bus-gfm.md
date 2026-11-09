@@ -19,12 +19,68 @@ No se fusionó ningún PR.
 
 ## Interfaz y ecuaciones preservadas
 
+**Corrección posterior a la auditoría:** la tabla y las verificaciones de la
+campaña original que aparecen más abajo corresponden a `cf0a9f0`, antes de
+corregir la solicitud de corriente. No son resultados de la versión corregida.
+
 La ruta se activa solo al proporcionar juntos `leaf_pack` y
 `dcdc_parameters`; el camino histórico sigue siendo el predeterminado. El
 modelo ECM existente representa una unidad 2p: sus `OCV`, `Vrc`, `R0` y Ah se
 usan directamente como valores por unidad 2p. La corriente común de la cadena
 es `I_pack`; no se escala por el número de unidades en serie. El adaptador
 resuelve la potencia pack–bus y proporciona la corriente del puerto bus.
+
+La ley proporcional heredada solicita corriente **del bus**. Su salida ya
+supervisada se convierte en `P_bus_request = max(Vdc, 0)*I_bus_request`;
+el adaptador resuelve después el puerto de pack y aplica la eficiencia una vez.
+Por ejemplo, a 330 V una solicitud de +5 A representa +1650 W antes de las
+restricciones del adaptador. La ruta histórica sin DC/DC no cambia.
+
+El diagnóstico público `dcdc_saturated` ahora incluye cualquier recorte en
+la supervisión previa o en el adaptador, ampliando su significado anterior,
+que solo reflejaba el adaptador. `dcdc_supervision_saturated` y
+`dcdc_adapter_saturated` distinguen ambas etapas; `dcdc_soc_blocked` identifica
+el bloqueo direccional SoC. `dcdc_protection_status` conserva su significado
+para las protecciones de tensión del adaptador; un bloqueo de protección no
+se interpreta como una saturación operativa normal. Pack y ECM deben declarar
+los mismos límites SoC; configuraciones incompatibles se rechazan al construir.
+
+Los defectos y su evidencia reproducible en
+`src/validation/validate_bat26_55_pack_bus_gfm.py --test` son:
+
+- La tensión de pack en vacío reinterpretaba la corriente de bus: ahora se
+  usa la tensión de bus; `test_bus_current_request_and_signed_integrated_power_balance`
+  verifica 330 V × 5 A, carga, descarga y pérdidas.
+- El recorte previo quedaba oculto: ahora se agregan las etapas y se informan
+  por separado; `test_saturation_stages_and_protection_are_distinct` ejercita
+  supervisión, adaptador y protección.
+- Los límites SoC podían diferir silenciosamente: ahora se rechazan; el test
+  `test_soc_contract_boundaries_and_rhs_interleaving` cubre 0,20/0,10, ambos
+  sentidos en los límites y RHS con evaluaciones intercaladas.
+
+Los ensayos no constituyen validación experimental, ni prueban carga o soporte
+sostenidos. La campaña muestrea 61 puntos y su criterio de descarga requiere
+al menos una muestra positiva; no prueba continuidad entre muestras.
+
+### Verificación de la corrección
+
+En la rama de trabajo corregida se ejecutaron, en este orden:
+
+| Comando | Resultado |
+|---|---|
+| `python -B src/validation/validate_bat26_55_pack_bus_gfm.py --test` | PASS, 7 pruebas |
+| `python -B -m unittest discover -s src/validation -p test_dc_dc_adapter.py -v` | PASS, 15 pruebas |
+| `python -B src/validation/validate_bat26_53_pack_48s.py` | PASS aritmético |
+| `python -B src/validation/validate_bat26_55_pack_bus_gfm.py` | PASS en los cuatro casos; 60 de 61 muestras de descarga por caso |
+| `python -B src/validation/validate_obj1_regression.py` | PASS |
+| `timeout 240s python -B src/validation/validate_physical_invariants.py` | Pendiente: límite de tiempo, código 124 |
+| `timeout 240s python -B src/validation/validate_gfm_integrated_system.py` | Pendiente: límite de tiempo, código 124 |
+| `git diff --check` | PASS |
+
+Las regresiones se ejecutaron sobre una copia de las fuentes modificadas para
+no alterar resultados versionados. El mínimo Vdc de la campaña corregida fue
+aproximadamente 320,870 V en los cuatro casos. El REVIEW de +40 % registrado
+en la campaña histórica no fue reevaluado hasta término ni convertido en PASS.
 
 ```text
 V_pack = 96 * V_unit
