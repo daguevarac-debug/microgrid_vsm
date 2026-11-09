@@ -100,17 +100,77 @@ Matriz de ejecución propuesta, separada de las regresiones anteriores:
 
 | ID | Escenario | Propósito |
 |---|---|---|
-| N1 | Un solve global GFM con pack, horizonte inicial 0.30 s, perfil carga→descarga elegido por calibración de perfiles y declarado antes del solve aceptado | Carga y descarga sostenidas, energía, límites y continuidad temporal |
+| N1 | Un solve global GFM con pack, horizonte 1.20 s, perfil carga→descarga con 0.40 s de preacondicionamiento documentado abajo | Carga y descarga sostenidas, energía, límites y continuidad temporal |
 | N2 | Mismo solve N1 con estado inicial exactamente en SoC mínimo/máximo, más probes de tensión pack fuera de rango y Vdc no positivo | Bloqueos SoC y protecciones de adaptador; comparar flags y potencia cero |
 | N3 | Repetir N1 con `rtol=1e-7`, `atol=1e-9`, `max_step=25 μs` | Convergencia contra tolerancias BAT26-55 actuales |
 | N4a/N4b | Pack habilitado y deshabilitado, mismo vector inicial de planta, perfiles, `p_ref`, capacidad configurada, solver y horizonte | Diferencia atribuible a activar el pack; reportar señales y deltas sin imponer mejora |
 
-Si N1 requiere más de 0.30 s para obtener ambas ventanas continuas, extender el
-horizonte en incrementos declarados antes de la corrida aceptada y registrar
-el costo esperado `T/max_step` por trayectoria. La calibración solo busca una
-excitación reproducible con perfiles existentes; no cambia ganancias, ley de
-control, parámetros físicos ni ecuaciones. Protecciones estáticas y trayectorias
+La calibración usa niveles de irradiancia ya presentes en la configuración
+PV (400, 800, 1000 W/m²; el candidato A conserva el caso previo de 200 W/m²)
+y cargas de 2.4, 3.0, 3.6 y 4.2 kW. No cambia ganancias, ley de control,
+parámetros físicos ni ecuaciones. Protecciones estáticas y trayectorias
 dinámicas se presentan como dos tipos de evidencia distintos.
+
+## Desbloqueo y resultado N1
+
+Antes de simular se evaluó el RHS y el intercambio de puertos en estados
+iniciales de 15 estados. La ley existente pide descarga si `Vdc<340 V`, carga
+si `Vdc>340 V` y cero a 340 V. A 330 V los sondeos dan `I_pack=+5.209 A`,
+`I_bus=+5.000 A`, `P_bus=+1650 W`; a 350 V dan `I_pack=-4.967 A`,
+`I_bus=-5.000 A`, `P_bus=-1750 W`. A 340 V ambas corrientes y potencia son
+cero. No se forzó `Vdc` durante ninguna integración.
+
+En el estado de reinicio, las corrientes AC iniciales son cero; por eso
+`dVdc/dt` aún no refleja la demanda y variar solo carga no cambia ese valor
+puntual. Con `Vdc=340 V`, los valores de `dVdc/dt` al cambiar irradiancia son
+986.900, 2516.740, 5576.407 y 7106.243 V/s para 200, 400, 800 y 1000 W/m²
+respectivamente; la potencia BESS permanece cero en ese instante. Estos son
+diagnósticos del RHS en el estado inicial, no respuestas de régimen. La
+selección se hizo con las trayectorias globales siguientes.
+
+Todos los candidatos usan Qeff=44.1 Ah, SoC inicial 0.60, SoH snapshot
+0.6681818, `GFMController(p_ref=4000 W, M=80, D=1500)`, la topología de un
+string con 96 unidades 2p en serie, `RK45`, `rtol=1e-6`, `atol=1e-9`,
+`max_step=50 μs`, muestreo cada 0.5 ms y un solve global de 15 estados. Fixture
+DC/DC hipotético común: eficiencia 0.95 en ambos sentidos, límite por unidad
+10 A, bus 20 A y 5 kW. En la tabla, ventanas medidas excluyen los primeros
+50 ms del horizonte; en los perfiles con transición a 0.40 s también se
+reporta si los signos continúan tras la transición. Todos los solves acabaron
+con éxito, estados/señales finitos, saturaciones 0 y protecciones `ok`.
+
+| ID | Perfil (G en W/m²; carga en kW) | Ventana de carga | Ventana de descarga | SoC observado | Vdc (V) | Frecuencia (Hz) | Máx. `|Ipack|` / `|Ibus|` (A) | `Pbus` mínimo–máximo (kW) | Pérdida máx. (W) | Tiempo | Evaluación |
+|---|---|---|---|---|---|---|---|---|---:|---:|---|
+| A | G=200; 3.0 hasta 0.1 s, después 4.2; 0.8 s | ninguna | 0.750 s (0.050–0.800) | 0.599953–0.600000 | 320.869–340.000 | 59.98783–60.00500 | 9.713 / 9.565 | 0–3.069 | 161.54 | 22.291 s | No cubre carga; sí descarga sostenida |
+| B | G=1000; carga constante 2.4; 0.8 s | 0.750 s (0.050–0.800) | ninguna | 0.600000–0.600034 | 340.000–353.662 | 60.00000–60.01629 | 6.852 / 6.831 | −2.416–0 | 120.79 | 23.016 s | No cubre descarga |
+| C | 0–0.4 s G=1000/carga 2.4; después G=400/carga 4.2; 0.8 s | 0.353 s (0.050–0.403) | 0.397 s (0.404–0.800) | 0.5999996–0.6000171 | 326.339–353.662 | 59.97441–60.01629 | 7.041 / 6.831 | −2.416–2.229 | 120.79 | 21.152 s | Ambos sentidos; fase de carga empieza al inicio |
+| D | 0–0.4 s G=800/carga 2.4; después G=400/carga 3.6; 0.8 s | 0.353 s (0.050–0.403) | 0.397 s (0.403–0.800) | 0.5999963–0.6000098 | 329.512–347.985 | 59.98299–60.01058 | 5.455 / 5.244 | −1.389–1.728 | 90.94 | 22.925 s | Ambos sentidos; fase de carga empieza al inicio |
+| E | 0–0.4 s G=800/carga 3.0; 0.4–0.8 G=1000/carga 2.4; 0.8–1.2 G=400/carga 4.2 | 0.350 s (0.450–0.800) | 0.350 s (0.850–1.200) | 0.600000–0.6000230 | 326.339–353.579 | 59.97441–60.01210 | 7.040 / 6.831 | −2.401–2.229 | 120.03 | 31.988 s calibración; 31.857 s N1 | Aceptado: ambas ventanas después del preacondicionamiento |
+
+Los intervalos de E medidos en la malla de 0.5 ms son 0.450–0.7995 s para
+carga y 0.850–1.1995 s para descarga (cada uno 0.3495 s). Así, ninguno depende
+exclusivamente del transitorio inicial. La corriente de pack máxima queda bajo
+10 A, la del bus bajo 20 A y la potencia del bus bajo 5 kW; Vdc es positivo,
+SoC permanece en límites y Vpack queda entre 333.240 y 335.066 V. Se observaron
+`P_bus=Vdc*I_bus` con residual máximo cero, `P_pack=P_bus+P_loss` con residual
+integrado `−7.29e−17 Wh`, pérdidas máximas de 120.03 W y 0.030682 Wh acumulados.
+La potencia BESS firmada integrada fue −0.083353 Wh en pack y −0.114034 Wh en
+bus. Frecuencia se reconstruyó exclusivamente como `omega/(2*pi)`. Las cuatro
+banderas de saturación tuvieron fracción cero y el estado de protección fue
+`ok` en toda la trayectoria; N1 verifica el monitoreo, no la activación de
+protecciones, reservada para N2.
+
+N1 pasa con Python 3.12.14, NumPy 2.3.5 y SciPy 1.17.0 mediante:
+
+```bash
+python -B src/validation/validate_bat26_55_n1_profile.py
+```
+
+El validador escribe el resumen reproducible en
+`outputs/validation/bat26_55_n1_profile.json`; registró 149888 `nfev` y
+31.857 s de integración. Se conserva `aging_mode="blast"` con snapshot inicial
+de capacidad: SoH permaneció 0.6681818 durante esta ventana; no se atribuye
+ningún efecto dinámico al SoH. Los ratings/eficiencias DC/DC siguen siendo
+fixtures hipotéticos, no especificaciones certificadas.
 
 ## Estado de ejecución
 
@@ -130,6 +190,7 @@ fuentes ni parámetros.
 | GFM histórico | escalón +20 %, BESS-PI, 6.5 s | 137.858 s; 785096 `nfev` | PASS |
 | GFM histórico | campaña completa, 4 solves | 385.395 s | REVIEW global; sin fallos de solver |
 | BAT26-55 actual | cuatro capacidades, 0.30 s cada una | 36.245 s total | PASS; descarga en las cuatro |
+| BAT26-55 N1 | perfil E, carga y descarga con preacondicionamiento, 1.20 s | 31.857 s; 149888 `nfev` | PASS; ventanas continuas de 0.3495 s por sentido |
 | BAT26-53 | auditoría aritmética pack | 0.325 s | PASS aritmético solamente |
 | BAT26-55 | 7 pruebas algebraicas | 0.804 s de proceso | PASS |
 | DC/DC | 15 pruebas unitarias | 0.329 s | PASS |
@@ -139,12 +200,10 @@ Todos los datos JSON se guardaron bajo `/tmp` para no sustituir salidas
 versionadas. El GFM integrado reprodujo el REVIEW histórico de +40 %; no se
 convirtió en PASS.
 
-Las pruebas integradas nuevas N1–N4 están **BLOCKED / diseñadas, no ejecutadas**:
-falta calibrar y declarar un perfil único que produzca ventanas sostenidas de
-carga y descarga bajo el controlador existente. El solve actual de 0.30 s
-solo demuestra descarga; no se presenta como cobertura de carga sostenida,
-convergencia refinada ni comparación del pack habilitado/deshabilitado. La
-calibración no cambia el modelo y debe preceder la aceptación experimental.
+N1 está **PASS** como validación numérica interna del perfil precondicionado
+descrito arriba. No equivale a evidencia de hardware, HIL, protecciones activas
+ni estabilidad de largo plazo. N2, N3 y N4 siguen pendientes y no se ejecutaron
+en esta tarea.
 
 Los dos códigos 124 originales significan `BLOCKED: límite de 240 s`, no PASS
 ni FAIL. El histórico previo de BAT26-55 registra resultados de `cf0a9f0` y de
