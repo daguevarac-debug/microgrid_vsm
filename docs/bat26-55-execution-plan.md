@@ -102,7 +102,7 @@ Matriz de ejecución propuesta, separada de las regresiones anteriores:
 |---|---|---|
 | N1 | Un solve global GFM con pack, horizonte 1.20 s, perfil carga→descarga con 0.40 s de preacondicionamiento documentado abajo | Carga y descarga sostenidas, energía, límites y continuidad temporal |
 | N2 | Mismo solve N1 con estado inicial exactamente en SoC mínimo/máximo, más probes de tensión pack fuera de rango y Vdc no positivo | Bloqueos SoC y protecciones de adaptador; comparar flags y potencia cero |
-| N3 | Repetir N1 con `rtol=1e-7`, `atol=1e-9`, `max_step=25 μs` | Convergencia contra tolerancias BAT26-55 actuales |
+| N3 | Repetir N1 con `rtol=1e-7`, `atol=1e-10`, `max_step=25 μs` | Convergencia contra referencia N1 en el mismo entorno Python |
 | N4a/N4b | Pack habilitado y deshabilitado, mismo vector inicial de planta, perfiles, `p_ref`, capacidad configurada, solver y horizonte | Diferencia atribuible a activar el pack; reportar señales y deltas sin imponer mejora |
 
 La calibración usa niveles de irradiancia ya presentes en la configuración
@@ -258,8 +258,9 @@ reproducir exactamente los valores reportados en Cloud. Las etapas de RK45
 pueden emplear coeficientes negativos aunque la derivada sea no negativa.
 
 Solo dentro de `MicrogridWithBESS.system_dynamics`, valores de trabajo entre
-`-1e-9` y cero Ah se evalúan como cero. El umbral coincide numéricamente con
-el `atol=1e-9` Ah del estado en N1/N2; no es un límite físico configurable ni
+`-1e-9` y cero Ah se evalúan como cero. El umbral coincidía con el `atol=1e-9`
+Ah de N1/N2, pero en N3 el `atol` refinado ejecutado es `1e-10` Ah; por tanto,
+la banda local es 10 veces dicho atol. No es un límite físico configurable ni
 una proyección de estados aceptados. Los valores más negativos se rechazan y
 los métodos públicos de estado y diagnóstico permanecen estrictos. No cambia
 `dz_deg/dt=abs(I_pack)/3600`, el vector, ni la ley de capacidad. La solución
@@ -281,6 +282,92 @@ Reproducción desde la raíz (usar el Python del entorno con dependencias):
 Las pruebas puntuales de snapshot (6), interfaz de controlador (7), tolerancia
 (1), puertos BAT26-55 (7) y adaptador DC/DC (15) pasaron; estas dos últimas
 se ejecutaron como comprobaciones algebraicas pertinentes, pese a estar también
-listadas entre las regresiones anteriores. No se repitieron las campañas N1,
-N3, N4 ni los validadores históricos dinámicos. `py_compile` y
-`git diff --check` pasaron. N3 y N4 siguen pendientes; BAT26-55 no está cerrada.
+listadas entre las regresiones anteriores. Para N3 no se repitieron las campañas
+N1/N2 ni los validadores históricos dinámicos. `py_compile` y
+`git diff --check` pasaron. N3 se ejecutó después y su evidencia se registra
+abajo; N4 sigue pendiente y BAT26-55 no está cerrada.
+
+## N3 — convergencia numérica pack–bus–GFM (2026-11-09)
+
+**PASS numérico interno** con dos integraciones completas del mismo modelo,
+perfil E de N1, condiciones iniciales de 15 estados y malla común de salida de
+0.5 ms. Se usó un solo intérprete local para evitar diferencias entre entornos:
+Python 3.14.0, NumPy 2.3.5 y SciPy 1.16.3. N3 no vuelve a ejecutar N1, N2 ni
+validadores históricos. Comando:
+
+```powershell
+.venv/Scripts/python.exe -B src/validation/validate_bat26_55_n3_convergence.py
+```
+
+La corrida inició el 2026-11-10 00:04:13 UTC y terminó el 2026-11-10
+00:06:19 UTC (126.307 s totales, incluidos diagnósticos cortos). RK45 de
+referencia (`rtol=1e-6`, `atol=1e-9`, `max_step=50 μs`) completó en 40.810 s,
+149888 `nfev` y 24734 pasos aceptados. La malla refinada solicitada
+(`rtol=1e-7`, `atol=1e-10`, `max_step=25 μs`) completó en 84.094 s,
+293582 `nfev` y 48705 pasos aceptados. Ambos alcanzaron 1.20 s con éxito y
+mantuvieron el mismo estado inicial, perfiles de irradiancia/carga y muestreo.
+
+La tabla resume referencia → refinada y delta absoluto. Todas las métricas
+escaladas difieren menos de 1%; las diferencias de ventanas cumplen 0.5 ms.
+
+| Métrica | Referencia | Refinada | Diferencia absoluta |
+|---|---:|---:|---:|
+| Vdc mínimo (V) | 326.338748549 | 326.338746776 | 1.7732e-6 V |
+| Vdc máximo (V) | 353.579201197 | 353.579203507 | 2.3101e-6 V |
+| Desviación máxima de frecuencia (Hz) | 0.0255915181 | 0.0255915353 | 1.7215e-8 Hz |
+| Pico absoluto corriente pack (A) | 7.039887891 | 7.039887889 | 2.1982e-9 A |
+| Pico absoluto corriente bus (A) | 6.830625725 | 6.830626612 | 8.8661e-7 A |
+| Energía absoluta intercambiada (Wh) | 1.196582053 | 1.196582249 | 1.9544e-7 Wh |
+| Energía firmada pack (Wh) | -0.083352536 | -0.083352884 | 3.4804e-7 Wh |
+| Energía firmada bus (Wh) | -0.114034127 | -0.114034480 | 3.5305e-7 Wh |
+| Pérdidas integradas (Wh) | 0.0306815911 | 0.0306815961 | 5.0112e-9 Wh |
+| SoC final | 0.600005564007 | 0.600005564031 | 2.3532e-11 |
+| Ventana de carga/descarga (s) | 0.3495 / 0.3495 | 0.3495 / 0.3495 | 0 / 0 s |
+
+Los signos clasificaron las mismas muestras en ambos sentidos (1606 carga,
+794 descarga); no hubo cambio de clasificación. Los estados/señales fueron
+finitos, el vector tuvo 15 estados, Vdc fue positivo, SoC y tensión de pack
+quedaron dentro de sus límites, y corrientes/potencia respetaron los límites
+del fixture. El residual algebraico de potencia máximo fue 0 W y el residual
+de energía fue menor que `2.8e-17 Wh` en ambas corridas. La carga y descarga
+mantuvieron ventanas superiores a 0.10 s.
+
+Para cantidades cercanas a cero se fijaron antes de interpretar resultados:
+`7e-4 Wh` para energía firmada casi nula, acotada por el máximo fixture de
+5 kW durante un intervalo de 0.5 ms (`5000*0.0005/3600 = 6.94e-4 Wh`), `1e-5 Hz`
+para desviación casi nula (1.7e-7 pu respecto a 60 Hz), `1e-12 Ah` para
+`z_deg` aceptado y `0.5 ms` para duración de ventanas. En las métricas con escala
+significativa se aplicó el límite relativo estricto menor a 1%. No fue necesario
+usar estas tolerancias absolutas en las energías medidas, que son distintas de
+cero; las ventanas se evaluaron con la tolerancia temporal absoluta.
+
+### Auditoría de tolerancia local `z_deg`
+
+En las dos integraciones de N3 el mínimo observado en etapas internas y estados
+aceptados fue 0 Ah, y hubo cero llamadas internas con valor negativo. Además,
+se hicieron tres probes RK45 de solo 2 ms desde la condición límite N2
+(SoC=0.90, Vdc=339.999 V, `z_deg(0)=0`), no cuatro solves completos N2. Los
+umbrales diagnósticos `1e-9` y `1e-10 Ah` completaron ambos con 626 `nfev`,
+mínimo interno `-6.9802e-13 Ah` y mínimo aceptado 0 Ah. Un umbral `1e-13 Ah`
+detuvo el probe ante la etapa `-1.77998e-13 Ah`, reproduciendo el mecanismo de
+N2. RHS puntuales entre `-1e-9` y 0 Ah dieron derivadas idénticas al estado cero;
+`-1.01e-9 Ah` se rechazó.
+
+La banda de producción (`1e-9 Ah`) es 10 veces el `atol` refinado de N3, pero
+las sondas muestran que es una tolerancia para etapas de prueba RK45, no para
+estados aceptados. Su efecto máximo en la ley lineal es `1.478e-15` de SoH y
+`9.7548e-14 Ah` de capacidad efectiva; el valor aceptado nunca fue negativo y
+la convergencia global pasó. No se detecta evidencia de que enmascare error
+físico relevante ni afecte la convergencia en el perfil probado. No se cambió
+el código del modelo, la ley ni el umbral.
+
+El criterio `PASS` exige éxito de ambas integraciones, todos los invariantes
+físicos y diferencias dentro de los umbrales definidos. `FAIL` corresponde a
+fallo de solver, invariante o convergencia. `REVIEW` registra la limitación de
+diseño separada del resultado numérico y no revoca el PASS de N3.
+
+**REVIEW de diseño** conservado: el modelo no implementa protección superior
+del bus y la trayectoria alcanza 353.579 V. Este punto es una limitación del
+modelo, no un fallo numérico ni una afirmación de seguridad. El conversor sigue
+siendo un fixture hipotético; N3 no es evidencia experimental/HIL. El JSON
+completo está en `outputs/validation/bat26_55_n3_convergence.json`.

@@ -1,0 +1,370 @@
+{
+  "task": "BAT26-55 N3 numerical convergence",
+  "source_commit": "d1a922cfa23d5ba3587583828592f029c8ef2326",
+  "command": [
+    "src/validation/validate_bat26_55_n3_convergence.py"
+  ],
+  "utc_start": "2026-11-10T00:04:13.034447+00:00",
+  "python": "3.14.0",
+  "numpy": "2.3.5",
+  "scipy": "1.16.3",
+  "model": {
+    "controller": "GFMController",
+    "M": 80.0,
+    "D": 1500.0,
+    "P_ref_W": 4000.0,
+    "qeff_Ah": 44.1,
+    "SoC_initial": 0.6,
+    "horizon_s": 1.2,
+    "state_count": 15,
+    "frequency": "x[10]/(2*pi)"
+  },
+  "profile": "N1 profile E; irradiance/load transitions at 0.4/0.8 s; identical 0.5 ms evaluation grid",
+  "scope": "internal numerical evidence; hypothetical DC/DC fixture; no hardware/HIL claims",
+  "tolerances_history": {
+    "previous_plan_refined_atol": 1e-09,
+    "executed_refined_atol": 1e-10,
+    "reason": "Corrected to the explicitly requested 1e-10; the 1e-9 plan line was stale."
+  },
+  "reference": {
+    "configuration": {
+      "method": "RK45",
+      "rtol": 1e-06,
+      "atol": 1e-09,
+      "max_step_s": 5e-05
+    },
+    "success": true,
+    "message": "The solver successfully reached the end of the integration interval.",
+    "nfev": 149888,
+    "accepted_steps": 24734,
+    "elapsed_s": 40.81020360000548,
+    "minimum_internal_stage_zdeg_Ah": 0.0,
+    "negative_internal_stage_count": 0,
+    "minimum_accepted_zdeg_Ah": 0.0,
+    "metrics": {
+      "Vdc_min_V": 326.3387485491844,
+      "Vdc_max_V": 353.5792011968186,
+      "frequency_max_deviation_Hz": 0.02559151811524174,
+      "I_pack_peak_abs_A": 7.039887890746869,
+      "I_bus_peak_abs_A": 6.830625725407799,
+      "absolute_transferred_energy_Wh": 1.196582053425688,
+      "pack_energy_signed_Wh": -0.08335253558118189,
+      "bus_energy_signed_Wh": -0.11403412669466112,
+      "loss_energy_Wh": 0.030681591113479206,
+      "energy_balance_residual_Wh": 2.7755575615628914e-17,
+      "max_power_balance_residual_W": 0.0,
+      "max_bus_power_identity_residual_W": 0.0,
+      "SoC_final": 0.600005564007467,
+      "minimum_accepted_zdeg_Ah": 0.0,
+      "charge_window": {
+        "duration_s": 0.3495,
+        "start_s": 0.45,
+        "end_s": 0.7995
+      },
+      "discharge_window": {
+        "duration_s": 0.34950000000000003,
+        "start_s": 0.85,
+        "end_s": 1.1995
+      },
+      "charge_classified_samples": 1606,
+      "discharge_classified_samples": 794
+    },
+    "checks": {
+      "solver_success": true,
+      "state_count_15": true,
+      "accepted_states_finite": true,
+      "sampled_states_finite": true,
+      "Vdc_positive": true,
+      "SoC_in_bounds": true,
+      "zdeg_accepted_nonnegative": true,
+      "pack_voltage_in_envelope": true,
+      "currents_within_limits": true,
+      "bus_power_within_limit": true,
+      "losses_nonnegative": true,
+      "power_balance": true,
+      "bus_power_identity": true,
+      "energy_balance_0p1pct": true,
+      "charge_window_ge_0p1s": true,
+      "discharge_window_ge_0p1s": true
+    }
+  },
+  "refined": {
+    "configuration": {
+      "method": "RK45",
+      "rtol": 1e-07,
+      "atol": 1e-10,
+      "max_step_s": 2.5e-05
+    },
+    "success": true,
+    "message": "The solver successfully reached the end of the integration interval.",
+    "nfev": 293582,
+    "accepted_steps": 48705,
+    "elapsed_s": 84.09410740000021,
+    "minimum_internal_stage_zdeg_Ah": 0.0,
+    "negative_internal_stage_count": 0,
+    "minimum_accepted_zdeg_Ah": 0.0,
+    "metrics": {
+      "Vdc_min_V": 326.3387467759646,
+      "Vdc_max_V": 353.57920350690426,
+      "frequency_max_deviation_Hz": 0.025591535330065085,
+      "I_pack_peak_abs_A": 7.039887888548692,
+      "I_bus_peak_abs_A": 6.830626612017711,
+      "absolute_transferred_energy_Wh": 1.1965822488611293,
+      "pack_energy_signed_Wh": -0.08335288361749542,
+      "bus_energy_signed_Wh": -0.1140344797421398,
+      "loss_energy_Wh": 0.030681596124644366,
+      "energy_balance_residual_Wh": 1.734723475976807e-17,
+      "max_power_balance_residual_W": 0.0,
+      "max_bus_power_identity_residual_W": 0.0,
+      "SoC_final": 0.6000055640309994,
+      "minimum_accepted_zdeg_Ah": 0.0,
+      "charge_window": {
+        "duration_s": 0.3495,
+        "start_s": 0.45,
+        "end_s": 0.7995
+      },
+      "discharge_window": {
+        "duration_s": 0.34950000000000003,
+        "start_s": 0.85,
+        "end_s": 1.1995
+      },
+      "charge_classified_samples": 1606,
+      "discharge_classified_samples": 794
+    },
+    "checks": {
+      "solver_success": true,
+      "state_count_15": true,
+      "accepted_states_finite": true,
+      "sampled_states_finite": true,
+      "Vdc_positive": true,
+      "SoC_in_bounds": true,
+      "zdeg_accepted_nonnegative": true,
+      "pack_voltage_in_envelope": true,
+      "currents_within_limits": true,
+      "bus_power_within_limit": true,
+      "losses_nonnegative": true,
+      "power_balance": true,
+      "bus_power_identity": true,
+      "energy_balance_0p1pct": true,
+      "charge_window_ge_0p1s": true,
+      "discharge_window_ge_0p1s": true
+    }
+  },
+  "comparison": {
+    "status": "PASS",
+    "relative_limit": 0.01,
+    "absolute_tolerances": {
+      "window_duration_s": 0.0005,
+      "energy_Wh": 0.0007,
+      "frequency_deviation_Hz": 1e-05,
+      "state_zdeg_Ah": 1e-12
+    },
+    "metric_differences": {
+      "Vdc_min_V": {
+        "reference": 326.3387485491844,
+        "refined": 326.3387467759646,
+        "absolute": 1.773219821643579e-06,
+        "relative": 5.4336784385147164e-09,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "Vdc_max_V": {
+        "reference": 353.5792011968186,
+        "refined": 353.57920350690426,
+        "absolute": 2.3100856765267963e-06,
+        "relative": 6.533432025151546e-09,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "frequency_max_deviation_Hz": {
+        "reference": 0.02559151811524174,
+        "refined": 0.025591535330065085,
+        "absolute": 1.7214823344602337e-08,
+        "relative": 6.726769106499224e-07,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "I_pack_peak_abs_A": {
+        "reference": 7.039887890746869,
+        "refined": 7.039887888548692,
+        "absolute": 2.1981776399115915e-09,
+        "relative": 3.1224611443043656e-10,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "I_bus_peak_abs_A": {
+        "reference": 6.830625725407799,
+        "refined": 6.830626612017711,
+        "absolute": 8.866099117099679e-07,
+        "relative": 1.2979922299242006e-07,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "absolute_transferred_energy_Wh": {
+        "reference": 1.196582053425688,
+        "refined": 1.1965822488611293,
+        "absolute": 1.9543544138578284e-07,
+        "relative": 1.6332807334546916e-07,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "pack_energy_signed_Wh": {
+        "reference": -0.08335253558118189,
+        "refined": -0.08335288361749542,
+        "absolute": 3.4803631353275133e-07,
+        "relative": 4.175473620640833e-06,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "bus_energy_signed_Wh": {
+        "reference": -0.11403412669466112,
+        "refined": -0.1140344797421398,
+        "absolute": 3.530474786822557e-07,
+        "relative": 3.095980904274201e-06,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "loss_energy_Wh": {
+        "reference": 0.030681591113479206,
+        "refined": 0.030681596124644366,
+        "absolute": 5.011165159912734e-09,
+        "relative": 1.6332807322079202e-07,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "SoC_final": {
+        "reference": 0.600005564007467,
+        "refined": 0.6000055640309994,
+        "absolute": 2.353239825225728e-11,
+        "relative": 3.922030005035824e-11,
+        "criterion": "relative",
+        "tolerance": 0.01,
+        "pass": true
+      },
+      "minimum_accepted_zdeg_Ah": {
+        "reference": 0.0,
+        "refined": 0.0,
+        "absolute": 0.0,
+        "relative": null,
+        "criterion": "absolute",
+        "tolerance": 1e-12,
+        "pass": true
+      },
+      "charge_window": {
+        "reference_s": 0.3495,
+        "refined_s": 0.3495,
+        "absolute_s": 0.0,
+        "relative": 0.0,
+        "criterion": "absolute",
+        "tolerance_s": 0.0005,
+        "pass": true
+      },
+      "discharge_window": {
+        "reference_s": 0.34950000000000003,
+        "refined_s": 0.34950000000000003,
+        "absolute_s": 0.0,
+        "relative": 0.0,
+        "criterion": "absolute",
+        "tolerance_s": 0.0005,
+        "pass": true
+      }
+    },
+    "charge_discharge_classification_unchanged": true
+  },
+  "zdeg_audit": {
+    "tolerance_band_Ah": 1e-09,
+    "refined_atol_Ah": 1e-10,
+    "band_to_refined_atol_ratio": 10.0,
+    "max_abs_SoH_effect_from_band": 1.4780000000000002e-15,
+    "max_abs_Qeff_effect_Ah": 9.754800000000002e-14,
+    "rhs_value_probes": [
+      {
+        "zdeg_Ah": -1.01e-09,
+        "accepted_by_rhs": false,
+        "error": "z_deg must be >= 0, got -1.01e-09."
+      },
+      {
+        "zdeg_Ah": -1e-09,
+        "accepted_by_rhs": true,
+        "max_abs_rhs_delta": 0.0
+      },
+      {
+        "zdeg_Ah": -1e-10,
+        "accepted_by_rhs": true,
+        "max_abs_rhs_delta": 0.0
+      },
+      {
+        "zdeg_Ah": -1e-12,
+        "accepted_by_rhs": true,
+        "max_abs_rhs_delta": 0.0
+      },
+      {
+        "zdeg_Ah": -1e-13,
+        "accepted_by_rhs": true,
+        "max_abs_rhs_delta": 0.0
+      },
+      {
+        "zdeg_Ah": -1e-15,
+        "accepted_by_rhs": true,
+        "max_abs_rhs_delta": 0.0
+      },
+      {
+        "zdeg_Ah": 0.0,
+        "accepted_by_rhs": true,
+        "max_abs_rhs_delta": 0.0
+      },
+      {
+        "zdeg_Ah": 1e-15,
+        "accepted_by_rhs": true,
+        "max_abs_rhs_delta": 0.0
+      }
+    ],
+    "short_near_zero_integrations": [
+      {
+        "reject_threshold_Ah": 1e-09,
+        "completed": true,
+        "nfev": 626,
+        "minimum_internal_stage_zdeg_Ah": -6.980198211346067e-13,
+        "minimum_accepted_zdeg_Ah": 0.0,
+        "elapsed_s": 0.1800197000047774
+      },
+      {
+        "reject_threshold_Ah": 1e-10,
+        "completed": true,
+        "nfev": 626,
+        "minimum_internal_stage_zdeg_Ah": -6.980198211346067e-13,
+        "minimum_accepted_zdeg_Ah": 0.0,
+        "elapsed_s": 0.16915449999942211
+      },
+      {
+        "reject_threshold_Ah": 1e-13,
+        "completed": false,
+        "minimum_internal_stage_zdeg_Ah": -1.7799833744101956e-13,
+        "error": "probe threshold 1e-13 Ah crossed by z_deg=np.float64(-1.7799833744101956e-13)"
+      }
+    ],
+    "diagnosis": "The 1e-9 Ah production band is 10x refined atol; short N2-boundary probes quantify sensitivity. Negative RK stages are trial values; accepted zdeg remains nonnegative. The band changes no physical law and its maximum SoH/Qeff effect is quantified above."
+  },
+  "physical_checks_status": "PASS",
+  "status": "PASS",
+  "design_review": {
+    "status": "REVIEW",
+    "reason": "No upper DC bus voltage protection is modelled; the observed Vdc maximum is numerical evidence, not a safety assessment."
+  },
+  "utc_end": "2026-11-10T00:06:19.341922+00:00",
+  "elapsed_total_s": 126.30718989999878,
+  "acceptance_criteria": {
+    "PASS": "Both solves succeed; all physical/integrity checks pass; relative differences <1% for significant metrics and declared absolute tolerances for near-zero metrics; classifications unchanged.",
+    "REVIEW": "Numerical checks may pass while unmodelled design limitations remain; reported separately.",
+    "FAIL": "Solver failure, invariant failure, classification change, or convergence criterion failure."
+  }
+}
