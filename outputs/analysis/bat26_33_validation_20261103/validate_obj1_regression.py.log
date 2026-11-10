@@ -1,0 +1,17 @@
+validation=lcl_no_unphysical_oscillations
+script=src\validation\validate_lcl_no_unphysical_oscillations.py
+returncode=0
+pass_marker_found=True
+status=PASS
+validation=bess_step3
+script=src\validation\validate_bess_step3.py
+returncode=0
+pass_marker_found=True
+status=PASS
+validation=bess_soc_operational_limits
+script=src\validation\validate_bess_soc_operational_limits.py
+returncode=0
+pass_marker_found=True
+status=PASS
+overall_status=PASS
+output_path=C:\Users\hp\AppData\Local\Temp\bat26_33_1f9abb01e07e4927aa0ca13a9938c014\outputs\validation\objective1_regression\objective1_regression_summary.json

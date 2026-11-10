@@ -1,0 +1,16 @@
+test_bess_dc_limit_is_converted_to_ac_and_added_to_pv (test_gfm_controller.TestGFMController.test_bess_dc_limit_is_converted_to_ac_and_added_to_pv) ... ok
+test_excess_electrical_power_causes_frequency_drop (test_gfm_controller.TestGFMController.test_excess_electrical_power_causes_frequency_drop) ... ok
+test_nominal_reference_remains_upper_bound_with_bess (test_gfm_controller.TestGFMController.test_nominal_reference_remains_upper_bound_with_bess) ... ok
+test_positive_bess_discharge_is_limited_by_bms_power (test_gfm_controller.TestGFMController.test_positive_bess_discharge_is_limited_by_bms_power) ... ok
+test_positive_damping_recovers_frequency_below_reference (test_gfm_controller.TestGFMController.test_positive_damping_recovers_frequency_below_reference) ... ok
+test_power_equilibrium_gives_zero_frequency_derivative (test_gfm_controller.TestGFMController.test_power_equilibrium_gives_zero_frequency_derivative) ... ok
+test_signed_bess_charge_reduces_net_available_power (test_gfm_controller.TestGFMController.test_signed_bess_charge_reduces_net_available_power) ... ok
+test_soh_degrades_support_power_without_changing_inertia (test_gfm_controller.TestGFMController.test_soh_degrades_support_power_without_changing_inertia) ... ok
+test_without_bess_reference_is_limited_to_available_pv_power (test_gfm_controller.TestGFMController.test_without_bess_reference_is_limited_to_available_pv_power) ... ok
+test_zero_bess_power_limit_matches_pv_only_case (test_gfm_controller.TestGFMController.test_zero_bess_power_limit_matches_pv_only_case) ... ok
+test_zero_signed_bess_power_matches_pv_only_case (test_gfm_controller.TestGFMController.test_zero_signed_bess_power_matches_pv_only_case) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.001s
+
+OK

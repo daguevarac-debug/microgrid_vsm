@@ -1,0 +1,22 @@
+status=PASS
+soc_min=0.100000
+soc_max=0.900000
+soc_initial=0.600000
+soh_initial=0.668182
+i_bess_max_nominal=66.000000 A
+p_bess_max_w_nominal=22440.000000 W
+i_bess_max_available=44.100000 A
+p_bess_dc_max_available=14994.000000 W
+i_discharge_blocked_at_soc_min=0.000000000000 A
+i_charge_blocked_at_soc_max=0.000000000000 A
+i_discharge_mid_soc=0.500000000000 A
+i_charge_mid_soc=-0.500000000000 A
+i_bess_discharge_saturated=44.100000000000 A
+i_bess_charge_saturated=-44.099999999870 A
+i_bess_discharge_saturated_soh1=66.000000000000 A
+i_bess_charge_saturated_soh1=-65.999999999806 A
+p_bess_discharge_limited=9172.800000000001 W
+p_bess_charge_limited=-14994.000000000000 W
+symmetric_saturation=[-44.100000, +44.100000] A
+checks=finite_ok=True, limits_ok=True, current_limit_ok=True, power_limit_config_ok=True, soh_current_availability_ok=True, soh_power_availability_ok=True, initial_ok=True, discharge_block_ok=True, charge_block_ok=True, mid_discharge_ok=True, mid_charge_ok=True, discharge_saturation_ok=True, charge_saturation_ok=True, symmetric_saturation_ok=True, soh1_discharge_nominal_ok=True, soh1_charge_nominal_ok=True, discharge_power_limit_ok=True, charge_power_limit_ok=True, charge_power_more_restrictive_ok=True
+observation=Limites operativos de SoC, corriente y potencia aplicados de forma conservadora.

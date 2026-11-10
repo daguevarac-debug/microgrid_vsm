@@ -1,0 +1,10 @@
+test_compute_step_control_passes_omega_and_returns_domega_dt (test_microgrid_controller_state_mapping.TestMicrogridControllerStateMapping.test_compute_step_control_passes_omega_and_returns_domega_dt) ... ok
+test_gfm_replaces_xi_vdc_with_omega_at_x10 (test_microgrid_controller_state_mapping.TestMicrogridControllerStateMapping.test_gfm_replaces_xi_vdc_with_omega_at_x10) ... ok
+test_grid_following_keeps_fixed_omega_without_reinterpreting_xi_vdc (test_microgrid_controller_state_mapping.TestMicrogridControllerStateMapping.test_grid_following_keeps_fixed_omega_without_reinterpreting_xi_vdc) ... ok
+test_grid_following_keeps_x10_as_xi_vdc (test_microgrid_controller_state_mapping.TestMicrogridControllerStateMapping.test_grid_following_keeps_x10_as_xi_vdc) ... ok
+test_system_dynamics_routes_gfm_omega_and_theta_derivatives (test_microgrid_controller_state_mapping.TestMicrogridControllerStateMapping.test_system_dynamics_routes_gfm_omega_and_theta_derivatives) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+OK

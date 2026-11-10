@@ -1,0 +1,186 @@
+{
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "blast": "1.1.0",
+  "numpy": "1.26.4",
+  "class_path": "C:\\Users\\hp\\AppData\\Local\\microgrid_blast_probe_312\\Lib\\site-packages\\blast\\models\\lmo_gr_NissanLeaf66Ah_2ndLife_2020.py",
+  "base_path": "C:\\Users\\hp\\AppData\\Local\\microgrid_blast_probe_312\\Lib\\site-packages\\blast\\models\\degradation_model.py",
+  "experiment": "15 days at SoC 1 and 25 C; then 1 to 0 to 1 in two 1-hour windows at 25 C",
+  "cases": {
+    "44.1": {
+      "start": {
+        "q": 0.9821226884066369,
+        "q_new": 0.6874858818846458,
+        "calendar_loss": 0.01787731159336313,
+        "cycle_loss": 0.0,
+        "efc": 0.0,
+        "blast_nominal_ah": 66.0,
+        "blast_second_life_ah": 46.0,
+        "blast_initial_qnew_ah": 46.199999999999996,
+        "retention_since_case_start": 1.0,
+        "capacity": {
+          "q_nom_ref_ah": 66.0,
+          "q_init_case_ah": 44.1,
+          "retention_since_case_start": 1.0,
+          "q_eff_ah": 44.1,
+          "soh": 0.6681818181818182
+        }
+      },
+      "middle": {
+        "q": 0.9820743503201542,
+        "q_new": 0.687452045224108,
+        "calendar_loss": 0.017890485878831044,
+        "cycle_loss": 3.516380101481098e-05,
+        "efc": 0.49106134420331843,
+        "blast_nominal_ah": 66.0,
+        "blast_second_life_ah": 46.0,
+        "blast_initial_qnew_ah": 46.199999999999996,
+        "retention_since_case_start": 0.999950782028505,
+        "capacity": {
+          "q_nom_ref_ah": 66.0,
+          "q_init_case_ah": 44.1,
+          "retention_since_case_start": 0.999950782028505,
+          "q_eff_ah": 44.09782948745707,
+          "soh": 0.6681489316281374
+        }
+      },
+      "end": {
+        "q": 0.9820232122048236,
+        "q_new": 0.6874162485433765,
+        "calendar_loss": 0.017903648958211837,
+        "cycle_loss": 7.313883696457435e-05,
+        "efc": 0.9820985193633955,
+        "blast_nominal_ah": 66.0,
+        "blast_second_life_ah": 46.0,
+        "blast_initial_qnew_ah": 46.199999999999996,
+        "retention_since_case_start": 0.99989871306,
+        "capacity": {
+          "q_nom_ref_ah": 66.0,
+          "q_init_case_ah": 44.1,
+          "retention_since_case_start": 0.99989871306,
+          "q_eff_ah": 44.095533245946,
+          "soh": 0.668114140090091
+        }
+      },
+      "boundary_soc_05": {
+        "fractional_soc": {
+          "soc_before": 0.5,
+          "soc_after": 0.5,
+          "stored_before_ah": 22.05,
+          "stored_after_ah": 22.047766622973,
+          "within_operational_limits": true
+        },
+        "algebraic_charge": {
+          "soc_before": 0.5,
+          "soc_after": 0.5000506486000417,
+          "stored_before_ah": 22.05,
+          "stored_after_ah": 22.049999999999997,
+          "within_operational_limits": true
+        }
+      },
+      "boundary_soc_09": {
+        "fractional_soc": {
+          "soc_before": 0.9,
+          "soc_after": 0.9,
+          "stored_before_ah": 39.690000000000005,
+          "stored_after_ah": 39.685979921351404,
+          "within_operational_limits": true
+        },
+        "algebraic_charge": {
+          "soc_before": 0.9,
+          "soc_after": 0.9000911674800752,
+          "stored_before_ah": 39.690000000000005,
+          "stored_after_ah": 39.690000000000005,
+          "within_operational_limits": false
+        }
+      }
+    },
+    "43.5": {
+      "start": {
+        "q": 0.9821226884066369,
+        "q_new": 0.6874858818846458,
+        "calendar_loss": 0.01787731159336313,
+        "cycle_loss": 0.0,
+        "efc": 0.0,
+        "blast_nominal_ah": 66.0,
+        "blast_second_life_ah": 46.0,
+        "blast_initial_qnew_ah": 46.199999999999996,
+        "retention_since_case_start": 1.0,
+        "capacity": {
+          "q_nom_ref_ah": 66.0,
+          "q_init_case_ah": 43.5,
+          "retention_since_case_start": 1.0,
+          "q_eff_ah": 43.5,
+          "soh": 0.6590909090909091
+        }
+      },
+      "middle": {
+        "q": 0.9820743503201542,
+        "q_new": 0.687452045224108,
+        "calendar_loss": 0.017890485878831044,
+        "cycle_loss": 3.516380101481098e-05,
+        "efc": 0.49106134420331843,
+        "blast_nominal_ah": 66.0,
+        "blast_second_life_ah": 46.0,
+        "blast_initial_qnew_ah": 46.199999999999996,
+        "retention_since_case_start": 0.999950782028505,
+        "capacity": {
+          "q_nom_ref_ah": 66.0,
+          "q_init_case_ah": 43.5,
+          "retention_since_case_start": 0.999950782028505,
+          "q_eff_ah": 43.497859018239964,
+          "soh": 0.6590584699733328
+        }
+      },
+      "end": {
+        "q": 0.9820232122048236,
+        "q_new": 0.6874162485433765,
+        "calendar_loss": 0.017903648958211837,
+        "cycle_loss": 7.313883696457435e-05,
+        "efc": 0.9820985193633955,
+        "blast_nominal_ah": 66.0,
+        "blast_second_life_ah": 46.0,
+        "blast_initial_qnew_ah": 46.199999999999996,
+        "retention_since_case_start": 0.99989871306,
+        "capacity": {
+          "q_nom_ref_ah": 66.0,
+          "q_init_case_ah": 43.5,
+          "retention_since_case_start": 0.99989871306,
+          "q_eff_ah": 43.49559401811,
+          "soh": 0.6590241517895454
+        }
+      },
+      "boundary_soc_05": {
+        "fractional_soc": {
+          "soc_before": 0.5,
+          "soc_after": 0.5,
+          "stored_before_ah": 21.75,
+          "stored_after_ah": 21.747797009055,
+          "within_operational_limits": true
+        },
+        "algebraic_charge": {
+          "soc_before": 0.5,
+          "soc_after": 0.5000506486000418,
+          "stored_before_ah": 21.75,
+          "stored_after_ah": 21.75,
+          "within_operational_limits": true
+        }
+      },
+      "boundary_soc_09": {
+        "fractional_soc": {
+          "soc_before": 0.9,
+          "soc_after": 0.9,
+          "stored_before_ah": 39.15,
+          "stored_after_ah": 39.146034616299,
+          "within_operational_limits": true
+        },
+        "algebraic_charge": {
+          "soc_before": 0.9,
+          "soc_after": 0.9000911674800751,
+          "stored_before_ah": 39.15,
+          "stored_after_ah": 39.15,
+          "within_operational_limits": false
+        }
+      }
+    }
+  }
+}

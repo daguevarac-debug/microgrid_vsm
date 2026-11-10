@@ -1,0 +1,57 @@
+{
+  "all_validations_pass": true,
+  "expected_validation_count": 3,
+  "output_path": "C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_39_final_624ef625661144dfb483b93d71433d80\\outputs\\validation\\objective1_regression\\objective1_regression_summary.json",
+  "python_executable": "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe",
+  "repository_root": "C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_39_final_624ef625661144dfb483b93d71433d80",
+  "status": "PASS",
+  "task": "Confirmar que las validaciones del Objetivo 1 siguen pasando",
+  "validation_count": 3,
+  "validations": [
+    {
+      "command": [
+        "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe",
+        "C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_39_final_624ef625661144dfb483b93d71433d80\\src\\validation\\validate_lcl_no_unphysical_oscillations.py"
+      ],
+      "duration_s": 18.775324899994303,
+      "name": "lcl_no_unphysical_oscillations",
+      "pass_marker_found": true,
+      "passed": true,
+      "returncode": 0,
+      "script": "src\\validation\\validate_lcl_no_unphysical_oscillations.py",
+      "status": "PASS",
+      "stderr_tail": "",
+      "stdout_tail": "status=PASS\nsolver_success=True\nall_states_finite=True\nmax_abs_i1_A=22.094602\nmax_abs_vc_V=262.387970\nmax_abs_i2_A=15.692529\ngrowth_ratio_i1=1.000000\ngrowth_ratio_vc=1.000000\ngrowth_ratio_i2=1.000000\nnote=Chequeo practico de no crecimiento no fisico en ventanas finales; no reemplaza una demostracion formal de estabilidad ni el analisis de control."
+    },
+    {
+      "command": [
+        "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe",
+        "C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_39_final_624ef625661144dfb483b93d71433d80\\src\\validation\\validate_bess_step3.py"
+      ],
+      "duration_s": 6.347117099998286,
+      "name": "bess_step3",
+      "pass_marker_found": true,
+      "passed": true,
+      "returncode": 0,
+      "script": "src\\validation\\validate_bess_step3.py",
+      "status": "PASS",
+      "stderr_tail": "",
+      "stdout_tail": "  [Case A: Constant Discharge] SoC alcanz\ufffd soc_min en t=9918.0 s (t_max solicitado: 43200.0 s)\n\n--- Case A: Constant Discharge ---\nsoc_ini=0.600000, soc_fin=0.100215\nvrc_ini=0.000000, vrc_fin=0.026389\nzdeg_ini=0.000000, zdeg_fin=22.040000\nsoh_ini=0.668182, soh_fin=0.668149, soh_min=0.668149\nr0_ini=0.001292, r0_fin=0.001292\nqeff_ini=44.100000, qeff_fin=44.097850\nvt_min=3.301901, vt_max=3.779995\nsoc_mae=2.335340e-16, soc_rmse=2.751944e-16\nzdeg_mae=1.154302e-12, zdeg_rmse=1.506367e-12\nvt_identity_mae=0.000000e+00, vt_identity_rmse=0.000000e+00\nstatus=PASS\n\n--- Case B: Pulse Discharge-Rest-Charge ---\nsoc_ini=0.600000, soc_fin=0.418600\nvrc_ini=0.000000, vrc_fin=-0.020448\nzdeg_ini=0.000000, zdeg_fin=32.000000\nsoh_ini=0.668182, soh_fin=0.668135, soh_min=0.668135\nr0_ini=0.001292, r0_fin=0.001292\nqeff_ini=44.100000, qeff_fin=44.096878\nvt_min=3.442169, vt_max=3.777412\nsoc_mae=3.277091e-04, soc_rmse=4.118470e-04\nzdeg_mae=7.777324e-03, zdeg_rmse=1.036224e-02\nvt_identity_mae=0.000000e+00, vt_identity_rmse=0.000000e+00\nstatus=PASS\n\nValidation plots saved to: C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_39_final_624ef625661144dfb483b93d71433d80\\outputs\\validation\\bess_step3\nSummary table: C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_39_final_624ef625661144dfb483b93d71433d80\\outputs\\validation\\bess_step3\\summary_cases.csv\nMetrics table: C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_39_final_624ef625661144dfb483b93d71433d80\\outputs\\validation\\bess_step3\\summary_metrics.csv\n\nOverall status: PASS"
+    },
+    {
+      "command": [
+        "G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe",
+        "C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_39_final_624ef625661144dfb483b93d71433d80\\src\\validation\\validate_bess_soc_operational_limits.py"
+      ],
+      "duration_s": 0.8009260000035283,
+      "name": "bess_soc_operational_limits",
+      "pass_marker_found": true,
+      "passed": true,
+      "returncode": 0,
+      "script": "src\\validation\\validate_bess_soc_operational_limits.py",
+      "status": "PASS",
+      "stderr_tail": "",
+      "stdout_tail": "status=PASS\nsoc_min=0.100000\nsoc_max=0.900000\nsoc_initial=0.600000\nsoh_initial=0.668182\ni_bess_max_nominal=66.000000 A\np_bess_max_w_nominal=22440.000000 W\ni_bess_max_available=44.100000 A\np_bess_dc_max_available=14994.000000 W\ni_discharge_blocked_at_soc_min=0.000000000000 A\ni_charge_blocked_at_soc_max=0.000000000000 A\ni_discharge_mid_soc=0.500000000000 A\ni_charge_mid_soc=-0.500000000000 A\ni_bess_discharge_saturated=44.100000000000 A\ni_bess_charge_saturated=-44.099999999870 A\ni_bess_discharge_saturated_soh1=66.000000000000 A\ni_bess_charge_saturated_soh1=-65.999999999806 A\np_bess_discharge_limited=9172.800000000001 W\np_bess_charge_limited=-14994.000000000000 W\nsymmetric_saturation=[-44.100000, +44.100000] A\nchecks=finite_ok=True, limits_ok=True, current_limit_ok=True, power_limit_config_ok=True, soh_current_availability_ok=True, soh_power_availability_ok=True, initial_ok=True, discharge_block_ok=True, charge_block_ok=True, mid_discharge_ok=True, mid_charge_ok=True, discharge_saturation_ok=True, charge_saturation_ok=True, symmetric_saturation_ok=True, soh1_discharge_nominal_ok=True, soh1_charge_nominal_ok=True, discharge_power_limit_ok=True, charge_power_limit_ok=True, charge_power_more_restrictive_ok=True\nobservation=Limites operativos de SoC, corriente y potencia aplicados de forma conservadora."
+    }
+  ]
+}

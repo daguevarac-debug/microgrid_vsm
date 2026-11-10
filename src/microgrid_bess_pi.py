@@ -164,7 +164,7 @@ class MicrogridWithBESSPI(MicrogridWithBESS):
         zdeg_bess = x[14]
         xi_bess_vdc = x[self.bess_pi_state_index]
 
-        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        soh_bess = self._bess_soh(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
         pi_output, i_bess = self._compute_pi_bess_command(
             vdc_v=Vdc,
@@ -211,7 +211,8 @@ class MicrogridWithBESSPI(MicrogridWithBESS):
             t=t,
             x=[soc_bess, vrc_bess, zdeg_bess],
             i_bess=i_bess,
-            soh=self.bess.soh_init_case,
+            soh=soh_bess,
+            capacity_snapshot=self._capacity_snapshot,
         )
 
         vt_bess = self.bess.terminal_voltage(
@@ -268,7 +269,7 @@ class MicrogridWithBESSPI(MicrogridWithBESS):
         zdeg_bess = x[14]
         xi_bess_vdc = x[self.bess_pi_state_index]
 
-        soh_bess = self.bess.soh_from_z_deg(zdeg_bess)
+        soh_bess = self._bess_soh(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
         p_min_w, p_max_w, charge_available, discharge_available = (
             self._operating_power_limits(
