@@ -1,0 +1,216 @@
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'ON', '0.01', '1'] budget=30s
+{"event": "start", "case": "ON", "horizon": 0.01}
+{"event": "solve_complete", "case": "ON", "horizon": 0.01, "elapsed_s": 0.9980360999979894, "nfev": 2714, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.01}
+         2408496 function calls in 0.990 seconds
+
+   Ordered by: cumulative time
+   List reduced from 153 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001    0.997    0.997 ivp.py:159(solve_ivp)
+      409    0.000    0.000    0.994    0.002 base.py:175(step)
+      409    0.004    0.000    0.994    0.002 rk.py:111(_step_impl)
+      452    0.014    0.000    0.985    0.002 rk.py:14(rk_step)
+     2714    0.001    0.000    0.971    0.000 base.py:152(fun)
+     2714    0.002    0.000    0.970    0.000 base.py:22(fun_wrapped)
+     2714    0.005    0.000    0.966    0.000 bat26_n4_probe.py:9(rhs)
+     2714    0.021    0.000    0.960    0.000 microgrid.py:746(system_dynamics)
+     2714    0.017    0.000    0.408    0.000 microgrid.py:391(_compute_step_control)
+     2714    0.022    0.000    0.237    0.000 gfm_controller.py:152(compute_control)
+     2714    0.018    0.000    0.219    0.000 microgrid.py:623(_bess_port_exchange)
+     2714    0.008    0.000    0.210    0.000 model.py:391(rhs)
+   455953    0.069    0.000    0.189    0.000 {built-in method builtins.isinstance}
+   208978    0.027    0.000    0.119    0.000 <frozen abc>:117(__instancecheck__)
+     2714    0.005    0.000    0.111    0.000 model.py:381(validate_capacity_snapshot)
+
+
+
+END ON 0.01 status=COMPLETED exit=0 wall=2.403s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'OFF', '0.01', '1'] budget=30s
+{"event": "start", "case": "OFF", "horizon": 0.01}
+{"event": "solve_complete", "case": "OFF", "horizon": 0.01, "elapsed_s": 0.5005008000007365, "nfev": 2828, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.01}
+         1035143 function calls in 0.497 seconds
+
+   Ordered by: cumulative time
+   List reduced from 104 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001    0.500    0.500 ivp.py:159(solve_ivp)
+      419    0.000    0.000    0.498    0.001 base.py:175(step)
+      419    0.005    0.000    0.498    0.001 rk.py:111(_step_impl)
+      471    0.015    0.000    0.488    0.001 rk.py:14(rk_step)
+     2828    0.001    0.000    0.474    0.000 base.py:152(fun)
+     2828    0.002    0.000    0.473    0.000 base.py:22(fun_wrapped)
+     2828    0.004    0.000    0.469    0.000 bat26_n4_probe.py:9(rhs)
+     2828    0.013    0.000    0.464    0.000 microgrid.py:444(system_dynamics)
+     2828    0.017    0.000    0.419    0.000 microgrid.py:391(_compute_step_control)
+     2828    0.023    0.000    0.230    0.000 gfm_controller.py:152(compute_control)
+   220585    0.037    0.000    0.105    0.000 {built-in method builtins.isinstance}
+     2828    0.001    0.000    0.080    0.000 microgrid.py:186(pv_current)
+     2828    0.022    0.000    0.079    0.000 pv_model.py:140(ipv_from_vpv)
+   107464    0.014    0.000    0.069    0.000 <frozen abc>:117(__instancecheck__)
+     2828    0.005    0.000    0.065    0.000 microgrid.py:377(_load_at_time)
+
+
+
+END OFF 0.01 status=COMPLETED exit=0 wall=2.797s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'ON', '0.05', '0'] budget=30s
+{"event": "start", "case": "ON", "horizon": 0.05}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.037211025553365494, "nfev": 8480, "wall_s": 2.0000526000003447}
+{"event": "solve_complete", "case": "ON", "horizon": 0.05, "elapsed_s": 2.6110610000032466, "nfev": 10544, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.05}
+END ON 0.05 status=COMPLETED exit=0 wall=5.057s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'OFF', '0.05', '0'] budget=30s
+{"event": "start", "case": "OFF", "horizon": 0.05}
+{"event": "solve_complete", "case": "OFF", "horizon": 0.05, "elapsed_s": 1.0653132000006735, "nfev": 10802, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.05}
+END OFF 0.05 status=COMPLETED exit=0 wall=3.401s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'ON', '0.20', '0'] budget=30s
+{"event": "start", "case": "ON", "horizon": 0.2}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.04078460014410019, "nfev": 9110, "wall_s": 2.0001969000004465}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.0867126897737743, "nfev": 15350, "wall_s": 4.000238599997829}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.14120897403637636, "nfev": 21890, "wall_s": 6.000248099997407}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.19834897403637006, "nfev": 28745, "wall_s": 8.00028089999978}
+{"event": "solve_complete", "case": "ON", "horizon": 0.2, "elapsed_s": 8.068051700000069, "nfev": 28946, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.2}
+END ON 0.20 status=COMPLETED exit=0 wall=10.420s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'OFF', '0.20', '0'] budget=30s
+{"event": "start", "case": "OFF", "horizon": 0.2}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.1067896842359733, "nfev": 18108, "wall_s": 2.00000149999687}
+{"event": "solve_complete", "case": "OFF", "horizon": 0.2, "elapsed_s": 3.5505550999951083, "nfev": 29300, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.2}
+END OFF 0.20 status=COMPLETED exit=0 wall=5.988s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'OFF', '0.45', '0'] budget=90s
+{"event": "start", "case": "OFF", "horizon": 0.45}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.1575396842359677, "nfev": 24198, "wall_s": 2.0000481999959447}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.28203968423595405, "nfev": 39138, "wall_s": 4.000104099999589}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.4037946213557159, "nfev": 53871, "wall_s": 6.000195100001292}
+{"event": "solve_complete", "case": "OFF", "horizon": 0.45, "elapsed_s": 6.759516300000541, "nfev": 59630, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.45}
+END OFF 0.45 status=COMPLETED exit=0 wall=8.002s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'ON', '0.45', '0'] budget=90s
+{"event": "start", "case": "ON", "horizon": 0.45}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.05775142759788291, "nfev": 11640, "wall_s": 2.000132399996801}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.11460897403637928, "nfev": 18697, "wall_s": 4.000198999994609}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.17130897403637305, "nfev": 25502, "wall_s": 6.00035399999615}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.22946897403636665, "nfev": 32481, "wall_s": 8.000602799998887}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.28599897403636043, "nfev": 39263, "wall_s": 10.000676999996358}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.34475341848079843, "nfev": 46314, "wall_s": 12.000938599994697}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.40122422837614385, "nfev": 53145, "wall_s": 14.001141299995652}
+{"event": "solve_complete", "case": "ON", "horizon": 0.45, "elapsed_s": 15.780561999999918, "nfev": 59282, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.45}
+END ON 0.45 status=COMPLETED exit=0 wall=17.973s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'OFF', '0.85', '0'] budget=90s
+{"event": "start", "case": "OFF", "horizon": 0.85}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.17566023979152126, "nfev": 26374, "wall_s": 2.0000574000005145}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.30519523979150703, "nfev": 41918, "wall_s": 4.000113000001875}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.4244383073906678, "nfev": 56522, "wall_s": 6.000189099999261}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.5585731699204922, "nfev": 72655, "wall_s": 8.00023169999622}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.6866231699204781, "nfev": 88022, "wall_s": 10.000289099996735}
+{"event": "progress", "case": "OFF", "max_rhs_time_s": 0.8093890206942845, "nfev": 103117, "wall_s": 12.000339400001394}
+{"event": "solve_complete", "case": "OFF", "horizon": 0.85, "elapsed_s": 12.71611899999698, "nfev": 108248, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.85}
+END OFF 0.85 status=COMPLETED exit=0 wall=14.840s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_probe.py', 'ON', '0.85', '0'] budget=90s
+{"event": "start", "case": "ON", "horizon": 0.85}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.055213195283261525, "nfev": 11250, "wall_s": 2.000069400004577}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.10980341848082426, "nfev": 18120, "wall_s": 4.000083300001279}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.16795897403637342, "nfev": 25100, "wall_s": 6.000415200003772}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.226208974036367, "nfev": 32090, "wall_s": 8.00052620000497}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.2837239740363607, "nfev": 38992, "wall_s": 10.000617500001681}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.3426189740363542, "nfev": 46059, "wall_s": 12.000785299998824}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.40070867282058836, "nfev": 53082, "wall_s": 14.001104800001485}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.45767681358568374, "nfev": 60198, "wall_s": 16.00114190000022}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.5167323691412328, "nfev": 67285, "wall_s": 18.00114400000166}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.5738723691412265, "nfev": 74141, "wall_s": 20.00143950000347}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.6303223691412203, "nfev": 80915, "wall_s": 22.001745400004438}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.687097369141214, "nfev": 87730, "wall_s": 24.00188500000513}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.7464973691412075, "nfev": 94858, "wall_s": 26.00201210000523}
+{"event": "progress", "case": "ON", "max_rhs_time_s": 0.8170033517131203, "nfev": 103829, "wall_s": 28.002163400000427}
+{"event": "solve_complete", "case": "ON", "horizon": 0.85, "elapsed_s": 28.872953199999756, "nfev": 107888, "success": true, "message": "The solver successfully reached the end of the integration interval.", "accepted_end_s": 0.85}
+END ON 0.85 status=COMPLETED exit=0 wall=31.097s
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\src\\validation\\validate_bat26_55_n4_on_off.py', '--worker', 'OFF', '--result', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_0k99qpo1\\result.json'], timeout_s=180
+{"event": "integration_start", "case": "OFF"}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.3088102397915066, "nfev": 42352, "elapsed_s": 5.000149799998326}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.6000631699204877, "nfev": 77633, "elapsed_s": 10.000210700003663}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8946561643019538, "nfev": 113639, "elapsed_s": 15.000332700001309}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8946671393468794, "nfev": 151335, "elapsed_s": 20.00043640000513}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8947027125063529, "nfev": 189574, "elapsed_s": 25.00053889999981}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8947581172459492, "nfev": 228303, "elapsed_s": 30.000656900003378}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8948004961742616, "nfev": 266760, "elapsed_s": 35.00076660000195}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8948327192882134, "nfev": 305291, "elapsed_s": 40.000840900000185}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8948759694781419, "nfev": 343712, "elapsed_s": 45.000936500000535}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.894928919123292, "nfev": 382315, "elapsed_s": 50.00094689999969}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.894970513428137, "nfev": 420196, "elapsed_s": 55.00106880000385}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8950238522069082, "nfev": 458481, "elapsed_s": 60.001134700003604}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8950716844001604, "nfev": 496497, "elapsed_s": 65.00116580000031}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8951078404265135, "nfev": 534455, "elapsed_s": 70.00129340000422}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8951345335090819, "nfev": 573239, "elapsed_s": 75.00134760000219}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8951736270020222, "nfev": 611944, "elapsed_s": 80.00137820000236}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8952112061018086, "nfev": 649965, "elapsed_s": 85.00143340000068}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8952380209200018, "nfev": 688029, "elapsed_s": 90.00148849999823}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8952564523774044, "nfev": 726529, "elapsed_s": 95.00155340000492}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8952646899445408, "nfev": 764366, "elapsed_s": 100.00164600000426}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8952825422770149, "nfev": 801677, "elapsed_s": 105.00169960000494}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953036954438933, "nfev": 839981, "elapsed_s": 110.00184209999861}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953171606058706, "nfev": 877843, "elapsed_s": 115.00187340000411}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953291448176857, "nfev": 916462, "elapsed_s": 120.0018917999987}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953367157873996, "nfev": 953759, "elapsed_s": 125.00197230000049}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953419486735739, "nfev": 991539, "elapsed_s": 130.00198549999914}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953474775386073, "nfev": 1028908, "elapsed_s": 135.00202739999804}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953519826264442, "nfev": 1067290, "elapsed_s": 140.00204140000278}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953563689674485, "nfev": 1105605, "elapsed_s": 145.0021646000023}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953618548825347, "nfev": 1143497, "elapsed_s": 150.00219990000187}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953679170968873, "nfev": 1182148, "elapsed_s": 155.00220990000525}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953734780703465, "nfev": 1221465, "elapsed_s": 160.00222100000246}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953788802650454, "nfev": 1259186, "elapsed_s": 165.00223850000475}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953852040071147, "nfev": 1299429, "elapsed_s": 170.0022906000013}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8953929418092551, "nfev": 1356292, "elapsed_s": 175.00235000000248}
+{"event":"diagnostic_uvlo_approach","case":"OFF","t_s":0.8946141292831294,"Vdc_V":200.001,"uvlo_V":200.0,"nfev":113672,"elapsed_s":15.3292359,"termination":"event"}
+{"event":"diagnostic_uvlo_probe","Vdc_V":199.999999,"dVdc_dt_V_s":3055.512779259967,"p_bridge_W":0.0,"idc_inv_A":0.0}
+{"event":"diagnostic_uvlo_probe","Vdc_V":200.000001,"dVdc_dt_V_s":-719.5731132440715,"p_bridge_W":1464.7333335137728,"idc_inv_A":7.550171784485083}
+{"event":"external_timeout_guard","case":"OFF","worker_process_age_s":178,"reason":"Terminate both Windows venv launcher and child before 180 s; parent originally reported worker exit 1."}
+{"event": "integration_start", "case": "OFF"}
+{"event": "integration_end", "case": "OFF", "nfev": 2828, "elapsed_s": 0.29441890000452986, "message": "The solver successfully reached the end of the integration interval."}
+{"event": "reconstruction_start", "case": "OFF"}
+{"event": "reconstruction_end", "case": "OFF", "elapsed_s": 0.019789400001172908}
+{"event": "postprocess_benchmark", "case": "OFF", "horizon_s": 0.01, "solve_s": 0.29441890000452986, "nfev": 2828, "reconstruction_s": 0.019789400001172908, "json_s": 0.0003074999985983595, "bytes": 21550, "checks": {"solver_success": true, "expected_state_count": true, "finite_states_and_signals": true, "Vdc_positive": true, "frequency_dynamic_from_omega": true, "dc_power_balance": true, "bridge_to_dc_conversion": true}}
+{"event": "integration_start", "case": "ON"}
+{"event": "integration_end", "case": "ON", "nfev": 2714, "elapsed_s": 0.511454200001026, "message": "The solver successfully reached the end of the integration interval."}
+{"event": "reconstruction_start", "case": "ON"}
+{"event": "reconstruction_end", "case": "ON", "elapsed_s": 0.03659479999623727}
+{"event": "postprocess_benchmark", "case": "ON", "horizon_s": 0.01, "solve_s": 0.511454200001026, "nfev": 2714, "reconstruction_s": 0.03659479999623727, "json_s": 0.00038490000588353723, "bytes": 25427, "checks": {"solver_success": true, "expected_state_count": true, "finite_states_and_signals": true, "Vdc_positive": true, "frequency_dynamic_from_omega": true, "dc_power_balance": true, "bridge_to_dc_conversion": true, "SoC_in_bounds": true, "zdeg_nonnegative": true, "pack_bus_energy_balance": true, "bus_power_identity": true, "losses_nonnegative": true, "signed_port_conventions": true}}
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\src\\validation\\validate_bat26_55_n4_on_off.py', '--worker', 'OFF', '--result', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_czngjueb\\result.json', '--horizon-s', '1.2', '--stop-at-pre-uvlo'], timeout_s=60.0
+{"event": "integration_start", "case": "OFF"}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.2999052397915076, "nfev": 41283, "elapsed_s": 5.000095799994597}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.6082881699204867, "nfev": 78622, "elapsed_s": 10.00010309999925}
+{"event": "integration_end", "case": "OFF", "nfev": 113438, "elapsed_s": 14.623825099995884, "message": "A termination event occurred."}
+{"event": "reconstruction_start", "case": "OFF"}
+{"event": "reconstruction_end", "case": "OFF", "elapsed_s": 0.5625498999943375}
+{"event": "worker_json_written", "case": "OFF", "elapsed_s": 0.02061830000457121}
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\src\\validation\\validate_bat26_55_n4_on_off.py', '--worker', 'ON', '--result', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_mk2897is\\result.json', '--horizon-s', '0.893244040314869'], timeout_s=90.0
+{"event": "integration_start", "case": "ON"}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.12950897403637765, "nfev": 20485, "elapsed_s": 5.000006200003554}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.28605897403636044, "nfev": 39271, "elapsed_s": 10.00011230000382}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.4369671952970185, "nfev": 57706, "elapsed_s": 15.000116700000945}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.5844768135856697, "nfev": 75414, "elapsed_s": 20.0001196000012}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.7285768135856538, "nfev": 92706, "elapsed_s": 25.000297000005958}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.8810069016366204, "nfev": 111607, "elapsed_s": 30.000461900002847}
+{"event": "integration_end", "case": "ON", "nfev": 113078, "elapsed_s": 30.403803799999878, "message": "The solver successfully reached the end of the integration interval."}
+{"event": "reconstruction_start", "case": "ON"}
+{"event": "reconstruction_end", "case": "ON", "elapsed_s": 1.1022507000016049}
+{"event": "worker_json_written", "case": "ON", "elapsed_s": 0.022004000005836133}
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\src\\validation\\validate_bat26_55_n4_on_off.py', '--worker', 'OFF', '--result', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_h91wm65_\\result.json', '--horizon-s', '1.2', '--stop-at-pre-uvlo'], timeout_s=60.0
+{"event": "integration_start", "case": "OFF"}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.26578523979151136, "nfev": 37187, "elapsed_s": 5.000011700001778}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.5557731699204925, "nfev": 72319, "elapsed_s": 10.000043500003812}
+{"event": "integration_progress", "case": "OFF", "max_rhs_time_s": 0.8395751639517592, "nfev": 106995, "elapsed_s": 15.000227700002142}
+{"event": "integration_end", "case": "OFF", "nfev": 113438, "elapsed_s": 15.891255300004559, "message": "A termination event occurred."}
+{"event": "reconstruction_start", "case": "OFF"}
+{"event": "reconstruction_end", "case": "OFF", "elapsed_s": 0.5478006000048481}
+{"event": "worker_json_written", "case": "OFF", "elapsed_s": 0.023944100001244806}
+COMMAND ['G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\.venv\\Scripts\\python.exe', '-u', 'G:\\OneDrive - Universidad Nacional de Colombia\\microgrid_vsm\\src\\validation\\validate_bat26_55_n4_on_off.py', '--worker', 'ON', '--result', 'C:\\Users\\hp\\AppData\\Local\\Temp\\bat26_n4_x437cdef\\result.json', '--horizon-s', '0.893244040314869'], timeout_s=90.0
+{"event": "integration_start", "case": "ON"}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.12244897403637842, "nfev": 19637, "elapsed_s": 5.000306400004774}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.26035341848080773, "nfev": 36186, "elapsed_s": 10.000381100006052}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.4027435131452208, "nfev": 53330, "elapsed_s": 15.000478000001749}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.5402323691412302, "nfev": 70105, "elapsed_s": 20.000536999999895}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.6807823691412147, "nfev": 86971, "elapsed_s": 25.00061750000168}
+{"event": "integration_progress", "case": "ON", "max_rhs_time_s": 0.8153077961575649, "nfev": 103626, "elapsed_s": 30.000840000000608}
+{"event": "integration_end", "case": "ON", "nfev": 113078, "elapsed_s": 32.756581200002984, "message": "The solver successfully reached the end of the integration interval."}
+{"event": "reconstruction_start", "case": "ON"}
+{"event": "reconstruction_end", "case": "ON", "elapsed_s": 1.2399535000004107}
+{"event": "worker_json_written", "case": "ON", "elapsed_s": 0.03480120000313036}

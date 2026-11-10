@@ -371,3 +371,192 @@ del bus y la trayectoria alcanza 353.579 V. Este punto es una limitación del
 modelo, no un fallo numérico ni una afirmación de seguridad. El conversor sigue
 siendo un fixture hipotético; N3 no es evidencia experimental/HIL. El JSON
 completo está en `outputs/validation/bat26_55_n3_convergence.json`.
+
+## N4 — comparación pack ON/OFF (intento detenido; 2026-11-10)
+
+**BLOCKED; sin resultado numérico N4.** Se inició el comparador
+`validate_bat26_55_n4_on_off.py` en el HEAD `213fea13eeac617e13379912e91a0dcaaab3b69a`,
+con Python 3.14.0, NumPy 2.3.5 y SciPy 1.16.3. Antes de integrar, el programa
+comprueba igualdad exacta de los 12 estados iniciales compartidos, igualdad de
+parámetros de planta/controlador y perfiles. El proceso permaneció activo y
+consumiendo CPU durante más de una hora, sin retornar los dos objetos de
+solución de `solve_ivp`. Se interrumpió manualmente; no se obtuvo `nfev`, tiempo
+por solve ni métricas ON/OFF. La ejecución incompleta no permite concluir que
+el solver falló ni atribuir inestabilidad física a OFF.
+
+El primer runner solo escribía JSON después de ambos solves. Se corrigió para
+guardar progreso antes del solve OFF y entre OFF/ON en futuras ejecuciones. El
+JSON actual es un registro del intento bloqueado y declara explícitamente que
+no hay resultado parcial disponible; no contiene métricas inventadas. Se
+conserva en `outputs/validation/bat26_55_n4_on_off.json` junto con el validador.
+
+No se cambiaron ecuaciones, parámetros, perfiles, estados ni tolerancias. N4 no
+está aprobada; no se hizo commit ni push. Para continuar se debe ejecutar el
+runner con los mismos perfiles y solver, usando el checkpoint para identificar
+qué caso está activo y obtener ambos solves completos. BAT26-55 permanece
+abierta; no se ejecutó N4b adicional, no se mezcló con el REVIEW histórico de
+6.5 s y no se atribuyeron efectos dinámicos al envejecimiento.
+
+### Diagnóstico N4 y repetición controlada (2026-11-10; registro histórico)
+
+N4 sigue **BLOCKED**: no hay métricas comparativas válidas ni se publicaron
+archivos. El intento anterior de más de una hora no conservó el escenario activo,
+por lo que no puede atribuirse retrospectivamente con certeza. En el nuevo
+intento instrumentado se identificó el problema en **OFF dentro de `solve_ivp`**.
+Los límites se mantuvieron: RK45, `rtol=1e-6`, `atol=1e-9`, paso máximo 50 μs,
+perfil E y estados iniciales compartidos iguales. Los logs completos están en
+`outputs/validation/bat26_55_n4_performance.log`; `max_rhs_time_s` es el máximo
+instante evaluado por el RHS y puede ser una etapa interna o rechazada, no un
+estado aceptado. Python 3.14.0, NumPy 2.3.5 y SciPy 1.16.3.
+
+| Horizonte (s) | ON tiempo solve (s) / nfev | OFF tiempo solve (s) / nfev |
+|---:|---:|---:|
+| 0.01 | 0.998 / 2714 | 0.501 / 2828 |
+| 0.05 | 2.611 / 10544 | 1.065 / 10802 |
+| 0.20 | 8.068 / 28946 | 3.551 / 29300 |
+| 0.45 | 15.781 / 59282 | 6.760 / 59630 |
+| 0.85 | 28.873 / 107888 | 12.716 / 108248 |
+
+Los tiempos de 0.01 s incluyen `cProfile`, por lo que no son directamente
+comparables con los demás. El perfil señala `_compute_step_control` y GFM en
+ambas rutas; ON añade el puerto BESS y el RHS de batería. En un ensayo aparte
+de 0.01 s/21 muestras sin perfilador, integración / reconstrucción / serialización
+JSON tardaron 0.294 / 0.0198 / 0.00031 s OFF y 0.511 / 0.0366 / 0.00038 s ON.
+No se extrapolan esos tiempos de posprocesado al horizonte completo.
+
+En la campaña de 1.20 s, OFF avanzó normalmente hasta cerca de 0.8946 s y
+después acumuló 1,356,292 evaluaciones en 175.0 s, con máximo tiempo de RHS
+0.895393 s. Se detuvo el árbol completo de procesos con un guardia externo a
+aproximadamente 178 s para no exceder los 180 s; el runner original interpretó
+la terminación como salida 1 y el JSON fue anotado posteriormente como BLOCKED.
+No se inició el solve completo ON tras ese bloqueo. El supervisor local se
+corrigió para que los futuros timeouts terminen también el hijo de Python en
+Windows y queden como BLOCKED. El tiempo de serialización del resultado completo
+no se dispone porque OFF nunca retornó.
+
+Una sonda OFF independiente con evento terminal a 200.001 V llegó a
+`t=0.894614129 s` en 15.329 s y 113672 evaluaciones. En ese mismo estado se
+sondeó el RHS a ambos lados del umbral UVLO de 200 V: a 199.999999 V,
+`dVdc/dt=+3055.513 V/s`, potencia de puente y corriente de inversor cero; a
+200.000001 V, `dVdc/dt=-719.573 V/s`, potencia 1464.733 W y corriente 7.550 A.
+Las derivadas apuntan hacia la discontinuidad desde ambos lados. Esta evidencia
+explica la reducción extrema de paso y el costo observado como conmutación
+repetida alrededor de UVLO; no demuestra inestabilidad física ni prueba qué
+ocurrió en el intento anterior sin instrumentación.
+
+El validador también reconstruía ON mediante `power_signals`, que no incorpora
+los valores de supervisión BESS al control GFM. Se corrigió solo el cálculo de
+señales N4 para usar los mismos valores que el RHS; sondas con Vdc=330 y 350 V
+confirmaron `p_cmd` real de 4000 y 1929.250 W frente a 3675.005 y 3626.750 W
+del helper anterior. Este defecto afecta el informe, no explica la lentitud del
+solve. La comparación sigue sin realizarse. No se modificaron las ecuaciones,
+parámetros, controlador, DC/DC, BLAST, arquitectura ni tolerancias.
+
+Opciones futuras requieren decisión explícita: estudiar una formulación híbrida
+con eventos y reglas de conmutación verificadas, o modelar histéresis de UVLO
+si se justifica físicamente y se aprueba el cambio de comportamiento. También
+puede informarse el tramo anterior al umbral como diagnóstico parcial, sin
+presentarlo como comparación N4 de 1.20 s. Ninguna opción se aplicó aquí.
+La sonda del umbral puede reproducirse con
+`python -B src/validation/validate_bat26_55_n4_on_off.py --diagnose-uvlo`;
+una ejecución completa usa procesos separados y límite de 180 s. N4 y BAT26-55
+permanecen abiertas; este trabajo no es validación experimental ni HIL.
+
+### N4 — comparación diagnóstica pre-UVLO (2026-11-10)
+
+**Revisión metodológica posterior a las corridas exploratorias, no criterio
+predeclarado.** El solve OFF exploratorio de 1.20 s se volvió prohibitivamente
+lento al aproximarse a la discontinuidad de conmutación del UVLO; las sondas
+independientes mostraron derivadas de Vdc dirigidas hacia el umbral de 200 V
+desde ambos lados. Para obtener una comparación emparejada reproducible sin
+cambiar la física ni integrar la región de chattering, se adoptó después el
+endpoint diagnóstico de observación a 201 V. Este endpoint no equivale al UVLO
+de 200 V, no es un disparo de protección, no demuestra desconexión física y no
+se presenta como criterio fijado antes de los experimentos exploratorios.
+
+Se conserva el intento `BLOCKED` de 1.20 s y se crea un resultado separado en
+`outputs/validation/bat26_55_n4_pre_uvlo.json`. En una corrida con Python
+3.14.0 / NumPy 2.3.5 / SciPy 1.16.3, RK45 (`rtol=1e-6`, `atol=1e-9`, paso
+máximo 50 μs), perfil E y malla común de 0.5 ms, OFF alcanzó el evento
+diagnóstico terminal descendente `Vdc - 201 V = 0` en `t=0.893244040314869 s`.
+El estado de evento tiene `Vdc=201 V`; terminó por evento y no por fallo del
+solver. OFF utilizó 113438 evaluaciones, 18647 pasos aceptados y 15.891 s de
+solve. ON se integró desde cero hasta ese tiempo exacto con los mismos 12
+estados iniciales comunes: 113078 evaluaciones, 18599 pasos aceptados y
+32.757 s. La ejecución con posprocesamiento tardó 54.395 s. El evento a 201 V
+solo delimita la observación: no cambia UVLO (200 V), la planta ni el control.
+
+La auditoría posterior confirmó que ambos casos usan exactamente 1788 muestras
+con la misma malla de 0.5 ms más el endpoint común: `[0,
+0.893244040314869] s`. OFF solicitó 1.20 s y terminó en el evento a 201 V; ON
+solicitó y alcanzó exactamente el mismo endpoint. Las condiciones iniciales
+comunes de 12 estados y los parámetros/perfiles protegidos coinciden. Se
+corrigió en el validador y el JSON un campo de metadatos `horizon_reached_s`
+que había quedado en 0.85 s por reutilizar el nombre de variable del límite de
+ventana de déficit; los estados, malla, métricas y solves no se alteraron.
+
+Las verificaciones automáticas pasan: igualdad exacta de los 12 estados
+iniciales y de parámetros comunes, perfiles e inversor; dimensiones 12/15 sin
+estados BESS ficticios en OFF; solves exitosos, estados y señales finitos,
+Vdc positiva, frecuencia derivada de `omega`, balances DC, identidad pack-bus,
+pérdidas no negativas, convenciones de signo y SoC dentro de límites. La
+reconstrucción ON usa la supervisión BESS efectiva del RHS y su `p_cmd` coincide
+con la reconstrucción. ON permaneció por encima de 201 V. El mayor residuo de
+balance DC fue menor que `9.1e-13 W`; los residuos de identidad pack-bus y del
+puerto fueron cero en las muestras.
+
+Resultados globales en `[0, 0.893244 s]`, con extremos muestreados en la malla
+común. El mínimo OFF coincide con el evento y queda censurado por terminación:
+
+| Métrica | ON | OFF | Lectura ON respecto a OFF |
+|---|---:|---:|---:|
+| Vdc mínimo / máximo (V) | 326.339 / 353.579 | 201.000 / 399.775 | mínimo OFF truncado; máximo −46.195 V |
+| Excursión absoluta máxima desde 340 V | 13.661 V | 139.000 V | −125.339 V (−90.17%); mínimo OFF truncado |
+| Frecuencia mínima / máxima (Hz) | 59.9744 / 60.0121 | 59.8933 / 60.0326 | nadir +0.08109 Hz; pico −0.02054 Hz |
+| Desviación máxima absoluta de 60 Hz | 0.02559 Hz | 0.10668 Hz | −0.08109 Hz (−76.01%) |
+| RoCoF máximo absoluto (Hz/s) | 6.022 | 7.208 | −1.186 (−16.45%); diferencia finita no filtrada |
+| Energía PCC / PV DC / puente (Wh) | 0.66856 / 0.99677 / 0.67407 | 0.63650 / 0.64095 / 0.64149 | energía PCC ON +0.03206 Wh |
+
+En ON, energía firmada pack = −0.28325 Wh, bus = −0.30394 Wh y pérdidas =
+0.02069 Wh; transferencia absoluta por bus = 0.41091 Wh. El signo negativo
+corresponde a carga. SoC final = 0.6000192 y SoH = 0.6681818 (snapshot
+constante); no se evalúa sensibilidad dinámica al envejecimiento. OFF tiene
+transferencia BESS cero por construcción.
+
+La comparación separa preacondicionamiento `[0, 0.4)`, excedente solar estable
+`[0.45, 0.8)` y déficit estable `[0.85, t_event]`. En preacondicionamiento,
+Vdc máximo fue 344.897 V ON y 379.311 V OFF; en excedente estable, 353.579 V ON
+y 399.775 V OFF. La desviación máxima de frecuencia en esas ventanas fue
+0.00731/0.03263 Hz y 0.00707/0.01616 Hz (ON/OFF). En el tramo de déficit
+muestreado, Vdc mínimo fue 326.339 V ON y 250.970 V OFF, con desviación máxima
+de frecuencia 0.01079/0.10517 Hz. Tras excluir los 50 ms posteriores al cambio
+de 0.8 s solo quedan 0.043244 s antes del evento, menos de los 0.10 s previstos
+para análisis estable. El déficit es parcial, no una respuesta sostenida; los
+extremos OFF no representan la trayectoria posterior al evento.
+
+**Clasificación:** `N4 pre-UVLO = PASS` para ejecución, equivalencia e
+invariantes, con interpretación `REVIEW` para diseño/alcance. En el intervalo
+simulado se observa menor excursión de tensión y desviación de frecuencia con
+ON, y no una diferencia despreciable. No es una meta de eficacia predeclarada
+ni se generaliza fuera del tramo. `N4 completo de 1.20 s = BLOCKED`: no existen
+dos solves completos de 1.20 s. REVIEW incluye la ausencia de protección
+superior de Vdc y los máximos observados; no es una afirmación de seguridad.
+El ejercicio no valida hardware/HIL, un DC/DC detallado ni efectos dinámicos
+de envejecimiento. El JSON contiene métricas y diferencias reproducibles en
+`outputs/validation/bat26_55_n4_pre_uvlo.json`; el
+`outputs/validation/bat26_55_n4_on_off.json` conserva el BLOCKED original. No
+se repitieron N1–N3 ni regresiones históricas.
+
+Para trabajo posterior, una opción es aislar la conmutación UVLO como transición
+híbrida por eventos y verificar explícitamente el reinicio del solver en el
+cruce; otra es estudiar histéresis solo con justificación física y aprobación
+explícita. No se aplicó ninguna modificación de UVLO en N4.
+
+La separación de resultados es intencional: el JSON
+`bat26_55_n4_on_off.json` y las secciones exploratorias anteriores documentan
+el intento original completo **BLOCKED**, sin comparación ON/OFF completa. El
+JSON `bat26_55_n4_pre_uvlo.json` documenta el ensayo metodológicamente acotado:
+**PASS numérico / REVIEW interpretativo** hasta 201 V. Ninguno sustituye ni
+reclasifica al otro. En particular, la comparación numérica hasta 201 V no
+sustituye dos integraciones ON/OFF completas hasta 1.20 s. N1, N2 y N3 mantienen
+sus estados PASS numéricos sin repetición en esta auditoría.
