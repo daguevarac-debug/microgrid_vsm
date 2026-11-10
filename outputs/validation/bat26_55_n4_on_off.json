@@ -1,0 +1,356 @@
+{
+  "task": "BAT26-55 N4 PV/GFM Leaf pack ON/OFF comparison",
+  "source_commit": "213fea13eeac617e13379912e91a0dcaaab3b69a",
+  "command": [
+    "src/validation/validate_bat26_55_n4_on_off.py"
+  ],
+  "utc_start": "2026-11-10T01:50:45.615559+00:00",
+  "python": "3.14.0",
+  "numpy": "2.3.5",
+  "scipy": "1.16.3",
+  "solver": {
+    "method": "RK45",
+    "rtol": 1e-06,
+    "atol": 1e-09,
+    "max_step_s": 5e-05,
+    "sample_dt_s": 0.0005
+  },
+  "horizon_s": 1.2,
+  "frequency_definition": "x[10]/(2*pi)",
+  "profiles": {
+    "segments": [
+      {
+        "interval_s": [
+          0.0,
+          0.4
+        ],
+        "irradiance_W_m2": 800.0,
+        "load_W": 3000.0
+      },
+      {
+        "interval_s": [
+          0.4,
+          0.8
+        ],
+        "irradiance_W_m2": 1000.0,
+        "load_W": 2400.0
+      },
+      {
+        "interval_s": [
+          0.8,
+          1.2
+        ],
+        "irradiance_W_m2": 400.0,
+        "load_W": 4200.0
+      }
+    ],
+    "temperature_C": 25.0,
+    "transient_skip_s": 0.05,
+    "steady_windows": {
+      "preconditioning_s": [
+        0.0,
+        0.4
+      ],
+      "solar_surplus_s": [
+        0.45,
+        0.8
+      ],
+      "load_deficit_s": [
+        0.85,
+        1.2
+      ]
+    }
+  },
+  "on_model": {
+    "class": "MicrogridWithBESS + Leaf48ModulePack + DC/DC",
+    "states": 15,
+    "qeff_initial_Ah": 44.1,
+    "soc_initial": 0.6,
+    "converter_hypotheses_only": {
+      "eta_charge": 0.95,
+      "eta_discharge": 0.95,
+      "unit_current_limit_A": 10.0,
+      "bus_current_limit_A": 20.0,
+      "bus_power_limit_W": 5000.0
+    }
+  },
+  "off_model": {
+    "class": "Microgrid + GFMController",
+    "states": 12,
+    "battery_states_added": false
+  },
+  "gfm": {
+    "controller": "GFMController",
+    "M": 80.0,
+    "D": 1500.0,
+    "P_ref_W": 4000.0
+  },
+  "scope": "paired numerical simulation only; no measured hardware/HIL; no dynamic aging sensitivity",
+  "previous_attempt": {
+    "task": "BAT26-55 N4 PV/GFM Leaf pack ON/OFF comparison",
+    "source_commit": "213fea13eeac617e13379912e91a0dcaaab3b69a",
+    "branch": "codex/bat26-55-pack-bus-gfm",
+    "python": "3.14.0",
+    "numpy": "2.3.5",
+    "scipy": "1.16.3",
+    "solver": {
+      "method": "RK45",
+      "rtol": 1e-06,
+      "atol": 1e-09,
+      "max_step_s": 5e-05,
+      "sample_dt_s": 0.0005,
+      "horizon_s": 1.2
+    },
+    "profiles": {
+      "segments": [
+        {
+          "interval_s": [
+            0.0,
+            0.4
+          ],
+          "irradiance_W_m2": 800.0,
+          "load_W": 3000.0
+        },
+        {
+          "interval_s": [
+            0.4,
+            0.8
+          ],
+          "irradiance_W_m2": 1000.0,
+          "load_W": 2400.0
+        },
+        {
+          "interval_s": [
+            0.8,
+            1.2
+          ],
+          "irradiance_W_m2": 400.0,
+          "load_W": 4200.0
+        }
+      ],
+      "temperature_C": 25.0,
+      "transient_skip_s": 0.05
+    },
+    "on_model": {
+      "class": "MicrogridWithBESS + Leaf48ModulePack + DC/DC",
+      "states": 15,
+      "qeff_initial_Ah": 44.1,
+      "soc_initial": 0.6
+    },
+    "off_model": {
+      "class": "Microgrid + GFMController",
+      "states": 12,
+      "battery_states_added": false
+    },
+    "gfm": {
+      "controller": "GFMController",
+      "M": 80.0,
+      "D": 1500.0,
+      "P_ref_W": 4000.0
+    },
+    "execution_attempt": {
+      "status": "BLOCKED",
+      "duration_observed_lower_bound_s": 3600,
+      "interrupted_at_utc": "2026-11-10T01:31:25Z",
+      "manual_interrupt": true,
+      "solver_case_at_interrupt": "unknown",
+      "solver_elapsed_s": null,
+      "nfev": null,
+      "solver_message": null,
+      "partial_solve_result_available": false,
+      "reason": "The process remained CPU-active for over one hour without completing and had not returned solve_ivp results. The original runner wrote only after both solves, so no partial metrics or nfev were persisted. The runner now checkpoints progress before and between cases."
+    },
+    "pre_solve_equivalence": {
+      "status": "PASS",
+      "verification": "rechecked independently after interruption using make_pair() without integration",
+      "off_state_count": 12,
+      "on_state_count": 15,
+      "first_12_initial_states_exactly_equal": true,
+      "common_parameter_checks": {
+        "controller_settings_equal": true,
+        "plant_pv_parameters_equal": true,
+        "dc_link_parameters_equal": true,
+        "lcl_parameters_equal": true,
+        "inverter_efficiency_equal": true,
+        "uvlo_equal": true,
+        "profiles_equal_at_boundaries_and_midpoints": true
+      },
+      "capacity_snapshot_soh": 0.6681818181818182,
+      "controller_parameters": {
+        "p_ref_W": 4000.0,
+        "M": 80.0,
+        "D": 1500.0,
+        "omega_ref_rad_s": 376.99111843077515,
+        "theta0_rad": 0.0,
+        "f_hz": 60.0,
+        "v_ln_rms_V": 110.0,
+        "m_base": 0.95
+      }
+    },
+    "status": "BLOCKED",
+    "validation_status": "BLOCKED",
+    "interpretation_status": "NOT_EVALUATED",
+    "limitations": [
+      "No ON/OFF metrics can be reported because neither complete solve result was persisted.",
+      "This is not evidence of physical instability or a solver exception.",
+      "No model parameters, equations, controller, solver tolerances or profiles were changed.",
+      "No commit or push was made."
+    ]
+  },
+  "process_timeout_s": 180,
+  "common_condition_equivalence": {
+    "initial_first_12_exact": true,
+    "controller_settings_equal": true,
+    "plant_pv_parameters_equal": true,
+    "dc_link_parameters_equal": true,
+    "lcl_parameters_equal": true,
+    "inverter_efficiency_equal": true,
+    "uvlo_equal": true,
+    "profiles_equal_at_boundaries_and_midpoints": true
+  },
+  "common_initial_state_12": [
+    340.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    376.99111843077515,
+    0.0
+  ],
+  "common_controller_parameters": {
+    "p_ref_W": 4000.0,
+    "M": 80.0,
+    "D": 1500.0,
+    "omega_ref_rad_s": 376.99111843077515,
+    "theta0_rad": 0.0,
+    "f_hz": 60.0,
+    "v_ln_rms_V": 110.0,
+    "m_base": 0.95
+  },
+  "capacity_snapshot": {
+    "q_nom_ref_Ah": 66.0,
+    "q_init_case_Ah": 44.1,
+    "retention_since_case_start": 1.0,
+    "q_eff_Ah": 44.1,
+    "soh": 0.6681818181818182
+  },
+  "status": "BLOCKED",
+  "current_case": "OFF",
+  "utc_updated": "2026-11-10T01:53:44.316576+00:00",
+  "validation_status": "BLOCKED",
+  "error": "OFF worker tree stopped by external timeout guard at approximately 178 s, before the 180 s limit; ON full solve not started.",
+  "utc_end": "2026-11-10T01:53:44.316556+00:00",
+  "elapsed_total_s": 178.70086699999956,
+  "worker_exit_before_annotation": "RuntimeError('OFF worker exited 1; see G:\\\\OneDrive - Universidad Nacional de Colombia\\\\microgrid_vsm\\\\outputs\\\\validation\\\\bat26_55_n4_performance.log')",
+  "interpretation_status": "NOT_EVALUATED",
+  "diagnosis": {
+    "cause": "OFF RK45 becomes extremely slow near the GFM inverter UVLO discontinuity",
+    "evidence": "At the same OFF state the DC-link derivative points toward the 200 V threshold from both sides; this supports switching chatter, not a claim of physical instability.",
+    "uvlo_v": 200.0,
+    "approach_t_s": 0.8946141292831294,
+    "approach_vdc_v": 200.001,
+    "approach_nfev": 113672,
+    "approach_elapsed_s": 15.3292359,
+    "below": {
+      "vdc_v": 199.999999,
+      "dvdc_dt_v_s": 3055.512779259967,
+      "p_bridge_w": 0.0,
+      "idc_inv_a": 0.0
+    },
+    "above": {
+      "vdc_v": 200.000001,
+      "dvdc_dt_v_s": -719.5731132440715,
+      "p_bridge_w": 1464.7333335137728,
+      "idc_inv_a": 7.550171784485083
+    },
+    "last_progress": {
+      "max_rhs_time_s": 0.8953929418092551,
+      "nfev": 1356292,
+      "elapsed_s": 175.00235
+    },
+    "max_rhs_time_note": "furthest RHS evaluation, may be an internal or rejected stage; not necessarily an accepted solver state",
+    "full_on_started": false,
+    "comparative_metrics_available": false,
+    "performance_log": "outputs/validation/bat26_55_n4_performance.log"
+  },
+  "short_probes": [
+    {
+      "horizon_s": 0.01,
+      "on": {
+        "elapsed_s": 0.9980361,
+        "nfev": 2714
+      },
+      "off": {
+        "elapsed_s": 0.5005008,
+        "nfev": 2828
+      }
+    },
+    {
+      "horizon_s": 0.05,
+      "on": {
+        "elapsed_s": 2.611061,
+        "nfev": 10544
+      },
+      "off": {
+        "elapsed_s": 1.0653132,
+        "nfev": 10802
+      }
+    },
+    {
+      "horizon_s": 0.2,
+      "on": {
+        "elapsed_s": 8.0680517,
+        "nfev": 28946
+      },
+      "off": {
+        "elapsed_s": 3.5505551,
+        "nfev": 29300
+      }
+    },
+    {
+      "horizon_s": 0.45,
+      "on": {
+        "elapsed_s": 15.780562,
+        "nfev": 59282
+      },
+      "off": {
+        "elapsed_s": 6.7595163,
+        "nfev": 59630
+      }
+    },
+    {
+      "horizon_s": 0.85,
+      "on": {
+        "elapsed_s": 28.8729532,
+        "nfev": 107888
+      },
+      "off": {
+        "elapsed_s": 12.716119,
+        "nfev": 108248
+      }
+    }
+  ],
+  "note": "Status corrected to BLOCKED after an external process-tree guard terminated OFF before its deadline. No complete integration or comparison was produced.",
+  "postprocessing_short_probe": {
+    "horizon_s": 0.01,
+    "samples": 21,
+    "OFF": {
+      "solve_s": 0.2944189,
+      "reconstruction_s": 0.0197894,
+      "json_s": 0.0003075,
+      "nfev": 2828
+    },
+    "ON": {
+      "solve_s": 0.5114542,
+      "reconstruction_s": 0.0365948,
+      "json_s": 0.0003849,
+      "nfev": 2714
+    },
+    "scope": "short benchmark, not a full-horizon comparison"
+  }
+}
