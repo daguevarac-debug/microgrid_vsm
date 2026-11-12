@@ -24,7 +24,7 @@ def illustrative_pv_kw(minute: int, peak_kw: float = 3.0) -> float:
     """Zero outside 06:00–18:00; 3 kW at noon; no weather claim."""
     if not (0 <= minute < 1440):
         raise ValueError("Minute must be in [0, 1439]")
-    if not 360 <= minute <= 1080:
+    if not 360 < minute < 1080:
         return 0.0
     return peak_kw * math.sin(math.pi * (minute - 360) / 720)
 
