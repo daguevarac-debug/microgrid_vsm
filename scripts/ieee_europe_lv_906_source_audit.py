@@ -73,12 +73,12 @@ def main() -> None:
     dss_text = (data_dir / "Loads.txt").read_text(encoding="utf-8-sig")
     for row in official_loads:
         name = row["Name"].strip()
-        match = re.search(rf"^New Load\\.{re.escape(name)}\\s+[^\\r\\n]+",
+        match = re.search(rf"^New Load\.{re.escape(name)}\s+[^\r\n]+",
                           dss_text, re.IGNORECASE | re.MULTILINE)
         if not match:
             load_mismatches.append(f"Missing {name} in mirror")
             continue
-        found = re.search(r"Bus1=([0-9]+)\\.([123])", match.group(0), re.IGNORECASE)
+        found = re.search(r"Bus1=([0-9]+)\.([123])", match.group(0), re.IGNORECASE)
         if not found or found.group(1) != row["Bus"].strip() or found.group(2) != str("ABC".index(row["phases"].strip().upper()) + 1):
             load_mismatches.append(f"Different bus/phase for {name}")
 
