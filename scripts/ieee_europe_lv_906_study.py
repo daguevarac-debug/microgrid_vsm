@@ -135,7 +135,8 @@ def _get_bus_phase_voltage(dss, bus_phase: str) -> float:
 
 def _snapshot(
     dss, study_master: Path, minute: int, pv_kw: float, pv_bus_phases: str,
-    *, initialize: bool = True,
+    *, initialize: bool = True, create_pv_if_zero: bool = False,
+    reuse_pv: bool = False,
 ) -> dict:
     if initialize:
         dss.Basic.ClearAll()
@@ -153,13 +154,15 @@ def _snapshot(
 
         dss.Text.Command("set controlmode=off")
         dss.Text.Command("set mode=yearly number=1 stepsize=1m")
-        if pv_kw > 0:
+        if pv_kw > 0 or create_pv_if_zero:
             dss.Text.Command(
                 f"new Generator.PV_3KW phases=3 bus1={pv_bus_phases} "
                 f"kV=0.416 conn=wye kW={pv_kw:.9g} kvar=0 model=1"
             )
+    elif reuse_pv:
+        dss.Text.Command(f"edit Generator.PV_3KW kW={pv_kw:.9g}")
     elif pv_kw != 0:
-        raise ValueError("Circuit reuse only supports the no-PV baseline")
+        raise ValueError("Circuit reuse requires the PV-generator flag")
 
     dss.Solution.Hour(minute // 60)
     dss.Solution.Seconds((minute % 60) * 60)
