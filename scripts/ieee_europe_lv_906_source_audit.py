@@ -82,6 +82,72 @@ def main() -> None:
         if not found or found.group(1) != row["Bus"].strip() or found.group(2) != str("ABC".index(row["phases"].strip().upper()) + 1):
             load_mismatches.append(f"Different bus/phase for {name}")
 
+    # Compare all physical line segments and line-code impedance inputs.
+    lines_raw, lines_origin = _read_official("Lines.csv")
+    original_lines = list(csv.DictReader(
+        line for line in lines_raw.decode("utf-8-sig").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ))
+    mirrored_lines = {}
+    for line in (data_dir / "Lines.txt").read_text(encoding="utf-8-sig").splitlines():
+        match = re.match(r"New Line\.([^\s]+)\s+(.*)", line.strip(), re.IGNORECASE)
+        if match:
+            mirrored_lines[match.group(1).lower()] = {
+                k.lower(): v for k, v in re.findall(r"([A-Za-z0-9_]+)=([^\s]+)", match.group(2))
+            }
+    line_mismatches = []
+    for row in original_lines:
+        name = row["Name"].strip().lower()
+        actual = mirrored_lines.get(name)
+        if actual is None:
+            line_mismatches.append(f"Missing {name}")
+            continue
+        target = {
+            "bus1": row["Bus1"].strip(),
+            "bus2": row["Bus2"].strip(),
+            "linecode": row["LineCode"].strip(),
+            "units": row["Units"].strip(),
+            "phases": str(len(row["Phases"].strip())),
+        }
+        for key, expected in target.items():
+            if actual.get(key, "").lower() != expected.lower():
+                line_mismatches.append(f"{name}: {key} {actual.get(key)} != {expected}")
+        try:
+            if abs(float(actual.get("length", "nan")) - float(row["Length"])) > 1e-8:
+                line_mismatches.append(f"{name}: length mismatch")
+        except ValueError:
+            line_mismatches.append(f"{name}: nonnumeric length")
+
+    codes_raw, codes_origin = _read_official("LineCodes.csv")
+    original_codes = list(csv.DictReader(
+        line for line in codes_raw.decode("utf-8-sig").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ))
+    mirror_codes = {}
+    for line in (data_dir / "LineCode.txt").read_text(encoding="utf-8-sig").splitlines():
+        match = re.match(r"New LineCode\.([^\s]+)\s+(.*)", line.strip(), re.IGNORECASE)
+        if match:
+            mirror_codes[match.group(1).lower()] = {
+                k.lower(): v for k, v in re.findall(r"([A-Za-z0-9_]+)=([^\s]+)", match.group(2))
+            }
+    code_mismatches = []
+    for row in original_codes:
+        name = row["Name"].strip().lower()
+        actual = mirror_codes.get(name)
+        if actual is None:
+            code_mismatches.append(f"Missing linecode {name}")
+            continue
+        for key in ("nphases", "R1", "X1", "R0", "X0", "C1", "C0", "Units"):
+            expected = row[key].strip()
+            candidate = actual.get(key.lower())
+            if candidate is None:
+                code_mismatches.append(f"{name}: missing {key}")
+            elif key.lower() == "units":
+                if candidate.lower() != expected.lower():
+                    code_mismatches.append(f"{name}: units {candidate} != {expected}")
+            elif abs(float(candidate) - float(expected)) > 1e-9:
+                code_mismatches.append(f"{name}: {key} mismatch")
+
     payload = {
         "official_repo": IEEE_REPO,
         "files_checked": 55,
@@ -95,6 +161,12 @@ def main() -> None:
         "official_transformer_source": xf_origin,
         "official_loads_source": loads_origin,
         "load_phase_bus_mismatches": load_mismatches,
+        "official_lines_source": lines_origin,
+        "official_linecodes_source": codes_origin,
+        "line_segments_checked": len(original_lines),
+        "line_codes_checked": len(original_codes),
+        "line_input_mismatches": line_mismatches,
+        "linecode_input_mismatches": code_mismatches,
         "comparison_rows": records,
         "note": "This only tests public source parity, not IEEE published solution agreement.",
     }
