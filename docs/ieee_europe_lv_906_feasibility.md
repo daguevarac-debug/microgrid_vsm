@@ -1,6 +1,6 @@
 # IEEE European Low Voltage 906-bus feeder — reproducible feasibility study
 
-**Status:** initial implementation / execution pending. Branch `feat/ieee-europe-lv-906-benchmark`; target `feat/blast-aging-adapter`. No changes to the protected plant/controller equations or IEEE 33 evidence.
+**Status:** implemented and cloud execution PASS for initial 24-hour OpenDSS flows; independent IEEE reference comparison pending. Branch `feat/ieee-europe-lv-906-benchmark`; target `feat/blast-aging-adapter`. No changes to the protected plant/controller equations or IEEE 33 evidence.
 
 ## Research decision and boundary
 
@@ -63,4 +63,4 @@ Download hashes reside in `data/ieee_europe_lv_906/source_manifest.json`. Source
 
 Leave all `src/ieee33_*`, `src/microgrid.py`, `src/bess/`, `src/controllers/`, `src/config.py` and the protected state-vector conventions untouched. No merge into `main`. Ensure `git status --short` shows only intended files before opening/merging a PR. The director's decision about feeder scale and isolated-operation interface remains pending until comparison results exist.
 
-**First acceptance checkpoint:** download/verify source files, obtain a converged no-PV baseline, demonstrate signed power balance, and produce the same-minute near/far 3 kW PV comparison. If any step fails, report it as BLOCKED with logs rather than invent voltage or loss figures.
+**First acceptance checkpoint (completed numerically 2026-11-12):** public data fetch/manifest, converged no-PV baseline at 1-minute resolution across 24 hours, signed power balance and near/far 3 kW PV comparison. Numerical results and run link: `docs/ieee_europe_lv_906_first_cloud_results.md`. **Not yet completed:** independent IEEE reference profile agreement and physical VSG interface decision; do not mark DIR-05 fully closed until these are addressed.
