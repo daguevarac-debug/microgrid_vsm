@@ -109,6 +109,14 @@ def main() -> None:
                     "signed_error": round(actual - ref, 8),
                     "relative_error_percent": round(100 * (actual - ref) / ref, 5),
                 })
+    for minute in REFERENCE:
+        subset = [r for r in rows if r["minute"] == minute]
+        print(f"IEEE snapshot minute={minute}:")
+        for metric in ("p_source_kw", "q_source_kvar", "min_v_volt", "max_v_volt"):
+            values = [r for r in subset if r["metric"] == metric]
+            expected = [r["ieee_2015_reference"] for r in values]
+            actual = [r["opendss_simulated"] for r in values]
+            print(f"  {metric}: reference={expected} simulated={actual}")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     path = args.output_dir / "ieee_2015_reference_check.csv"
     with path.open("w", newline="", encoding="utf-8") as stream:
