@@ -62,6 +62,16 @@ def _reference_snapshot(dss, master: Path, minute: int) -> dict:
     source_p = tuple(-float(source_powers[2*i]) for i in range(3))
     source_q = tuple(-float(source_powers[2*i + 1]) for i in range(3))
 
+    # IEEE reference says "substation"; a delta-wye transformer mixes
+    # primary-phase powers. Inspect LV secondary powers separately.
+    if dss.Circuit.SetActiveElement("Transformer.TR1") < 0:
+        raise RuntimeError("Missing Transformer.TR1")
+    xfmr = dss.CktElement.Powers()
+    if len(xfmr) < 12:
+        raise RuntimeError("Transformer.TR1 missing its three-phase secondary")
+    transformer_lv_p = tuple(-float(xfmr[6 + 2*i]) for i in range(3))
+    transformer_lv_q = tuple(-float(xfmr[6 + 2*i + 1]) for i in range(3))
+
     phase_voltages: dict[int, list[float]] = {1: [], 2: [], 3: []}
     for busname in dss.Circuit.AllBusNames():
         dss.Circuit.SetActiveBus(busname)
@@ -77,6 +87,8 @@ def _reference_snapshot(dss, master: Path, minute: int) -> dict:
     return {
         "p_source_kw": source_p,
         "q_source_kvar": source_q,
+        "transformer_lv_p_kw": transformer_lv_p,
+        "transformer_lv_q_kvar": transformer_lv_q,
         "max_v_volt": tuple(max(phase_voltages[k]) for k in (1, 2, 3)),
         "min_v_volt": tuple(min(phase_voltages[k]) for k in (1, 2, 3)),
     }
@@ -111,7 +123,10 @@ def main() -> None:
                 })
     for minute in REFERENCE:
         subset = [r for r in rows if r["minute"] == minute]
+        substation_p = _reference_snapshot(dss, master, minute)
         print(f"IEEE snapshot minute={minute}:")
+        print(f"  transformer_lv_p_kw={substation_p['transformer_lv_p_kw']} "
+              f"transformer_lv_q_kvar={substation_p['transformer_lv_q_kvar']}")
         for metric in ("p_source_kw", "q_source_kvar", "min_v_volt", "max_v_volt"):
             values = [r for r in subset if r["metric"] == metric]
             expected = [r["ieee_2015_reference"] for r in values]
