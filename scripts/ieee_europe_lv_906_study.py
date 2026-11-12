@@ -219,6 +219,10 @@ def main() -> None:
     parser.add_argument("--pv-kw", type=float, default=3.0, help="Static three-phase DG injection at snapshot.")
     parser.add_argument("--baseline-step", type=int, default=60, help="Sampling of 24h baseline; 1 for all minutes.")
     args = parser.parse_args()
+    # OpenDSS 'compile' may change the Python process working directory.
+    # Resolve all paths before the first compile to prevent nested relative paths.
+    args.data_dir = args.data_dir.resolve()
+    args.output_dir = args.output_dir.resolve()
     if not (0 <= args.minute < 1440):
         parser.error("--minute must lie in [0,1439]")
     if not (0 < args.baseline_step <= 1440):
