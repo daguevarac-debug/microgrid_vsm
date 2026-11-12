@@ -37,11 +37,13 @@ jobs:
         run: python -m unittest discover -s scripts/tests -p "test_ieee_europe_lv_906_study.py" -v
       - name: Run 906-bus reference and PV scenarios at noon
         run: |
+          set -o pipefail
           python scripts/ieee_europe_lv_906_study.py \
             --download --minute 720 --pv-kw 3 --baseline-step 60 \
             2>&1 | tee ieee_lv906_run.log
       - name: Run entire 24-hour baseline at 1-minute resolution
         run: |
+          set -o pipefail
           python scripts/ieee_europe_lv_906_study.py \
             --minute 720 --pv-kw 3 --baseline-step 1 \
             2>&1 | tee ieee_lv906_24h_run.log
