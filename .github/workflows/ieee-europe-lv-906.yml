@@ -1,0 +1,53 @@
+name: IEEE European LV 906-bus validation
+
+on:
+  push:
+    branches:
+      - feat/ieee-europe-lv-906-benchmark
+    paths:
+      - ".github/workflows/ieee-europe-lv-906.yml"
+      - "scripts/ieee_europe_lv_906_study.py"
+      - "scripts/tests/test_ieee_europe_lv_906_study.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  opendss-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install OpenDSSDirect
+        run: python -m pip install --disable-pip-version-check "opendssdirect.py>=0.9,<1"
+      - name: Fast tests for adapter and manifest
+        run: python -m unittest discover -s scripts/tests -p "test_ieee_europe_lv_906_study.py" -v
+      - name: Run 906-bus reference and PV scenarios at noon
+        run: |
+          python scripts/ieee_europe_lv_906_study.py \
+            --download --minute 720 --pv-kw 3 --baseline-step 60 \
+            2>&1 | tee ieee_lv906_run.log
+      - name: Run entire 24-hour baseline at 1-minute resolution
+        run: |
+          python scripts/ieee_europe_lv_906_study.py \
+            --minute 720 --pv-kw 3 --baseline-step 1 \
+            2>&1 | tee ieee_lv906_24h_run.log
+      - name: Upload reproducible outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ieee-europe-lv-906-validation
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            outputs/analysis/ieee_europe_lv_906/*.csv
+            outputs/analysis/ieee_europe_lv_906/*.json
+            data/ieee_europe_lv_906/source_manifest.json
+            ieee_lv906_run.log
+            ieee_lv906_24h_run.log
