@@ -10,9 +10,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ieee_europe_lv_906_study import LOAD_SHAPE_PATTERN, verify_dataset, write_study_master
+from ieee_europe_lv_906_daily_pv import illustrative_pv_kw
 
 
 class EuropeanLVAdapterTests(unittest.TestCase):
+    def test_illustrative_pv_profile_is_explicitly_synthetic(self) -> None:
+        self.assertEqual(illustrative_pv_kw(0), 0.0)
+        self.assertEqual(illustrative_pv_kw(360), 0.0)
+        self.assertAlmostEqual(illustrative_pv_kw(720), 3.0)
+        self.assertEqual(illustrative_pv_kw(1080), 0.0)
+        self.assertEqual(illustrative_pv_kw(1439), 0.0)
+        self.assertAlmostEqual(illustrative_pv_kw(600), illustrative_pv_kw(840))
+        with self.assertRaises(ValueError):
+            illustrative_pv_kw(1440)
+
     def test_profile_reference_parsing(self) -> None:
         line = r"New Loadshape.Shape_1 npts=1440 mult=(file=Daily_1min_100profiles\Load_profile_1.txt)"
         self.assertEqual(
