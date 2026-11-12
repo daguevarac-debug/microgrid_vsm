@@ -32,10 +32,10 @@ def _source_url(source_ref: str, relative_path: str) -> str:
     return f"{SOURCE_BASE}/{quote(source_ref, safe='')}/{SOURCE_SUBDIR}/{safe_path}"
 
 
-def _download_file(target_dir: Path, source_ref: str, relative_path: str) -> None:
+def _download_file(target_dir: Path, source_ref: str, relative_path: str, source_path: str | None = None) -> None:
     target = target_dir / relative_path
     target.parent.mkdir(parents=True, exist_ok=True)
-    req = Request(_source_url(source_ref, relative_path), headers={"User-Agent": "microgrid_vsm-ieee-eu-lv/1.0"})
+    req = Request(_source_url(source_ref, source_path or relative_path), headers={"User-Agent": "microgrid_vsm-ieee-eu-lv/1.0"})
     with urlopen(req, timeout=60) as response:
         data = response.read()
     if not data:
@@ -60,7 +60,11 @@ def fetch_dataset(target_dir: Path, source_ref: str) -> None:
         relative = Path(rel)
         if relative.is_absolute() or ".." in relative.parts:
             raise ValueError(f"Unsafe profile path: {rel}")
-        _download_file(target_dir, source_ref, rel)
+        # Upstream mirror stores lowercase load_profile_*.txt, while the
+        # original LoadShapes.txt references Load_profile_*.txt. Preserve
+        # the expected local spelling on case-sensitive file systems.
+        upstream_rel = re.sub(r"Load_profile_(\d+)", r"load_profile_\1", rel)
+        _download_file(target_dir, source_ref, rel, source_path=upstream_rel)
 
     manifest = {
         "origin": f"{SOURCE_BASE}/{source_ref}/{SOURCE_SUBDIR}",
