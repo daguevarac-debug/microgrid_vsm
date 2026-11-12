@@ -117,6 +117,14 @@ def main() -> None:
             expected = [r["ieee_2015_reference"] for r in values]
             actual = [r["opendss_simulated"] for r in values]
             print(f"  {metric}: reference={expected} simulated={actual}")
+    # Probe neighboring timestamps without changing parameters; OpenDSS
+    # yearly loadshapes may wrap at exactly 24:00.
+    for probe_minute in (0, 2, 565, 567, 1438, 1439):
+        sample = _reference_snapshot(dss, master, probe_minute)
+        print(f"Timeline probe minute={probe_minute}: "
+              f"P={[round(v,4) for v in sample['p_source_kw']]} "
+              f"Q={[round(v,4) for v in sample['q_source_kvar']]}")
+
     args.output_dir.mkdir(parents=True, exist_ok=True)
     path = args.output_dir / "ieee_2015_reference_check.csv"
     with path.open("w", newline="", encoding="utf-8") as stream:
