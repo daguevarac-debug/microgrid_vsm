@@ -133,27 +133,34 @@ def _get_bus_phase_voltage(dss, bus_phase: str) -> float:
     return float(pu_mag_angle[2 * phase_index])
 
 
-def _snapshot(dss, study_master: Path, minute: int, pv_kw: float, pv_bus_phases: str) -> dict:
-    dss.Basic.ClearAll()
-    dss.Text.Command(f'compile "{study_master.resolve().as_posix()}"')
-    if dss.Loads.Count() != EXPECTED_LOADS or dss.Lines.Count() != EXPECTED_LINES:
-        raise AssertionError(
-            f"Invalid topology: {dss.Loads.Count()} loads, {dss.Lines.Count()} lines"
-        )
-    # Preserve a three-phase DER interface; phase-specific loads remain unbalanced.
-    bus_name, *phases = pv_bus_phases.split(".")
-    if phases != ["1", "2", "3"]:
-        raise ValueError("The preliminary VSG interface requires phases 1, 2, 3")
-    for phase in phases:
-        _get_bus_phase_voltage(dss, f"{bus_name}.{phase}")
+def _snapshot(
+    dss, study_master: Path, minute: int, pv_kw: float, pv_bus_phases: str,
+    *, initialize: bool = True,
+) -> dict:
+    if initialize:
+        dss.Basic.ClearAll()
+        dss.Text.Command(f'compile "{study_master.resolve().as_posix()}"')
+        if dss.Loads.Count() != EXPECTED_LOADS or dss.Lines.Count() != EXPECTED_LINES:
+            raise AssertionError(
+                f"Invalid topology: {dss.Loads.Count()} loads, {dss.Lines.Count()} lines"
+            )
+        # Preserve a three-phase DER interface; phase-specific loads remain unbalanced.
+        bus_name, *phases = pv_bus_phases.split(".")
+        if phases != ["1", "2", "3"]:
+            raise ValueError("The preliminary VSG interface requires phases 1, 2, 3")
+        for phase in phases:
+            _get_bus_phase_voltage(dss, f"{bus_name}.{phase}")
 
-    dss.Text.Command("set controlmode=off")
-    dss.Text.Command("set mode=yearly number=1 stepsize=1m")
-    if pv_kw > 0:
-        dss.Text.Command(
-            f"new Generator.PV_3KW phases=3 bus1={pv_bus_phases} "
-            f"kV=0.416 conn=wye kW={pv_kw:.9g} kvar=0 model=1"
-        )
+        dss.Text.Command("set controlmode=off")
+        dss.Text.Command("set mode=yearly number=1 stepsize=1m")
+        if pv_kw > 0:
+            dss.Text.Command(
+                f"new Generator.PV_3KW phases=3 bus1={pv_bus_phases} "
+                f"kV=0.416 conn=wye kW={pv_kw:.9g} kvar=0 model=1"
+            )
+    elif pv_kw != 0:
+        raise ValueError("Circuit reuse only supports the no-PV baseline")
+
     dss.Solution.Hour(minute // 60)
     dss.Solution.Seconds((minute % 60) * 60)
     dss.Solution.Solve()
@@ -239,9 +246,13 @@ def main() -> None:
     except ImportError as exc:
         raise SystemExit("Missing dependency: python -m pip install opendssdirect.py") from exc
 
+    # Compile once for 24-hour baseline: only time/loadshape values change.
+    # Recompiling for all 1,440 minutes wastes CI minutes and is unnecessary.
     baseline = [
-        _snapshot(dss, study_master, minute, 0, "822.1.2.3")
-        for minute in range(0, 1440, args.baseline_step)
+        _snapshot(
+            dss, study_master, minute, 0, "822.1.2.3", initialize=(i == 0)
+        )
+        for i, minute in enumerate(range(0, 1440, args.baseline_step))
     ]
     _write_csv(args.output_dir / "baseline_24h.csv", baseline)
 
