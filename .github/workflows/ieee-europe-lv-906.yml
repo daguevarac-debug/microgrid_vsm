@@ -8,6 +8,7 @@ on:
       - ".github/workflows/ieee-europe-lv-906.yml"
       - "scripts/ieee_europe_lv_906_study.py"
       - "scripts/ieee_europe_lv_906_reference.py"
+      - "scripts/ieee_europe_lv_906_source_audit.py"
       - "scripts/tests/test_ieee_europe_lv_906_study.py"
   pull_request:
     branches:
@@ -43,6 +44,10 @@ jobs:
           python scripts/ieee_europe_lv_906_study.py \
             --download --minute 720 --pv-kw 3 --baseline-step 60 \
             2>&1 | tee ieee_lv906_run.log
+      - name: Audit official IEEE PES CSV source parity
+        run: |
+          set -o pipefail
+          python scripts/ieee_europe_lv_906_source_audit.py 2>&1 | tee ieee_lv906_source_parity.log
       - name: Compare baseline with IEEE 2015 reference snapshots
         run: |
           set -o pipefail
@@ -67,3 +72,4 @@ jobs:
             ieee_lv906_run.log
             ieee_lv906_24h_run.log
             ieee_lv906_reference.log
+            ieee_lv906_source_parity.log
