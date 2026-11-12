@@ -67,10 +67,13 @@ def _reference_snapshot(dss, master: Path, minute: int) -> dict:
     if dss.Circuit.SetActiveElement("Transformer.TR1") < 0:
         raise RuntimeError("Missing Transformer.TR1")
     xfmr = dss.CktElement.Powers()
-    if len(xfmr) < 12:
+    # Count the physical conductors INCLUDING the neutral. Do not
+    # assume 3 conductors per terminal for a grounded-wye transformer.
+    offset = 2 * dss.CktElement.NumConductors()
+    if len(xfmr) < offset + 6:
         raise RuntimeError("Transformer.TR1 missing its three-phase secondary")
-    transformer_lv_p = tuple(-float(xfmr[6 + 2*i]) for i in range(3))
-    transformer_lv_q = tuple(-float(xfmr[6 + 2*i + 1]) for i in range(3))
+    transformer_lv_p = tuple(-float(xfmr[offset + 2*i]) for i in range(3))
+    transformer_lv_q = tuple(-float(xfmr[offset + 2*i + 1]) for i in range(3))
 
     phase_voltages: dict[int, list[float]] = {1: [], 2: [], 3: []}
     for busname in dss.Circuit.AllBusNames():
