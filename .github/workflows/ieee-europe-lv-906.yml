@@ -8,6 +8,13 @@ on:
       - ".github/workflows/ieee-europe-lv-906.yml"
       - "scripts/ieee_europe_lv_906_study.py"
       - "scripts/tests/test_ieee_europe_lv_906_study.py"
+  pull_request:
+    branches:
+      - feat/blast-aging-adapter
+    paths:
+      - ".github/workflows/ieee-europe-lv-906.yml"
+      - "scripts/ieee_europe_lv_906_study.py"
+      - "scripts/tests/test_ieee_europe_lv_906_study.py"
   workflow_dispatch:
 
 permissions:
