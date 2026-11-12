@@ -6,7 +6,8 @@ on:
       - feat/ieee-europe-lv-906-benchmark
     paths:
       - ".github/workflows/ieee-europe-lv-906.yml"
-      - "scripts/ieee_europe_lv_906_study.py"\n      - "scripts/ieee_europe_lv_906_reference.py"
+      - "scripts/ieee_europe_lv_906_study.py"
+      - "scripts/ieee_europe_lv_906_reference.py"
       - "scripts/tests/test_ieee_europe_lv_906_study.py"
   pull_request:
     branches:
@@ -14,6 +15,7 @@ on:
     paths:
       - ".github/workflows/ieee-europe-lv-906.yml"
       - "scripts/ieee_europe_lv_906_study.py"
+      - "scripts/ieee_europe_lv_906_reference.py"
       - "scripts/tests/test_ieee_europe_lv_906_study.py"
   workflow_dispatch:
 
@@ -63,4 +65,5 @@ jobs:
             outputs/analysis/ieee_europe_lv_906/*.json
             data/ieee_europe_lv_906/source_manifest.json
             ieee_lv906_run.log
-            ieee_lv906_24h_run.log\n            ieee_lv906_reference.log
+            ieee_lv906_24h_run.log
+            ieee_lv906_reference.log
