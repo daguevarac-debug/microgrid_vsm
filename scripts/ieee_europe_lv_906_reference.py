@@ -140,8 +140,9 @@ def main() -> None:
     for probe_minute in (0, 2, 565, 567, 1438, 1439):
         sample = _reference_snapshot(dss, master, probe_minute)
         print(f"Timeline probe minute={probe_minute}: "
-              f"P={[round(v,4) for v in sample['p_source_kw']]} "
-              f"Q={[round(v,4) for v in sample['q_source_kvar']]}")
+              f"MV_P={[round(v,4) for v in sample['p_source_kw']]} "
+              f"LV_P={[round(v,4) for v in sample['transformer_lv_p_kw']]} "
+              f"LV_Q={[round(v,4) for v in sample['transformer_lv_q_kvar']]}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     path = args.output_dir / "ieee_2015_reference_check.csv"
