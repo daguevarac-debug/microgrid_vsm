@@ -9,6 +9,7 @@ on:
       - "scripts/ieee_europe_lv_906_study.py"
       - "scripts/ieee_europe_lv_906_reference.py"
       - "scripts/ieee_europe_lv_906_source_audit.py"
+      - "scripts/ieee_europe_lv_906_daily_pv.py"
       - "scripts/tests/test_ieee_europe_lv_906_study.py"
   pull_request:
     branches:
@@ -58,6 +59,10 @@ jobs:
           python scripts/ieee_europe_lv_906_study.py \
             --minute 720 --pv-kw 3 --baseline-step 1 \
             2>&1 | tee ieee_lv906_24h_run.log
+      - name: Illustrative 24-hour PV near/far scenarios
+        run: |
+          set -o pipefail
+          python scripts/ieee_europe_lv_906_daily_pv.py 2>&1 | tee ieee_lv906_daily_pv.log
       - name: Upload reproducible outputs
         if: always()
         uses: actions/upload-artifact@v4
@@ -73,3 +78,4 @@ jobs:
             ieee_lv906_24h_run.log
             ieee_lv906_reference.log
             ieee_lv906_source_parity.log
+            ieee_lv906_daily_pv.log
