@@ -6,7 +6,7 @@ on:
       - feat/ieee-europe-lv-906-benchmark
     paths:
       - ".github/workflows/ieee-europe-lv-906.yml"
-      - "scripts/ieee_europe_lv_906_study.py"
+      - "scripts/ieee_europe_lv_906_study.py"\n      - "scripts/ieee_europe_lv_906_reference.py"
       - "scripts/tests/test_ieee_europe_lv_906_study.py"
   pull_request:
     branches:
@@ -41,6 +41,10 @@ jobs:
           python scripts/ieee_europe_lv_906_study.py \
             --download --minute 720 --pv-kw 3 --baseline-step 60 \
             2>&1 | tee ieee_lv906_run.log
+      - name: Compare baseline with IEEE 2015 reference snapshots
+        run: |
+          set -o pipefail
+          python scripts/ieee_europe_lv_906_reference.py 2>&1 | tee ieee_lv906_reference.log
       - name: Run entire 24-hour baseline at 1-minute resolution
         run: |
           set -o pipefail
@@ -59,4 +63,4 @@ jobs:
             outputs/analysis/ieee_europe_lv_906/*.json
             data/ieee_europe_lv_906/source_manifest.json
             ieee_lv906_run.log
-            ieee_lv906_24h_run.log
+            ieee_lv906_24h_run.log\n            ieee_lv906_reference.log
