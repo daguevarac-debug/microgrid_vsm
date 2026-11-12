@@ -1,7 +1,7 @@
 """Compare the unmodified OpenDSS European LV feeder with IEEE 2015 Table II/III.
 
 Reference: IEEE European Low Voltage Test Feeder, 19 May 2015, Tables II-III.
-The 24:00 snapshot is minute 1440, not 23:59.
+OpenDSS profile sample 1 is queried at zero-based minute 0; sample 1440 at minute 1439.
 """
 from __future__ import annotations
 
@@ -21,21 +21,21 @@ from ieee_europe_lv_906_study import (
 # "The IEEE European Low Voltage Test Feeder", Tables II and III.
 # In-source provenance: https://studylib.net/doc/26139528/ieee-european-lv-test-feeder---draft
 REFERENCE = {
-    1: {
-        "p_source_kw": (1.0572, 0.9270, 0.8153),
-        "q_source_kvar": (0.3475, 0.3044, 0.2678),
+    0: {
+        "transformer_lv_p_kw": (1.0572, 0.9270, 0.8153),
+        "transformer_lv_q_kvar": (0.3475, 0.3044, 0.2678),
         "max_v_volt": (252.165, 252.166, 252.169),
         "min_v_volt": (251.909, 251.946, 252.023),
     },
-    566: {
-        "p_source_kw": (17.9072, 35.2927, 6.1837),
-        "q_source_kvar": (5.4897, 11.5328, 2.0971),
+    565: {
+        "transformer_lv_p_kw": (17.9072, 35.2927, 6.1837),
+        "transformer_lv_q_kvar": (5.4897, 11.5328, 2.0971),
         "max_v_volt": (251.901, 251.443, 254.730),
         "min_v_volt": (245.577, 238.367, 251.952),
     },
-    1440: {
-        "p_source_kw": (3.7201, 3.6648, 2.3369),
-        "q_source_kvar": (1.2189, 1.2048, 0.7678),
+    1439: {
+        "transformer_lv_p_kw": (3.7201, 3.6648, 2.3369),
+        "transformer_lv_q_kvar": (1.2189, 1.2048, 0.7678),
         "max_v_volt": (252.113, 252.105, 252.134),
         "min_v_volt": (251.080, 251.109, 251.805),
     },
@@ -130,7 +130,7 @@ def main() -> None:
         print(f"IEEE snapshot minute={minute}:")
         print(f"  transformer_lv_p_kw={substation_p['transformer_lv_p_kw']} "
               f"transformer_lv_q_kvar={substation_p['transformer_lv_q_kvar']}")
-        for metric in ("p_source_kw", "q_source_kvar", "min_v_volt", "max_v_volt"):
+        for metric in ("transformer_lv_p_kw", "transformer_lv_q_kvar", "min_v_volt", "max_v_volt"):
             values = [r for r in subset if r["metric"] == metric]
             expected = [r["ieee_2015_reference"] for r in values]
             actual = [r["opendss_simulated"] for r in values]
@@ -152,7 +152,7 @@ def main() -> None:
         writer.writerows(rows)
 
     summary = {}
-    for metric in ("p_source_kw", "q_source_kvar", "max_v_volt", "min_v_volt"):
+    for metric in ("transformer_lv_p_kw", "transformer_lv_q_kvar", "max_v_volt", "min_v_volt"):
         subset = [r for r in rows if r["metric"] == metric]
         summary[metric] = {
             "max_abs_error": round(max(abs(r["signed_error"]) for r in subset), 6),
@@ -161,7 +161,8 @@ def main() -> None:
     payload = {
         "reference": "IEEE European LV Test Feeder, 19 May 2015, Tables II-III",
         "snapshot_minutes": list(REFERENCE),
-        "phase_a_b_c": "Vsource.Source terminal1 powers, LV bus min/max voltage",
+        "phase_a_b_c": "Transformer.TR1 LV winding powers, LV bus min/max voltage",
+        "published_times": {"0": "00:01", "565": "09:26", "1439": "24:00"},
         "benchmark_comparison": summary,
         "comparison_csv": str(path),
         "note": "Inspect alignment, transformer terminals, and profile revisions before interpreting discrepancies.",
