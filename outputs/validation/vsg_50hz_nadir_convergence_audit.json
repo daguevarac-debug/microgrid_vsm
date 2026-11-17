@@ -1,0 +1,57 @@
+{
+  "scenario": "50Hz_step40_bess_vs_nobess",
+  "levels": [
+    {
+      "level": "L1_RK45_base",
+      "method": "RK45",
+      "max_step_s": 5e-05,
+      "rtol": 1e-06,
+      "atol": 1e-08,
+      "dt_sample_s": 0.0005,
+      "t_end_s": 6.5,
+      "wall_s": 290.403,
+      "df_grid_uhz": -62.551873739380426,
+      "df_cont_uhz": -62.446448268360655,
+      "bess_enabled": {
+        "f_grid_min_hz": 49.97561637372378,
+        "t_grid_min_s": 3.2680000000000002,
+        "f_cont_min_hz": 49.975616373720996,
+        "t_cont_min_s": 3.2673639191142994,
+        "nfev": 786266
+      },
+      "bess_disabled": {
+        "f_grid_min_hz": 49.97567892559752,
+        "t_grid_min_s": 0.892,
+        "f_cont_min_hz": 49.975678820169264,
+        "t_cont_min_s": 0.8918415585191074,
+        "nfev": 786278
+      }
+    },
+    {
+      "level": "L2_RK45_tol",
+      "method": "RK45",
+      "max_step_s": 5e-05,
+      "rtol": 1e-08,
+      "atol": 1e-10,
+      "dt_sample_s": 0.0001,
+      "t_end_s": 6.5,
+      "wall_s": 375.177,
+      "df_grid_uhz": -62.457213218181096,
+      "df_cont_uhz": -62.44571478219996,
+      "bess_enabled": {
+        "f_grid_min_hz": 49.97561637371362,
+        "t_grid_min_s": 6.423100000000001,
+        "f_cont_min_hz": 49.97561637371362,
+        "t_cont_min_s": 6.423099918835571,
+        "nfev": 986624
+      },
+      "bess_disabled": {
+        "f_grid_min_hz": 49.97567883092684,
+        "t_grid_min_s": 0.8918,
+        "f_cont_min_hz": 49.9756788194284,
+        "t_cont_min_s": 0.8918414680495946,
+        "nfev": 987434
+      }
+    }
+  ]
+}
