@@ -106,6 +106,30 @@ class TestMicrogridWithBESSDCDC(unittest.TestCase):
         expected_dsoc_dt = -float(sig["i_bess_unit_a"]) / (3600.0 * q_eff)
         self.assertAlmostEqual(dx[12], expected_dsoc_dt, places=12)
         self.assertNotAlmostEqual(float(sig["i_bess_unit_a"]), float(sig["i_bess_bus_a"]), places=2)
+        ipv = m.plant.pv_current(x0[0], m.irradiance_profile(0), m.temperature_profile(0))
+        expected_dvdc = (ipv + sig["i_bess_bus_a"] - sig["p_inv_dc_w"] / x0[0]) / m.plant.dcp.Cdc
+        self.assertAlmostEqual(dx[0], expected_dvdc, places=9)
+
+    def test_low_bus_voltage_respects_converter_current_limit(self) -> None:
+        m = self._make_model()
+        c = m._evaluate_dcdc_coupling(
+            vdc_v=10.0, soc_bess=0.6, vrc_bess=0.0,
+            soh_bess=_nominal_soh(), xi_bess_vdc_v_s=0.0,
+        )
+        self.assertLessEqual(abs(c.i_bus_a), m.dcdc_parameters.bus_current_max_a + 1e-9)
+        self.assertAlmostEqual(c.p_bus_w, 10.0 * c.i_bus_a)
+
+    def test_inherited_power_limit_applies_with_custom_converter(self) -> None:
+        m = self._make_model()
+        m.p_bess_max_w = 100.0
+        for vdc in (330.0, 350.0):
+            with self.subTest(vdc=vdc):
+                c = m._evaluate_dcdc_coupling(
+                    vdc_v=vdc, soc_bess=0.6, vrc_bess=0.0,
+                    soh_bess=_nominal_soh(), xi_bess_vdc_v_s=0.0,
+                )
+                self.assertLessEqual(abs(c.p_bus_w), 100.0 + 1e-9)
+                self.assertTrue(c.pi_output.anti_windup_active)
 
 
 if __name__ == "__main__":

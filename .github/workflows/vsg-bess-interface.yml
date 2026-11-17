@@ -1,0 +1,48 @@
+name: VSG and BESS interface
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'OCV_SOC.xlsx'
+      - 'outputs/validation/**'
+      - 'outputs/analysis/ieee_europe_lv_906/**'
+      - '.github/requirements-pr54.txt'
+      - '.github/workflows/vsg-bess-interface.yml'
+  push:
+    branches:
+      - feat/ieee906-vsg50-interface
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'OCV_SOC.xlsx'
+      - 'outputs/validation/**'
+      - 'outputs/analysis/ieee_europe_lv_906/**'
+      - '.github/requirements-pr54.txt'
+      - '.github/workflows/vsg-bess-interface.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  interface:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r .github/requirements-pr54.txt
+      - run: >-
+          python -m pytest -q
+          src/validation/test_microgrid_bess_dcdc.py
+          src/validation/test_dc_dc_adapter.py
+          src/validation/test_vsg_50hz_and_bess_discharge.py
+          scripts/tests/test_ieee_europe_lv_906_interface.py
+          scripts/tests/test_ieee_europe_lv_906_study.py
+          src/validation/test_microgrid_bess_pi_connection.py
+          src/validation/test_microgrid_controller_state_mapping.py
+      - run: python src/validation/validate_obj1_regression.py
