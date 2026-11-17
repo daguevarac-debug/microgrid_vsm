@@ -28,6 +28,28 @@ La trayectoria de 0.02 s y tres puntos de evaluación de RHS son una regresión 
 
 El worker exige Python **3.12.10** y BLAST-Lite **1.1.0**; valida SHA-256 de la clase Leaf `258a76cf85db321cc6f525e166eb7c24f032ec7991cf7887a794f65b915b4844` y de la base `1333d29393d2290669b8fb54170efefd68fdf0676e5994b71832adb6f8c0fd6f`, cotejadas con el commit oficial `b093495b47dc40dd96dba865d91f553619501e94`. NumPy del worker observado: 1.26.4. El ejecutable Python se entrega al adaptador por argumento; las pruebas aceptan variable `BLAST_LITE_PYTHON` o el entorno local previamente preparado. No existe una ruta absoluta de otro equipo como requisito de la API.
 
+
+### Reconstrucción portable del worker BLAST (Windows / PowerShell)
+
+El fallback histórico `%LOCALAPPDATA%\microgrid_blast_probe_312` es solo una ubicación local opcional; el adaptador recibe el ejecutable mediante `BLAST_LITE_PYTHON`. Para reconstruir el worker en otro equipo, instala Python **3.12.10** y Git, y ejecuta desde la raíz del repositorio:
+
+```powershell
+$workerRoot = Join-Path $env:TEMP ("blast-lite-worker-" + [guid]::NewGuid().ToString("N"))
+$workerVenv = Join-Path $workerRoot "venv"
+$blastSource = Join-Path $workerRoot "BLAST-Lite"
+New-Item -ItemType Directory -Path $workerRoot | Out-Null
+py -3.12 -m venv $workerVenv
+git clone --no-checkout https://github.com/NatLabRockies/BLAST-Lite.git $blastSource
+git -C $blastSource checkout --detach b093495b47dc40dd96dba865d91f553619501e94
+$env:BLAST_LITE_PYTHON = Join-Path $workerVenv "Scripts\python.exe"
+& $env:BLAST_LITE_PYTHON -m pip install "numpy==1.26.4"
+& $env:BLAST_LITE_PYTHON -m pip install $blastSource
+& $env:BLAST_LITE_PYTHON -c "import sys, importlib.metadata as m; assert sys.version_info[:3] == (3,12,10); assert m.version('BLAST-Lite') == '1.1.0'; print(sys.version); print(m.version('BLAST-Lite'))"
+python -m unittest discover -s src/validation -p test_blast_lite_adapter.py -v
+```
+
+La instalación desde el checkout oficial usa las dependencias declaradas por BLAST-Lite; NumPy queda en 1.26.4. El worker verifica además los hashes originales de la clase y su base al arrancar, de modo que una instalación diferente falla explícitamente. Conserva `BLAST_LITE_PYTHON` en la sesión que ejecuta las pruebas; no agregues el venv ni una ruta de usuario al repositorio.
+
 Referencias separadas: 66 Ah nominal, 46 Ah `cap_2ndLife`, 46.2 Ah de `qNew(0)*66`, 44.1 Ah para tesis y 43.5 Ah para otro caso. El adaptador fija `q0=q(t0)`; al comenzar una instancia nueva q0=1. `anchor_case()` fija q0 tras historia previa sin resetear BLAST ni EFC: `Q_eff=Q_init*q/q0`, sin repetir 0.7 o pérdida histórica. La historia y los hashes de ventanas permanecen en memoria durante el proceso; no hay checkpoint durable.
 
 ## Resultados y evidencia

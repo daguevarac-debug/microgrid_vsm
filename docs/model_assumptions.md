@@ -859,3 +859,7 @@ se evalúa de nuevo en cada llamada. Un futuro integrador debe gestionar el even
 decidir parada o protección y no continuar suponiendo operación normal. Los
 errores de configuración siguen rechazándose. Esta interfaz es una aproximación
 algebraica, no un convertidor DC/DC detallado ni una validación experimental.
+
+## Variante optativa de carga a 50 Hz (IEEE European LV)
+
+`Microgrid(..., load_frequency_hz=50)` y `MicrogridWithBESS`/`MicrogridWithBESSPI` permiten diseñar la misma carga trifásica R-L nominal de 110 V, 3 kW y fp 0,95 para 50 Hz. Por defecto se mantiene 60 Hz. R se conserva y L aumenta un 20 %, de manera que la reactancia nominal y el fp coinciden a cada frecuencia de diseño. El parámetro debe coincidir explícitamente con `GFMController(f_hz=50)`; no sigue la frecuencia dinámica instantánea. Las mismas inductancias y capacitancia LCL originales se conservan sin rediseño; su respuesta a 50 Hz y las pérdidas deben evaluarse. Las condiciones iniciales de GFM siguen siendo `omega_ref`, `theta0` y las demás variables eléctricas cero. No se cambian las ecuaciones, estado ni valores M y D. Esta opción representa otra carga física, no una conversión de frecuencia del sistema original.
