@@ -21,7 +21,7 @@ Reuses ``bess.dc_dc_adapter.convert_power`` algebraically inside the same global
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import numpy as np
 
 from bess.dc_dc_adapter import DCDCParameters, DCDCResult, convert_power
@@ -120,7 +120,7 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
         ocv_v = float(self.bess.ocv(soc))
         r0_ohm = float(self.bess.r0(soh))
         i_unit_avail = float(self._available_i_bess_max(soh))
-        vbus_eval = max(vdc, self.plant.dcp.Vmin)
+        vbus_eval = vdc
 
         if not effective_enabled:
             pi_output = self.dc_link_bess_pi.compute(
@@ -169,8 +169,9 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
             unit_discharge_available_a=i_unit_avail,
             unit_charge_available_a=i_unit_avail,
         )
-        p_min_w = float(probe.bus_charge_limit_w)
-        p_max_w = float(probe.bus_discharge_limit_w)
+        inherited_limit = self._available_p_bess_max_w(soh)
+        p_min_w = max(float(probe.bus_charge_limit_w), -inherited_limit)
+        p_max_w = min(float(probe.bus_discharge_limit_w), inherited_limit)
 
         # 2. Compute external PI command bounded by DC/DC bus-side limits.
         pi_output = self.dc_link_bess_pi.compute(
@@ -195,6 +196,7 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
             unit_discharge_available_a=i_unit_avail,
             unit_charge_available_a=i_unit_avail,
         )
+        dcdc = replace(dcdc, bus_charge_limit_w=p_min_w, bus_discharge_limit_w=p_max_w)
 
         v_bank = float(self.dcdc_parameters.n_series * dcdc.unit_voltage_v)
         i_bank = float(self.dcdc_parameters.n_parallel * dcdc.unit_current_a)
@@ -250,8 +252,8 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
         p_bus = coupled.p_bus_w
         p_discharge_max_w = float(coupled.dcdc_result.bus_discharge_limit_w)
         i_bus_max_avail = (
-            p_discharge_max_w / max(float(Vdc), self.plant.dcp.Vmin)
-            if self.bess_enabled
+            p_discharge_max_w / float(Vdc)
+            if self.bess_enabled and Vdc > 0.0
             else 0.0
         )
 
@@ -350,8 +352,8 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
         p_discharge_max_w = float(dcdc.bus_discharge_limit_w)
         p_charge_min_w = float(dcdc.bus_charge_limit_w)
         i_bus_max_avail = (
-            p_discharge_max_w / max(float(Vdc), self.plant.dcp.Vmin)
-            if self.bess_enabled
+            p_discharge_max_w / float(Vdc)
+            if self.bess_enabled and Vdc > 0.0
             else 0.0
         )
 
