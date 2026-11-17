@@ -254,7 +254,10 @@ class Microgrid:
         temperature_profile=None,
         load_profile=None,
         controller: InverterControllerBase | None = None,
+        *,
+        load_frequency_hz: float = GRID_FREQ_HZ_DEFAULT,
     ):
+        self.load_frequency_hz = _positive_float("Microgrid.load_frequency_hz", load_frequency_hz)
         mod = PVModuleParams(
             voc_stc=MICROGRID_PV_VOC_STC_V_DEFAULT,
             isc_stc=MICROGRID_PV_ISC_STC_A_DEFAULT,
@@ -383,7 +386,7 @@ class Microgrid:
             p_3ph_w=p_load_t,
             power_factor=self.load_power_factor,
             v_ln_rms=GRID_V_LN_RMS_DEFAULT,
-            f_hz=GRID_FREQ_HZ_DEFAULT,
+            f_hz=self.load_frequency_hz,
         )
 
     def _compute_step_control(
@@ -524,6 +527,7 @@ class MicrogridWithBESS(Microgrid):
         p_bess_max_w: float = BESS_COUPLED_P_MAX_W_DEFAULT,
         bess_excel_path: str | Path | None = None,
         *,
+        load_frequency_hz: float = GRID_FREQ_HZ_DEFAULT,
         capacity_snapshot: CapacitySnapshot | None = None,
         aging_mode: str | None = None,
         blast_profile_kind: str | None = None,
@@ -533,6 +537,7 @@ class MicrogridWithBESS(Microgrid):
             temperature_profile=temperature_profile,
             load_profile=load_profile,
             controller=controller,
+            load_frequency_hz=load_frequency_hz,
         )
         self.kp_bess = _positive_float("MicrogridWithBESS.kp_bess", kp_bess)
         self.i_bess_max = _positive_float("MicrogridWithBESS.i_bess_max", i_bess_max)

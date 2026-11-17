@@ -1,0 +1,126 @@
+{
+  "phase": "Phase 5 - Independent Scientific Consistency and Refutation Audit (Updated with BAT26-53 DC/DC & Zero-Seq)",
+  "overall_scientific_integrity": "PASS_WITH_DOCUMENTED_REVIEWS_AND_BLOCKS",
+  "counts": {
+    "PASS": 7,
+    "REVIEW": 1,
+    "BLOCKED": 1,
+    "FAIL": 0
+  },
+  "checks": [
+    {
+      "check_id": "C01_dynamic_frequency_omega_consistency",
+      "category": "internal_numerical_validation",
+      "status": "PASS",
+      "refutation_attempt": "Verified all frequency metrics derive from dynamic x[10]=omega.",
+      "evidence": {
+        "scenario_count": 10,
+        "errors": []
+      }
+    },
+    {
+      "check_id": "C02_vdc_window_and_step40_nadir_tradeoff",
+      "category": "internal_numerical_validation",
+      "status": "PASS",
+      "refutation_attempt": "Audited Vdc window separation and explained why +40% with BESS has slightly lower frequency nadir (49.97562 Hz vs 49.97568 Hz) due to higher V_PCC keeping constant-Z load at 3908 W vs 3535 W.",
+      "evidence": {
+        "step20_vdc_global_min_v": 340.0,
+        "step20_vdc_post_min_v": 363.51897050582716,
+        "step40_no_bess_status": "REVIEW",
+        "nadir_tradeoff": {
+          "p_ref_vsg_w": 3678.1982760994806,
+          "with_bess_p_pcc_ss_w": 3908.008536132706,
+          "without_bess_p_pcc_ss_w": 3535.3590724886426,
+          "delta_p_pcc_w_with_minus_without": 372.6494636440634,
+          "with_bess_v_pcc_rms_v": 106.10238492340136,
+          "without_bess_v_pcc_rms_v": 100.92269617114569,
+          "with_bess_f_post_min_hz": 49.97561637372378,
+          "without_bess_f_post_min_hz": 49.975678925597535,
+          "delta_f_nadir_hz_with_minus_without": -6.255187375359128e-05,
+          "physical_explanation": "Without BESS, DC-link voltage collapses to 311.52 V (< 327.50 V), saturating modulation at m=0.95 and drooping V_PCC to 100.92 V. Because the R-L load is constant-impedance (P ~ V^2/R), load demand self-limits to 3535.36 W, reducing the active-power torque deficit (P_ref - P_e) in the swing equation. With BESS+DCDC, Vdc is held at 338.60 V (> 327.50 V) and V_PCC stays near nominal (106.10 V), so the load draws 3908.01 W (+372.65 W more than without BESS). That higher P_e produces a slightly deeper frequency nadir (49.97562 Hz vs 49.97568 Hz, delta = -62.6 uHz), which remains well inside the 0.50 Hz criterion (0.0271 Hz drop)."
+        }
+      }
+    },
+    {
+      "check_id": "C03_ac_vs_dc_power_and_filter_loss_consistency",
+      "category": "internal_numerical_validation",
+      "status": "PASS",
+      "refutation_attempt": "Verified p_bridge/p_inv_dc = 0.97 and p_pcc < p_bridge across all cases.",
+      "evidence": {
+        "checked_cases": 8
+      }
+    },
+    {
+      "check_id": "C04_dc_capacitor_dcdc_and_1rc_energy_conservation",
+      "category": "internal_numerical_validation",
+      "status": "PASS",
+      "refutation_attempt": "Checked DC capacitor balance, DC/DC power-loss conservation, and 1RC bank decomposition across 13 trajectories.",
+      "evidence": {
+        "max_dc_bus_residual_post_j": 0.03219050609882057,
+        "max_dcdc_conversion_residual_post_j": 1.0231815394945443e-12,
+        "max_1rc_bank_residual_max_w": 4.547473508864641e-13
+      }
+    },
+    {
+      "check_id": "C05_bat26_53_48s_2s2p_dcdc_physical_closure",
+      "category": "internal_numerical_validation",
+      "status": "PASS",
+      "refutation_attempt": "Verified 48-module 2s2p bank (96 2p units, 360 V nom, 44.1 Ah) operates bidirectionally both below 340 V (328.47 V at SoC 0.12) and above 340 V (363.75 V at SoC 0.60), with distinct I_bank vs I_bus and exact DC/DC conversion losses. Parametric simulation only, NOT experimental.",
+      "evidence": {
+        "v_bank_soc0p12_v": 328.4665419039451,
+        "i_bank_soc0p12_a": 0.9157983469063431,
+        "i_bus_soc0p12_a": 0.8439729394545414,
+        "v_bank_soc0p60_v": 363.7460854689374,
+        "i_bank_soc0p60_a": 0.8269755415299376,
+        "i_bus_soc0p60_a": 0.8439729394506119
+      }
+    },
+    {
+      "check_id": "C06_transformer_zero_sequence_non_overgeneralization",
+      "category": "internal_numerical_validation",
+      "status": "PASS",
+      "refutation_attempt": "Refuted any claim that YNyn0 intrinsically blocks zero-sequence current: when a 4-wire grounded neutral exists on the inverter side, YNyn0 transmits I0 = 0.3059 A (416 V side) and skews phase powers by 0.1209 kW. Only 3-wire open-zero-sequence inverter or Ynd blocks I0.",
+      "evidence": {
+        "YNyn0_3wire_i0_416v_a": 0.00508,
+        "YNyn0_4wire_i0_416v_a": 0.3059,
+        "Dyn_3wire_i0_416v_a": 0.57232,
+        "Ynd_4wire_i0_416v_a": 0.0
+      }
+    },
+    {
+      "check_id": "C07_qsts_24h_energy_conservation_and_bank_coherence",
+      "category": "internal_numerical_validation",
+      "status": "PASS",
+      "refutation_attempt": "Checked 24h QSTS energy conservation and physical sizing coherence against the BAT26-53 15.876 kWh bank (3.82 kWh daily cycle = 24.1% SoC swing, feasible within [0.10, 0.90]), while keeping 6.5 s ODE and 24 h QSTS strictly separated.",
+      "evidence": {
+        "qsts_energy_closure_err_kwh": 0.000258,
+        "bat26_53_bank_energy_kwh": 15.876,
+        "qsts_daily_charge_kwh": 3.819694,
+        "implied_soc_swing_pct": 24.06
+      }
+    },
+    {
+      "check_id": "C08_ieee_2015_reference_table_discrepancy",
+      "category": "published_reference_comparison",
+      "status": "REVIEW",
+      "refutation_attempt": "Preserved 9.54% max phase active power discrepancy vs IEEE PES 2015 summary table.",
+      "evidence": {
+        "official_source_parity": "PASS (55 load shapes, 905 lines, 10 line codes exact)",
+        "published_summary_table_status": "REVIEW (max phase P error ~9.54% at peak)",
+        "reference_audit_file_present": false
+      }
+    },
+    {
+      "check_id": "C09_experimental_and_objective3_boundaries",
+      "category": "experimental_and_scope_boundaries",
+      "status": "BLOCKED",
+      "refutation_attempt": "Verified no commercial transformer datasheet, measured solar data, experimental Leaf RPT/HPPC, or FOVIC/dispatch claims are fabricated.",
+      "evidence": {
+        "experimental_leaf_2p_validation": "BLOCKED (no laboratory RPT/HPPC data)",
+        "commercial_transformer_datasheet": "BLOCKED (hypotheses H1-H5 only)",
+        "measured_solar_profile": "BLOCKED (synthetic profile explicitly labeled)",
+        "fovic_and_optimal_dispatch_obj3": "BLOCKED (awaits Objective 2 conditional closure approval)"
+      }
+    }
+  ]
+}

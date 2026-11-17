@@ -1,0 +1,1781 @@
+{
+  "study": "Phase 3 & Phase 4: Parameterized 190.53V/416V 50Hz Transformer Interface and 24h QSTS Scenarios",
+  "timescale_separation_rule": "6.5 s local ODE transients and 24-hour 1-minute QSTS network power flows are strictly separated. The 6.5 s trajectory is never extrapolated to 24 h. Steady-state PCC power from the 50 Hz VSG (p_ss_kw = 2.852527 kW) is evaluated as a one-way static snapshot, while 24 h QSTS uses explicit synthetic profiles.",
+  "phase3_transformer_design_hypotheses": {
+    "status": "REVIEW_DESIGN_HYPOTHESIS_ONLY",
+    "v_inv_ln_rms_v": 110.0,
+    "v_inv_ll_rms_v": 190.525589,
+    "v_grid_ln_rms_v": 240.177712,
+    "v_grid_ll_rms_v": 416.0,
+    "turns_ratio_step_up": 2.183434,
+    "s_ref_kva": 5.0,
+    "frequency_hz": 50.0,
+    "analytical_cases": [
+      {
+        "name": "H1_YNyn0_zk3p2_r1p2_low_z",
+        "s_nom_kva": 5.0,
+        "v_inv_ll_kv": 0.19052558883257648,
+        "v_grid_ll_kv": 0.416,
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 3.0,
+        "r_total_pct": 1.2,
+        "hypothesis_note": "Sensitivity lower-bound impedance (r_k=1.2%, x_k=3.0%, z_k=3.23%), grounded wye-wye",
+        "turns_ratio_step_up": 2.183434,
+        "i_nom_inv_rms_a": 15.1515,
+        "i_nom_grid_rms_a": 6.9393,
+        "z_base_inv_ohm": 7.26,
+        "z_base_grid_ohm": 34.6112,
+        "r_eq_inv_ohm": 0.08712,
+        "x_eq_inv_ohm": 0.2178,
+        "r_eq_grid_ohm": 0.41533,
+        "x_eq_grid_ohm": 1.03834,
+        "regulation_at_3kw_pf1p0_pct": 0.7362,
+        "regulation_at_3p158kva_pf0p95_pct": 1.3239,
+        "regulation_at_5kva_pf0p95_pct": 2.1074
+      },
+      {
+        "name": "H2_YNyn0_zk4p2_r1p5_nominal_hyp",
+        "s_nom_kva": 5.0,
+        "v_inv_ll_kv": 0.19052558883257648,
+        "v_grid_ll_kv": 0.416,
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "hypothesis_note": "Reference sensitivity point (r_k=1.5%, x_k=4.0%, z_k=4.27%), grounded wye-wye",
+        "turns_ratio_step_up": 2.183434,
+        "i_nom_inv_rms_a": 15.1515,
+        "i_nom_grid_rms_a": 6.9393,
+        "z_base_inv_ohm": 7.26,
+        "z_base_grid_ohm": 34.6112,
+        "r_eq_inv_ohm": 0.1089,
+        "x_eq_inv_ohm": 0.2904,
+        "r_eq_grid_ohm": 0.51917,
+        "x_eq_grid_ohm": 1.38445,
+        "regulation_at_3kw_pf1p0_pct": 0.9288,
+        "regulation_at_3p158kva_pf0p95_pct": 1.711,
+        "regulation_at_5kva_pf0p95_pct": 2.7295
+      },
+      {
+        "name": "H3_YNyn0_zk6p3_r2p0_high_z",
+        "s_nom_kva": 5.0,
+        "v_inv_ll_kv": 0.19052558883257648,
+        "v_grid_ll_kv": 0.416,
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 6.0,
+        "r_total_pct": 2.0,
+        "hypothesis_note": "Sensitivity upper-bound impedance (r_k=2.0%, x_k=6.0%, z_k=6.32%), grounded wye-wye",
+        "turns_ratio_step_up": 2.183434,
+        "i_nom_inv_rms_a": 15.1515,
+        "i_nom_grid_rms_a": 6.9393,
+        "z_base_inv_ohm": 7.26,
+        "z_base_grid_ohm": 34.6112,
+        "r_eq_inv_ohm": 0.1452,
+        "x_eq_inv_ohm": 0.4356,
+        "r_eq_grid_ohm": 0.69222,
+        "x_eq_grid_ohm": 2.07667,
+        "regulation_at_3kw_pf1p0_pct": 1.2648,
+        "regulation_at_3p158kva_pf0p95_pct": 2.4346,
+        "regulation_at_5kva_pf0p95_pct": 3.9023
+      },
+      {
+        "name": "H4_Dyn_zk4p2_r1p5_unbalance_trap",
+        "s_nom_kva": 5.0,
+        "v_inv_ll_kv": 0.19052558883257648,
+        "v_grid_ll_kv": 0.416,
+        "conn_inv": "delta",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "hypothesis_note": "Delta (inverter) / grounded-wye (grid): traps zero-sequence circulating current from grid unbalance",
+        "turns_ratio_step_up": 2.183434,
+        "i_nom_inv_rms_a": 15.1515,
+        "i_nom_grid_rms_a": 6.9393,
+        "z_base_inv_ohm": 7.26,
+        "z_base_grid_ohm": 34.6112,
+        "r_eq_inv_ohm": 0.1089,
+        "x_eq_inv_ohm": 0.2904,
+        "r_eq_grid_ohm": 0.51917,
+        "x_eq_grid_ohm": 1.38445,
+        "regulation_at_3kw_pf1p0_pct": 0.9288,
+        "regulation_at_3p158kva_pf0p95_pct": 1.711,
+        "regulation_at_5kva_pf0p95_pct": 2.7295
+      },
+      {
+        "name": "H5_Ynd_zk4p2_r1p5_zero_seq_isolated",
+        "s_nom_kva": 5.0,
+        "v_inv_ll_kv": 0.19052558883257648,
+        "v_grid_ll_kv": 0.416,
+        "conn_inv": "wye",
+        "conn_grid": "delta",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "hypothesis_note": "Grounded-wye (inverter) / ungrounded-delta (grid): blocks zero-sequence current at 416 V PCC",
+        "turns_ratio_step_up": 2.183434,
+        "i_nom_inv_rms_a": 15.1515,
+        "i_nom_grid_rms_a": 6.9393,
+        "z_base_inv_ohm": 7.26,
+        "z_base_grid_ohm": 34.6112,
+        "r_eq_inv_ohm": 0.1089,
+        "x_eq_inv_ohm": 0.2904,
+        "r_eq_grid_ohm": 0.51917,
+        "x_eq_grid_ohm": 1.38445,
+        "regulation_at_3kw_pf1p0_pct": 0.9288,
+        "regulation_at_3p158kva_pf0p95_pct": 1.711,
+        "regulation_at_5kva_pf0p95_pct": 2.7295
+      }
+    ],
+    "opendss_noon_3kw_sensitivity": [
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H0_direct_416v_ideal_pq",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 0.0,
+        "r_total_pct": 0.0,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 3.0,
+        "xfmr_active_loss_w": 0.0,
+        "xfmr_reactive_loss_var": 0.0,
+        "xfmr_grid_phase_p_kw": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.0,
+        "xfmr_pos_seq_current_inv_a": 9.0909,
+        "xfmr_pos_seq_current_grid_a": 4.1636,
+        "v_inv_abc_pu": [
+          1.046403,
+          1.047424,
+          1.049059
+        ],
+        "v_34_abc_pu": [
+          1.046403,
+          1.047424,
+          1.049059
+        ],
+        "v_822_abc_pu": [
+          1.03766,
+          1.038339,
+          1.04579
+        ],
+        "v_unbalance_pcc_pct": 0.13655,
+        "feeder_total_loss_kw": 0.305919,
+        "feeder_source_import_kw": 29.100769,
+        "feeder_load_demand_kw": 31.794813
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H1_YNyn0_zk3p2_r1p2_low_z",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 3.0,
+        "r_total_pct": 1.2,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.980591,
+        "xfmr_active_loss_w": 19.4323,
+        "xfmr_reactive_loss_var": 48.5862,
+        "xfmr_grid_phase_p_kw": [
+          0.99351,
+          0.99353,
+          0.99355
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00192,
+        "xfmr_pos_seq_current_inv_a": 8.6227,
+        "xfmr_pos_seq_current_grid_a": 3.9491,
+        "v_inv_abc_pu": [
+          1.053094,
+          1.054108,
+          1.055734
+        ],
+        "v_34_abc_pu": [
+          1.046396,
+          1.047417,
+          1.049053
+        ],
+        "v_822_abc_pu": [
+          1.037655,
+          1.038335,
+          1.045785
+        ],
+        "v_unbalance_pcc_pct": 0.13656,
+        "feeder_total_loss_kw": 0.325461,
+        "feeder_source_import_kw": 29.120002,
+        "feeder_load_demand_kw": 31.794515
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H2_YNyn0_zk4p2_r1p5_nominal_hyp",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.975815,
+        "xfmr_active_loss_w": 24.2176,
+        "xfmr_reactive_loss_var": 64.5858,
+        "xfmr_grid_phase_p_kw": [
+          0.99192,
+          0.99193,
+          0.99196
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.0019,
+        "xfmr_pos_seq_current_inv_a": 8.6098,
+        "xfmr_pos_seq_current_grid_a": 3.9432,
+        "v_inv_abc_pu": [
+          1.05468,
+          1.055694,
+          1.057317
+        ],
+        "v_34_abc_pu": [
+          1.046394,
+          1.047415,
+          1.049051
+        ],
+        "v_822_abc_pu": [
+          1.037654,
+          1.038333,
+          1.045784
+        ],
+        "v_unbalance_pcc_pct": 0.13656,
+        "feeder_total_loss_kw": 0.330278,
+        "feeder_source_import_kw": 29.124722,
+        "feeder_load_demand_kw": 31.794425
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H3_YNyn0_zk6p3_r2p0_high_z",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 6.0,
+        "r_total_pct": 2.0,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.967892,
+        "xfmr_active_loss_w": 32.1374,
+        "xfmr_reactive_loss_var": 96.4178,
+        "xfmr_grid_phase_p_kw": [
+          0.98927,
+          0.98929,
+          0.98933
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00187,
+        "xfmr_pos_seq_current_inv_a": 8.5894,
+        "xfmr_pos_seq_current_grid_a": 3.9339,
+        "v_inv_abc_pu": [
+          1.057187,
+          1.058199,
+          1.05982
+        ],
+        "v_34_abc_pu": [
+          1.046391,
+          1.047412,
+          1.049047
+        ],
+        "v_822_abc_pu": [
+          1.037651,
+          1.03833,
+          1.045781
+        ],
+        "v_unbalance_pcc_pct": 0.13656,
+        "feeder_total_loss_kw": 0.338257,
+        "feeder_source_import_kw": 29.132534,
+        "feeder_load_demand_kw": 31.794251
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H4_Dyn_zk4p2_r1p5_unbalance_trap",
+        "conn_inv": "delta",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.97577,
+        "xfmr_active_loss_w": 24.2625,
+        "xfmr_reactive_loss_var": 64.7047,
+        "xfmr_grid_phase_p_kw": [
+          0.9865,
+          1.03074,
+          0.95853
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.16998,
+        "xfmr_pos_seq_current_inv_a": 8.6097,
+        "xfmr_pos_seq_current_grid_a": 3.9432,
+        "v_inv_abc_pu": [
+          1.056132,
+          1.055369,
+          1.05619
+        ],
+        "v_34_abc_pu": [
+          1.046398,
+          1.047442,
+          1.04902
+        ],
+        "v_822_abc_pu": [
+          1.037659,
+          1.038351,
+          1.045761
+        ],
+        "v_unbalance_pcc_pct": 0.1336,
+        "feeder_total_loss_kw": 0.330178,
+        "feeder_source_import_kw": 29.124767,
+        "feeder_load_demand_kw": 31.794569
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H5_Ynd_zk4p2_r1p5_zero_seq_isolated",
+        "conn_inv": "wye",
+        "conn_grid": "delta",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.975815,
+        "xfmr_active_loss_w": 24.2176,
+        "xfmr_reactive_loss_var": 64.5848,
+        "xfmr_grid_phase_p_kw": [
+          0.99077,
+          0.99174,
+          0.99331
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.0,
+        "xfmr_pos_seq_current_inv_a": 8.6097,
+        "xfmr_pos_seq_current_grid_a": 3.9432,
+        "v_inv_abc_pu": [
+          1.056141,
+          1.055372,
+          1.056178
+        ],
+        "v_34_abc_pu": [
+          1.046394,
+          1.047415,
+          1.049052
+        ],
+        "v_822_abc_pu": [
+          1.037654,
+          1.038333,
+          1.045784
+        ],
+        "v_unbalance_pcc_pct": 0.13664,
+        "feeder_total_loss_kw": 0.330283,
+        "feeder_source_import_kw": 29.124722,
+        "feeder_load_demand_kw": 31.794419
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H0_direct_416v_ideal_pq",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 0.0,
+        "r_total_pct": 0.0,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 3.0,
+        "xfmr_active_loss_w": 0.0,
+        "xfmr_reactive_loss_var": 0.0,
+        "xfmr_grid_phase_p_kw": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.0,
+        "xfmr_pos_seq_current_inv_a": 9.0909,
+        "xfmr_pos_seq_current_grid_a": 4.1636,
+        "v_inv_abc_pu": [
+          1.038822,
+          1.039498,
+          1.046942
+        ],
+        "v_34_abc_pu": [
+          1.046187,
+          1.047209,
+          1.048844
+        ],
+        "v_822_abc_pu": [
+          1.038822,
+          1.039498,
+          1.046942
+        ],
+        "v_unbalance_pcc_pct": 0.49799,
+        "feeder_total_loss_kw": 0.272018,
+        "feeder_source_import_kw": 29.10348,
+        "feeder_load_demand_kw": 31.831473
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H1_YNyn0_zk3p2_r1p2_low_z",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 3.0,
+        "r_total_pct": 1.2,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.98032,
+        "xfmr_active_loss_w": 19.6496,
+        "xfmr_reactive_loss_var": 49.1295,
+        "xfmr_grid_phase_p_kw": [
+          0.99339,
+          0.9934,
+          0.99352
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00513,
+        "xfmr_pos_seq_current_inv_a": 8.6707,
+        "xfmr_pos_seq_current_grid_a": 3.9711,
+        "v_inv_abc_pu": [
+          1.04555,
+          1.046221,
+          1.05362
+        ],
+        "v_34_abc_pu": [
+          1.046182,
+          1.047204,
+          1.04884
+        ],
+        "v_822_abc_pu": [
+          1.038806,
+          1.039481,
+          1.046926
+        ],
+        "v_unbalance_pcc_pct": 0.49804,
+        "feeder_total_loss_kw": 0.292184,
+        "feeder_source_import_kw": 29.123021,
+        "feeder_load_demand_kw": 31.830788
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H2_YNyn0_zk4p2_r1p5_nominal_hyp",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.975483,
+        "xfmr_active_loss_w": 24.4877,
+        "xfmr_reactive_loss_var": 65.306,
+        "xfmr_grid_phase_p_kw": [
+          0.99177,
+          0.99178,
+          0.99193
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00511,
+        "xfmr_pos_seq_current_inv_a": 8.6576,
+        "xfmr_pos_seq_current_grid_a": 3.9651,
+        "v_inv_abc_pu": [
+          1.047143,
+          1.047813,
+          1.055204
+        ],
+        "v_34_abc_pu": [
+          1.046181,
+          1.047203,
+          1.048838
+        ],
+        "v_822_abc_pu": [
+          1.038802,
+          1.039477,
+          1.046922
+        ],
+        "v_unbalance_pcc_pct": 0.49805,
+        "feeder_total_loss_kw": 0.297171,
+        "feeder_source_import_kw": 29.12782,
+        "feeder_load_demand_kw": 31.830591
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H3_YNyn0_zk6p3_r2p0_high_z",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 6.0,
+        "r_total_pct": 2.0,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.967465,
+        "xfmr_active_loss_w": 32.4945,
+        "xfmr_reactive_loss_var": 97.4888,
+        "xfmr_grid_phase_p_kw": [
+          0.98908,
+          0.9891,
+          0.98929
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00509,
+        "xfmr_pos_seq_current_inv_a": 8.6369,
+        "xfmr_pos_seq_current_grid_a": 3.9556,
+        "v_inv_abc_pu": [
+          1.049659,
+          1.050328,
+          1.057705
+        ],
+        "v_34_abc_pu": [
+          1.046178,
+          1.0472,
+          1.048835
+        ],
+        "v_822_abc_pu": [
+          1.038793,
+          1.039468,
+          1.046913
+        ],
+        "v_unbalance_pcc_pct": 0.49807,
+        "feeder_total_loss_kw": 0.305454,
+        "feeder_source_import_kw": 29.135767,
+        "feeder_load_demand_kw": 31.830229
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H4_Dyn_zk4p2_r1p5_unbalance_trap",
+        "conn_inv": "delta",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.974974,
+        "xfmr_active_loss_w": 24.9965,
+        "xfmr_reactive_loss_var": 66.6618,
+        "xfmr_grid_phase_p_kw": [
+          0.9194,
+          1.13305,
+          0.92252
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.57199,
+        "xfmr_pos_seq_current_inv_a": 8.6575,
+        "xfmr_pos_seq_current_grid_a": 3.9651,
+        "v_inv_abc_pu": [
+          1.05051,
+          1.048682,
+          1.050964
+        ],
+        "v_34_abc_pu": [
+          1.046164,
+          1.04728,
+          1.048778
+        ],
+        "v_822_abc_pu": [
+          1.038561,
+          1.040066,
+          1.04657
+        ],
+        "v_unbalance_pcc_pct": 0.46438,
+        "feeder_total_loss_kw": 0.296118,
+        "feeder_source_import_kw": 29.128018,
+        "feeder_load_demand_kw": 31.831834
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H5_Ynd_zk4p2_r1p5_zero_seq_isolated",
+        "conn_inv": "wye",
+        "conn_grid": "delta",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 3.0,
+        "p_grid_injected_kw": 2.975484,
+        "xfmr_active_loss_w": 24.4869,
+        "xfmr_reactive_loss_var": 65.3031,
+        "xfmr_grid_phase_p_kw": [
+          0.98905,
+          0.98965,
+          0.99678
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.0,
+        "xfmr_pos_seq_current_inv_a": 8.6575,
+        "xfmr_pos_seq_current_grid_a": 3.9651,
+        "v_inv_abc_pu": [
+          1.050535,
+          1.048687,
+          1.050936
+        ],
+        "v_34_abc_pu": [
+          1.046181,
+          1.047202,
+          1.048839
+        ],
+        "v_822_abc_pu": [
+          1.038796,
+          1.039472,
+          1.046932
+        ],
+        "v_unbalance_pcc_pct": 0.49899,
+        "feeder_total_loss_kw": 0.297217,
+        "feeder_source_import_kw": 29.127821,
+        "feeder_load_demand_kw": 31.830538
+      }
+    ],
+    "opendss_noon_vsg50_pss_2p8525kw_sensitivity": [
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H0_direct_416v_ideal_pq",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 0.0,
+        "r_total_pct": 0.0,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.852527,
+        "xfmr_active_loss_w": 0.0,
+        "xfmr_reactive_loss_var": 0.0,
+        "xfmr_grid_phase_p_kw": [
+          0.95084,
+          0.95084,
+          0.95084
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.0,
+        "xfmr_pos_seq_current_inv_a": 8.644,
+        "xfmr_pos_seq_current_grid_a": 3.9589,
+        "v_inv_abc_pu": [
+          1.046383,
+          1.047404,
+          1.049039
+        ],
+        "v_34_abc_pu": [
+          1.046383,
+          1.047404,
+          1.049039
+        ],
+        "v_822_abc_pu": [
+          1.037651,
+          1.03833,
+          1.045781
+        ],
+        "v_unbalance_pcc_pct": 0.13656,
+        "feeder_total_loss_kw": 0.306336,
+        "feeder_source_import_kw": 29.248098,
+        "feeder_load_demand_kw": 31.794251
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H1_YNyn0_zk3p2_r1p2_low_z",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 3.0,
+        "r_total_pct": 1.2,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.834966,
+        "xfmr_active_loss_w": 17.58,
+        "xfmr_reactive_loss_var": 43.9556,
+        "xfmr_grid_phase_p_kw": [
+          0.94497,
+          0.94499,
+          0.94501
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00183,
+        "xfmr_pos_seq_current_inv_a": 8.2014,
+        "xfmr_pos_seq_current_grid_a": 3.7562,
+        "v_inv_abc_pu": [
+          1.052754,
+          1.053769,
+          1.055395
+        ],
+        "v_34_abc_pu": [
+          1.046377,
+          1.047398,
+          1.049034
+        ],
+        "v_822_abc_pu": [
+          1.037647,
+          1.038326,
+          1.045777
+        ],
+        "v_unbalance_pcc_pct": 0.13656,
+        "feeder_total_loss_kw": 0.324016,
+        "feeder_source_import_kw": 29.2655,
+        "feeder_load_demand_kw": 31.793982
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H2_YNyn0_zk4p2_r1p5_nominal_hyp",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.830642,
+        "xfmr_active_loss_w": 21.9122,
+        "xfmr_reactive_loss_var": 58.438,
+        "xfmr_grid_phase_p_kw": [
+          0.94353,
+          0.94354,
+          0.94357
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00181,
+        "xfmr_pos_seq_current_inv_a": 8.1897,
+        "xfmr_pos_seq_current_grid_a": 3.7508,
+        "v_inv_abc_pu": [
+          1.054268,
+          1.055282,
+          1.056906
+        ],
+        "v_34_abc_pu": [
+          1.046375,
+          1.047396,
+          1.049032
+        ],
+        "v_822_abc_pu": [
+          1.037645,
+          1.038324,
+          1.045775
+        ],
+        "v_unbalance_pcc_pct": 0.13656,
+        "feeder_total_loss_kw": 0.328377,
+        "feeder_source_import_kw": 29.269773,
+        "feeder_load_demand_kw": 31.7939
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H3_YNyn0_zk6p3_r2p0_high_z",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 6.0,
+        "r_total_pct": 2.0,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.823469,
+        "xfmr_active_loss_w": 29.0839,
+        "xfmr_reactive_loss_var": 87.2573,
+        "xfmr_grid_phase_p_kw": [
+          0.94113,
+          0.94115,
+          0.94119
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00178,
+        "xfmr_pos_seq_current_inv_a": 8.1711,
+        "xfmr_pos_seq_current_grid_a": 3.7423,
+        "v_inv_abc_pu": [
+          1.056669,
+          1.057681,
+          1.059302
+        ],
+        "v_34_abc_pu": [
+          1.046372,
+          1.047393,
+          1.049029
+        ],
+        "v_822_abc_pu": [
+          1.037643,
+          1.038322,
+          1.045773
+        ],
+        "v_unbalance_pcc_pct": 0.13656,
+        "feeder_total_loss_kw": 0.335603,
+        "feeder_source_import_kw": 29.276847,
+        "feeder_load_demand_kw": 31.793743
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H4_Dyn_zk4p2_r1p5_unbalance_trap",
+        "conn_inv": "delta",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.830597,
+        "xfmr_active_loss_w": 21.9571,
+        "xfmr_reactive_loss_var": 58.5569,
+        "xfmr_grid_phase_p_kw": [
+          0.93817,
+          0.98235,
+          0.91008
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.16998,
+        "xfmr_pos_seq_current_inv_a": 8.1897,
+        "xfmr_pos_seq_current_grid_a": 3.7508,
+        "v_inv_abc_pu": [
+          1.055722,
+          1.054957,
+          1.055778
+        ],
+        "v_34_abc_pu": [
+          1.04638,
+          1.047423,
+          1.049001
+        ],
+        "v_822_abc_pu": [
+          1.03765,
+          1.038342,
+          1.045753
+        ],
+        "v_unbalance_pcc_pct": 0.13361,
+        "feeder_total_loss_kw": 0.328277,
+        "feeder_source_import_kw": 29.269819,
+        "feeder_load_demand_kw": 31.794045
+      },
+      {
+        "location": "near_bus_34",
+        "bus": "34",
+        "hypothesis": "H5_Ynd_zk4p2_r1p5_zero_seq_isolated",
+        "conn_inv": "wye",
+        "conn_grid": "delta",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.830642,
+        "xfmr_active_loss_w": 21.9121,
+        "xfmr_reactive_loss_var": 58.437,
+        "xfmr_grid_phase_p_kw": [
+          0.94243,
+          0.94336,
+          0.94485
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.0,
+        "xfmr_pos_seq_current_inv_a": 8.1897,
+        "xfmr_pos_seq_current_grid_a": 3.7508,
+        "v_inv_abc_pu": [
+          1.05573,
+          1.05496,
+          1.055767
+        ],
+        "v_34_abc_pu": [
+          1.046375,
+          1.047396,
+          1.049033
+        ],
+        "v_822_abc_pu": [
+          1.037645,
+          1.038324,
+          1.045776
+        ],
+        "v_unbalance_pcc_pct": 0.13664,
+        "feeder_total_loss_kw": 0.328381,
+        "feeder_source_import_kw": 29.269773,
+        "feeder_load_demand_kw": 31.793895
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H0_direct_416v_ideal_pq",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 0.0,
+        "r_total_pct": 0.0,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.852527,
+        "xfmr_active_loss_w": 0.0,
+        "xfmr_reactive_loss_var": 0.0,
+        "xfmr_grid_phase_p_kw": [
+          0.95084,
+          0.95084,
+          0.95084
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.0,
+        "xfmr_pos_seq_current_inv_a": 8.644,
+        "xfmr_pos_seq_current_grid_a": 3.9589,
+        "v_inv_abc_pu": [
+          1.038756,
+          1.039432,
+          1.046876
+        ],
+        "v_34_abc_pu": [
+          1.046178,
+          1.0472,
+          1.048835
+        ],
+        "v_822_abc_pu": [
+          1.038756,
+          1.039432,
+          1.046876
+        ],
+        "v_unbalance_pcc_pct": 0.49805,
+        "feeder_total_loss_kw": 0.273974,
+        "feeder_source_import_kw": 29.250548,
+        "feeder_load_demand_kw": 31.829111
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H1_YNyn0_zk3p2_r1p2_low_z",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 3.0,
+        "r_total_pct": 1.2,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.834719,
+        "xfmr_active_loss_w": 17.7783,
+        "xfmr_reactive_loss_var": 44.4513,
+        "xfmr_grid_phase_p_kw": [
+          0.94486,
+          0.94487,
+          0.94498
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00489,
+        "xfmr_pos_seq_current_inv_a": 8.2475,
+        "xfmr_pos_seq_current_grid_a": 3.7773,
+        "v_inv_abc_pu": [
+          1.045163,
+          1.045834,
+          1.053236
+        ],
+        "v_34_abc_pu": [
+          1.046174,
+          1.047196,
+          1.048831
+        ],
+        "v_822_abc_pu": [
+          1.038742,
+          1.039417,
+          1.046862
+        ],
+        "v_unbalance_pcc_pct": 0.49809,
+        "feeder_total_loss_kw": 0.292221,
+        "feeder_source_import_kw": 29.268233,
+        "feeder_load_demand_kw": 31.828492
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H2_YNyn0_zk4p2_r1p5_nominal_hyp",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.830339,
+        "xfmr_active_loss_w": 22.1587,
+        "xfmr_reactive_loss_var": 59.0952,
+        "xfmr_grid_phase_p_kw": [
+          0.94339,
+          0.94341,
+          0.94354
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00486,
+        "xfmr_pos_seq_current_inv_a": 8.2356,
+        "xfmr_pos_seq_current_grid_a": 3.7718,
+        "v_inv_abc_pu": [
+          1.046684,
+          1.047355,
+          1.054748
+        ],
+        "v_34_abc_pu": [
+          1.046172,
+          1.047194,
+          1.04883
+        ],
+        "v_822_abc_pu": [
+          1.038737,
+          1.039413,
+          1.046858
+        ],
+        "v_unbalance_pcc_pct": 0.4981,
+        "feeder_total_loss_kw": 0.296737,
+        "feeder_source_import_kw": 29.272579,
+        "feeder_load_demand_kw": 31.828314
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H3_YNyn0_zk6p3_r2p0_high_z",
+        "conn_inv": "wye",
+        "conn_grid": "wye",
+        "xhl_pct": 6.0,
+        "r_total_pct": 2.0,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.823078,
+        "xfmr_active_loss_w": 29.4098,
+        "xfmr_reactive_loss_var": 88.2349,
+        "xfmr_grid_phase_p_kw": [
+          0.94096,
+          0.94098,
+          0.94114
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.00485,
+        "xfmr_pos_seq_current_inv_a": 8.2167,
+        "xfmr_pos_seq_current_grid_a": 3.7632,
+        "v_inv_abc_pu": [
+          1.049093,
+          1.049762,
+          1.057143
+        ],
+        "v_34_abc_pu": [
+          1.04617,
+          1.047192,
+          1.048827
+        ],
+        "v_822_abc_pu": [
+          1.03873,
+          1.039405,
+          1.04685
+        ],
+        "v_unbalance_pcc_pct": 0.49812,
+        "feeder_total_loss_kw": 0.304238,
+        "feeder_source_import_kw": 29.279777,
+        "feeder_load_demand_kw": 31.827986
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H4_Dyn_zk4p2_r1p5_unbalance_trap",
+        "conn_inv": "delta",
+        "conn_grid": "wye",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.82983,
+        "xfmr_active_loss_w": 22.6675,
+        "xfmr_reactive_loss_var": 60.4511,
+        "xfmr_grid_phase_p_kw": [
+          0.87118,
+          1.08474,
+          0.87392
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.57196,
+        "xfmr_pos_seq_current_inv_a": 8.2355,
+        "xfmr_pos_seq_current_grid_a": 3.7718,
+        "v_inv_abc_pu": [
+          1.050053,
+          1.048224,
+          1.050505
+        ],
+        "v_34_abc_pu": [
+          1.046156,
+          1.047271,
+          1.048769
+        ],
+        "v_822_abc_pu": [
+          1.038497,
+          1.040002,
+          1.046506
+        ],
+        "v_unbalance_pcc_pct": 0.46439,
+        "feeder_total_loss_kw": 0.295681,
+        "feeder_source_import_kw": 29.272778,
+        "feeder_load_demand_kw": 31.829559
+      },
+      {
+        "location": "far_bus_822",
+        "bus": "822",
+        "hypothesis": "H5_Ynd_zk4p2_r1p5_zero_seq_isolated",
+        "conn_inv": "wye",
+        "conn_grid": "delta",
+        "xhl_pct": 4.0,
+        "r_total_pct": 1.5,
+        "p_der_cmd_kw": 2.852527,
+        "p_grid_injected_kw": 2.83034,
+        "xfmr_active_loss_w": 22.158,
+        "xfmr_reactive_loss_var": 59.0925,
+        "xfmr_grid_phase_p_kw": [
+          0.9408,
+          0.94138,
+          0.94816
+        ],
+        "xfmr_zero_seq_current_grid_a": 0.0,
+        "xfmr_pos_seq_current_inv_a": 8.2355,
+        "xfmr_pos_seq_current_grid_a": 3.7718,
+        "v_inv_abc_pu": [
+          1.050078,
+          1.048228,
+          1.050478
+        ],
+        "v_34_abc_pu": [
+          1.046172,
+          1.047193,
+          1.048831
+        ],
+        "v_822_abc_pu": [
+          1.038732,
+          1.039408,
+          1.046867
+        ],
+        "v_unbalance_pcc_pct": 0.499,
+        "feeder_total_loss_kw": 0.29678,
+        "feeder_source_import_kw": 29.27258,
+        "feeder_load_demand_kw": 31.828263
+      }
+    ],
+    "unbalance_and_winding_findings": "Because the IEEE European LV feeder is unbalanced, connecting a 3-phase transformer with delta on the inverter side and grounded-wye on the 416 V grid side (Dyn) creates a zero-sequence sink that draws ~0.542 A of zero-sequence current from the feeder and skews per-phase grid power (0.931 / 1.122 / 0.914 kW). Conversely, grounded-wye/grounded-wye (YNyn0) or grounded-wye/ungrounded-delta (Ynd) keeps phase power injection nearly balanced (~0.989 kW/phase after ~38.7 W copper loss at 3 kW)."
+  },
+  "phase4_qsts_24h_scenarios": {
+    "solar_profile_provenance": "Synthetic 06:00-18:00 half-sine (peak 3.0 kW at noon), NOT measured irradiance",
+    "bess_profile_provenance": "Energy-consistent synthetic daily shaving hypothesis (charges 09:00-15:00 up to 1.0 kW, discharges 17:00-21:00 up to 1.354 kW with eta=0.95 per way, Delta SoC_24h = 0, throughput ~3.82 kWh). Explicitly labeled as a scaled bank hypothesis; the single 2p Leaf cell pair (~0.165 kWh) remains blocked by BAT26-48 for kWh-scale feeder dispatch until N_s x N_p is approved.",
+    "scenarios": [
+      {
+        "scenario": "base_no_dg",
+        "bus": "none",
+        "use_xfmr_5kva": false,
+        "with_bess_profile": false,
+        "samples": 1440,
+        "e_pv_synthetic_kwh": 0.0,
+        "e_bess_charge_kwh": 0.0,
+        "e_bess_discharge_kwh": 0.0,
+        "e_bess_net_ac_kwh": 0.0,
+        "e_der_net_injected_kwh": 0.0,
+        "e_load_demand_kwh": 517.305548,
+        "e_grid_import_kwh": 522.368233,
+        "e_loss_total_kwh": 5.06268,
+        "e_loss_xfmr_der_kwh": 0.0,
+        "e_loss_feeder_only_kwh": 5.06268,
+        "daily_energy_share_pct": 0.0,
+        "max_instantaneous_penetration_pct": 0.0,
+        "min_instantaneous_penetration_pct": 0.0,
+        "abs_min_lv_pu": 0.9816469,
+        "abs_max_lv_pu": 1.0643223,
+        "v_34_phase1_min_max_pu": [
+          1.040509,
+          1.051547
+        ],
+        "v_34_phase2_min_max_pu": [
+          1.036492,
+          1.050428
+        ],
+        "v_34_phase3_min_max_pu": [
+          1.04299,
+          1.051283
+        ],
+        "v_822_phase1_min_max_pu": [
+          1.020816,
+          1.060943
+        ],
+        "v_822_phase2_min_max_pu": [
+          0.992112,
+          1.052749
+        ],
+        "v_822_phase3_min_max_pu": [
+          1.025038,
+          1.055337
+        ],
+        "minutes_above_1p05_pu": 415,
+        "minutes_above_1p06_pu": 6,
+        "minutes_above_1p10_pu": 0,
+        "minutes_below_0p90_pu": 0,
+        "noon_snapshot": {
+          "minute": 720,
+          "p_pv_kw": 0.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 0.0,
+          "p_load_kw": 31.783424,
+          "p_source_kw": 32.098896,
+          "p_loss_total_kw": 0.315472,
+          "p_loss_xfmr_der_kw": 0.0,
+          "p_loss_feeder_only_kw": 0.315472,
+          "power_balance_residual_kw": -0.0,
+          "der_penetration_pct": 0.0,
+          "min_v_lv_pu": 1.0322357,
+          "max_v_lv_pu": 1.0493079,
+          "v_34_1_pu": 1.0460004,
+          "v_34_2_pu": 1.0470215,
+          "v_34_3_pu": 1.0486577,
+          "v_822_1_pu": 1.0374739,
+          "v_822_2_pu": 1.0381529,
+          "v_822_3_pu": 1.0456033
+        },
+        "evening_peak_snapshot_min1140": {
+          "minute": 1140,
+          "p_pv_kw": 0.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 0.0,
+          "p_load_kw": 35.997961,
+          "p_source_kw": 36.430669,
+          "p_loss_total_kw": 0.432709,
+          "p_loss_xfmr_der_kw": 0.0,
+          "p_loss_feeder_only_kw": 0.432709,
+          "power_balance_residual_kw": -1e-06,
+          "der_penetration_pct": 0.0,
+          "min_v_lv_pu": 1.0249249,
+          "max_v_lv_pu": 1.0493475,
+          "v_34_1_pu": 1.0430727,
+          "v_34_2_pu": 1.0482627,
+          "v_34_3_pu": 1.0489927,
+          "v_822_1_pu": 1.028541,
+          "v_822_2_pu": 1.043749,
+          "v_822_3_pu": 1.0467508
+        },
+        "delta_feeder_loss_kwh_vs_base": 0.0,
+        "delta_feeder_loss_pct_vs_base": 0.0,
+        "delta_total_loss_kwh_vs_base": 0.0,
+        "delta_total_loss_pct_vs_base": 0.0,
+        "delta_grid_import_kwh_vs_base": 0.0
+      },
+      {
+        "scenario": "pv_near_34_direct",
+        "bus": "34",
+        "use_xfmr_5kva": false,
+        "with_bess_profile": false,
+        "samples": 1440,
+        "e_pv_synthetic_kwh": 22.918275,
+        "e_bess_charge_kwh": 0.0,
+        "e_bess_discharge_kwh": 0.0,
+        "e_bess_net_ac_kwh": 0.0,
+        "e_der_net_injected_kwh": 22.918275,
+        "e_load_demand_kwh": 517.371014,
+        "e_grid_import_kwh": 499.460186,
+        "e_loss_total_kwh": 5.007854,
+        "e_loss_xfmr_der_kwh": 0.0,
+        "e_loss_feeder_only_kwh": 5.007854,
+        "daily_energy_share_pct": 4.4298,
+        "max_instantaneous_penetration_pct": 31.8676,
+        "min_instantaneous_penetration_pct": 0.0,
+        "abs_min_lv_pu": 0.9818146,
+        "abs_max_lv_pu": 1.0644853,
+        "v_34_phase1_min_max_pu": [
+          1.04072,
+          1.051859
+        ],
+        "v_34_phase2_min_max_pu": [
+          1.036815,
+          1.050574
+        ],
+        "v_34_phase3_min_max_pu": [
+          1.043187,
+          1.051682
+        ],
+        "v_822_phase1_min_max_pu": [
+          1.020912,
+          1.061107
+        ],
+        "v_822_phase2_min_max_pu": [
+          0.992276,
+          1.052817
+        ],
+        "v_822_phase3_min_max_pu": [
+          1.025089,
+          1.055524
+        ],
+        "minutes_above_1p05_pu": 430,
+        "minutes_above_1p06_pu": 6,
+        "minutes_above_1p10_pu": 0,
+        "minutes_below_0p90_pu": 0,
+        "noon_snapshot": {
+          "minute": 720,
+          "p_pv_kw": 3.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 3.0,
+          "p_load_kw": 31.794838,
+          "p_source_kw": 29.100768,
+          "p_loss_total_kw": 0.305918,
+          "p_loss_xfmr_der_kw": 0.0,
+          "p_loss_feeder_only_kw": 0.305918,
+          "power_balance_residual_kw": 1.1e-05,
+          "der_penetration_pct": 9.4355,
+          "min_v_lv_pu": 1.0324209,
+          "max_v_lv_pu": 1.0493344,
+          "v_34_1_pu": 1.0464026,
+          "v_34_2_pu": 1.0474237,
+          "v_34_3_pu": 1.049059,
+          "v_822_1_pu": 1.0376601,
+          "v_822_2_pu": 1.0383392,
+          "v_822_3_pu": 1.04579
+        },
+        "evening_peak_snapshot_min1140": {
+          "minute": 1140,
+          "p_pv_kw": 0.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 0.0,
+          "p_load_kw": 35.997989,
+          "p_source_kw": 36.43066,
+          "p_loss_total_kw": 0.432708,
+          "p_loss_xfmr_der_kw": 0.0,
+          "p_loss_feeder_only_kw": 0.432708,
+          "power_balance_residual_kw": -3.6e-05,
+          "der_penetration_pct": 0.0,
+          "min_v_lv_pu": 1.024925,
+          "max_v_lv_pu": 1.0493475,
+          "v_34_1_pu": 1.0430728,
+          "v_34_2_pu": 1.0482627,
+          "v_34_3_pu": 1.0489927,
+          "v_822_1_pu": 1.0285411,
+          "v_822_2_pu": 1.043749,
+          "v_822_3_pu": 1.0467507
+        },
+        "delta_feeder_loss_kwh_vs_base": -0.054826,
+        "delta_feeder_loss_pct_vs_base": -1.0829,
+        "delta_total_loss_kwh_vs_base": -0.054826,
+        "delta_total_loss_pct_vs_base": -1.0829,
+        "delta_grid_import_kwh_vs_base": -22.908047
+      },
+      {
+        "scenario": "pv_far_822_direct",
+        "bus": "822",
+        "use_xfmr_5kva": false,
+        "with_bess_profile": false,
+        "samples": 1440,
+        "e_pv_synthetic_kwh": 22.918275,
+        "e_bess_charge_kwh": 0.0,
+        "e_bess_discharge_kwh": 0.0,
+        "e_bess_net_ac_kwh": 0.0,
+        "e_der_net_injected_kwh": 22.918275,
+        "e_load_demand_kwh": 517.578121,
+        "e_grid_import_kwh": 499.473081,
+        "e_loss_total_kwh": 4.813559,
+        "e_loss_xfmr_der_kwh": 0.0,
+        "e_loss_feeder_only_kwh": 4.813559,
+        "daily_energy_share_pct": 4.428,
+        "max_instantaneous_penetration_pct": 31.8288,
+        "min_instantaneous_penetration_pct": 0.0,
+        "abs_min_lv_pu": 0.9823542,
+        "abs_max_lv_pu": 1.0653715,
+        "v_34_phase1_min_max_pu": [
+          1.040608,
+          1.051685
+        ],
+        "v_34_phase2_min_max_pu": [
+          1.03666,
+          1.050496
+        ],
+        "v_34_phase3_min_max_pu": [
+          1.043081,
+          1.051467
+        ],
+        "v_822_phase1_min_max_pu": [
+          1.021526,
+          1.062114
+        ],
+        "v_822_phase2_min_max_pu": [
+          0.993298,
+          1.053247
+        ],
+        "v_822_phase3_min_max_pu": [
+          1.025429,
+          1.056662
+        ],
+        "minutes_above_1p05_pu": 469,
+        "minutes_above_1p06_pu": 7,
+        "minutes_above_1p10_pu": 0,
+        "minutes_below_0p90_pu": 0,
+        "noon_snapshot": {
+          "minute": 720,
+          "p_pv_kw": 3.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 3.0,
+          "p_load_kw": 31.831459,
+          "p_source_kw": 29.103508,
+          "p_loss_total_kw": 0.272018,
+          "p_loss_xfmr_der_kw": 0.0,
+          "p_loss_feeder_only_kw": 0.272018,
+          "power_balance_residual_kw": 3.1e-05,
+          "der_penetration_pct": 9.4246,
+          "min_v_lv_pu": 1.0330001,
+          "max_v_lv_pu": 1.0493341,
+          "v_34_1_pu": 1.0461873,
+          "v_34_2_pu": 1.0472093,
+          "v_34_3_pu": 1.0488443,
+          "v_822_1_pu": 1.0388225,
+          "v_822_2_pu": 1.0394979,
+          "v_822_3_pu": 1.0469418
+        },
+        "evening_peak_snapshot_min1140": {
+          "minute": 1140,
+          "p_pv_kw": 0.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 0.0,
+          "p_load_kw": 35.997989,
+          "p_source_kw": 36.43066,
+          "p_loss_total_kw": 0.432708,
+          "p_loss_xfmr_der_kw": 0.0,
+          "p_loss_feeder_only_kw": 0.432708,
+          "power_balance_residual_kw": -3.6e-05,
+          "der_penetration_pct": 0.0,
+          "min_v_lv_pu": 1.024925,
+          "max_v_lv_pu": 1.0493475,
+          "v_34_1_pu": 1.0430728,
+          "v_34_2_pu": 1.0482627,
+          "v_34_3_pu": 1.0489927,
+          "v_822_1_pu": 1.0285411,
+          "v_822_2_pu": 1.043749,
+          "v_822_3_pu": 1.0467507
+        },
+        "delta_feeder_loss_kwh_vs_base": -0.249121,
+        "delta_feeder_loss_pct_vs_base": -4.9207,
+        "delta_total_loss_kwh_vs_base": -0.249121,
+        "delta_total_loss_pct_vs_base": -4.9207,
+        "delta_grid_import_kwh_vs_base": -22.895152
+      },
+      {
+        "scenario": "pv_near_34_xfmr_5kva",
+        "bus": "34",
+        "use_xfmr_5kva": true,
+        "with_bess_profile": false,
+        "samples": 1440,
+        "e_pv_synthetic_kwh": 22.918275,
+        "e_bess_charge_kwh": 0.0,
+        "e_bess_discharge_kwh": 0.0,
+        "e_bess_net_ac_kwh": 0.0,
+        "e_der_net_injected_kwh": 22.918275,
+        "e_load_demand_kwh": 517.369394,
+        "e_grid_import_kwh": 499.604641,
+        "e_loss_total_kwh": 5.153924,
+        "e_loss_xfmr_der_kwh": 0.145452,
+        "e_loss_feeder_only_kwh": 5.008471,
+        "daily_energy_share_pct": 4.4298,
+        "max_instantaneous_penetration_pct": 31.8679,
+        "min_instantaneous_penetration_pct": 0.0,
+        "abs_min_lv_pu": 0.9818104,
+        "abs_max_lv_pu": 1.0644804,
+        "v_34_phase1_min_max_pu": [
+          1.040718,
+          1.051854
+        ],
+        "v_34_phase2_min_max_pu": [
+          1.03681,
+          1.050573
+        ],
+        "v_34_phase3_min_max_pu": [
+          1.043185,
+          1.051674
+        ],
+        "v_822_phase1_min_max_pu": [
+          1.02091,
+          1.061102
+        ],
+        "v_822_phase2_min_max_pu": [
+          0.992272,
+          1.052816
+        ],
+        "v_822_phase3_min_max_pu": [
+          1.025089,
+          1.055518
+        ],
+        "minutes_above_1p05_pu": 430,
+        "minutes_above_1p06_pu": 6,
+        "minutes_above_1p10_pu": 0,
+        "minutes_below_0p90_pu": 0,
+        "noon_snapshot": {
+          "minute": 720,
+          "p_pv_kw": 3.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 3.0,
+          "p_load_kw": 31.794462,
+          "p_source_kw": 29.124803,
+          "p_loss_total_kw": 0.330277,
+          "p_loss_xfmr_der_kw": 0.024216,
+          "p_loss_feeder_only_kw": 0.30606,
+          "power_balance_residual_kw": 6.4e-05,
+          "der_penetration_pct": 9.4356,
+          "min_v_lv_pu": 1.0324148,
+          "max_v_lv_pu": 1.0493301,
+          "v_34_1_pu": 1.0463943,
+          "v_34_2_pu": 1.0474154,
+          "v_34_3_pu": 1.0490507,
+          "v_822_1_pu": 1.0376539,
+          "v_822_2_pu": 1.0383331,
+          "v_822_3_pu": 1.0457838
+        },
+        "evening_peak_snapshot_min1140": {
+          "minute": 1140,
+          "p_pv_kw": 0.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 0.0,
+          "p_load_kw": 35.997989,
+          "p_source_kw": 36.43066,
+          "p_loss_total_kw": 0.432708,
+          "p_loss_xfmr_der_kw": 0.0,
+          "p_loss_feeder_only_kw": 0.432708,
+          "power_balance_residual_kw": -3.6e-05,
+          "der_penetration_pct": 0.0,
+          "min_v_lv_pu": 1.024925,
+          "max_v_lv_pu": 1.0493475,
+          "v_34_1_pu": 1.0430728,
+          "v_34_2_pu": 1.0482627,
+          "v_34_3_pu": 1.0489927,
+          "v_822_1_pu": 1.0285411,
+          "v_822_2_pu": 1.043749,
+          "v_822_3_pu": 1.0467507
+        },
+        "delta_feeder_loss_kwh_vs_base": -0.054209,
+        "delta_feeder_loss_pct_vs_base": -1.0708,
+        "delta_total_loss_kwh_vs_base": 0.091244,
+        "delta_total_loss_pct_vs_base": 1.8023,
+        "delta_grid_import_kwh_vs_base": -22.763592
+      },
+      {
+        "scenario": "pv_far_822_xfmr_5kva",
+        "bus": "822",
+        "use_xfmr_5kva": true,
+        "with_bess_profile": false,
+        "samples": 1440,
+        "e_pv_synthetic_kwh": 22.918275,
+        "e_bess_charge_kwh": 0.0,
+        "e_bess_discharge_kwh": 0.0,
+        "e_bess_net_ac_kwh": 0.0,
+        "e_der_net_injected_kwh": 22.918275,
+        "e_load_demand_kwh": 517.574419,
+        "e_grid_import_kwh": 499.618974,
+        "e_loss_total_kwh": 4.963102,
+        "e_loss_xfmr_der_kwh": 0.146628,
+        "e_loss_feeder_only_kwh": 4.816473,
+        "daily_energy_share_pct": 4.428,
+        "max_instantaneous_penetration_pct": 31.8296,
+        "min_instantaneous_penetration_pct": 0.0,
+        "abs_min_lv_pu": 0.9823435,
+        "abs_max_lv_pu": 1.0653582,
+        "v_34_phase1_min_max_pu": [
+          1.040606,
+          1.051681
+        ],
+        "v_34_phase2_min_max_pu": [
+          1.036655,
+          1.050495
+        ],
+        "v_34_phase3_min_max_pu": [
+          1.04308,
+          1.051462
+        ],
+        "v_822_phase1_min_max_pu": [
+          1.02152,
+          1.0621
+        ],
+        "v_822_phase2_min_max_pu": [
+          0.993282,
+          1.053242
+        ],
+        "v_822_phase3_min_max_pu": [
+          1.025427,
+          1.056643
+        ],
+        "minutes_above_1p05_pu": 469,
+        "minutes_above_1p06_pu": 7,
+        "minutes_above_1p10_pu": 0,
+        "minutes_below_0p90_pu": 0,
+        "noon_snapshot": {
+          "minute": 720,
+          "p_pv_kw": 3.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 3.0,
+          "p_load_kw": 31.830618,
+          "p_source_kw": 29.127786,
+          "p_loss_total_kw": 0.297171,
+          "p_loss_xfmr_der_kw": 0.024488,
+          "p_loss_feeder_only_kw": 0.272683,
+          "power_balance_residual_kw": -3e-06,
+          "der_penetration_pct": 9.4249,
+          "min_v_lv_pu": 1.0329867,
+          "max_v_lv_pu": 1.0493298,
+          "v_34_1_pu": 1.046181,
+          "v_34_2_pu": 1.047203,
+          "v_34_3_pu": 1.0488382,
+          "v_822_1_pu": 1.0388017,
+          "v_822_2_pu": 1.0394767,
+          "v_822_3_pu": 1.0469217
+        },
+        "evening_peak_snapshot_min1140": {
+          "minute": 1140,
+          "p_pv_kw": 0.0,
+          "p_bess_kw": 0.0,
+          "p_der_net_kw": 0.0,
+          "p_load_kw": 35.997989,
+          "p_source_kw": 36.43066,
+          "p_loss_total_kw": 0.432708,
+          "p_loss_xfmr_der_kw": 0.0,
+          "p_loss_feeder_only_kw": 0.432708,
+          "power_balance_residual_kw": -3.6e-05,
+          "der_penetration_pct": 0.0,
+          "min_v_lv_pu": 1.024925,
+          "max_v_lv_pu": 1.0493475,
+          "v_34_1_pu": 1.0430728,
+          "v_34_2_pu": 1.0482627,
+          "v_34_3_pu": 1.0489927,
+          "v_822_1_pu": 1.0285411,
+          "v_822_2_pu": 1.043749,
+          "v_822_3_pu": 1.0467507
+        },
+        "delta_feeder_loss_kwh_vs_base": -0.246207,
+        "delta_feeder_loss_pct_vs_base": -4.8632,
+        "delta_total_loss_kwh_vs_base": -0.099578,
+        "delta_total_loss_pct_vs_base": -1.9669,
+        "delta_grid_import_kwh_vs_base": -22.749259
+      },
+      {
+        "scenario": "pv_bess_near_34_xfmr_5kva",
+        "bus": "34",
+        "use_xfmr_5kva": true,
+        "with_bess_profile": true,
+        "samples": 1440,
+        "e_pv_synthetic_kwh": 22.918275,
+        "e_bess_charge_kwh": 3.819694,
+        "e_bess_discharge_kwh": 3.447247,
+        "e_bess_net_ac_kwh": -0.372448,
+        "e_der_net_injected_kwh": 22.545828,
+        "e_load_demand_kwh": 517.375162,
+        "e_grid_import_kwh": 499.936833,
+        "e_loss_total_kwh": 5.107903,
+        "e_loss_xfmr_der_kwh": 0.106351,
+        "e_loss_feeder_only_kwh": 5.001551,
+        "daily_energy_share_pct": 4.3577,
+        "max_instantaneous_penetration_pct": 22.6939,
+        "min_instantaneous_penetration_pct": 0.0,
+        "abs_min_lv_pu": 0.9817954,
+        "abs_max_lv_pu": 1.0644434,
+        "v_34_phase1_min_max_pu": [
+          1.040718,
+          1.051825
+        ],
+        "v_34_phase2_min_max_pu": [
+          1.036779,
+          1.050573
+        ],
+        "v_34_phase3_min_max_pu": [
+          1.043185,
+          1.051546
+        ],
+        "v_822_phase1_min_max_pu": [
+          1.02091,
+          1.061065
+        ],
+        "v_822_phase2_min_max_pu": [
+          0.992257,
+          1.052816
+        ],
+        "v_822_phase3_min_max_pu": [
+          1.025089,
+          1.055459
+        ],
+        "minutes_above_1p05_pu": 425,
+        "minutes_above_1p06_pu": 6,
+        "minutes_above_1p10_pu": 0,
+        "minutes_below_0p90_pu": 0,
+        "noon_snapshot": {
+          "minute": 720,
+          "p_pv_kw": 3.0,
+          "p_bess_kw": -1.0,
+          "p_der_net_kw": 2.0,
+          "p_load_kw": 31.790862,
+          "p_source_kw": 30.110639,
+          "p_loss_total_kw": 0.319741,
+          "p_loss_xfmr_der_kw": 0.010821,
+          "p_loss_feeder_only_kw": 0.30892,
+          "power_balance_residual_kw": 3.6e-05,
+          "der_penetration_pct": 6.2911,
+          "min_v_lv_pu": 1.0323565,
+          "max_v_lv_pu": 1.0493236,
+          "v_34_1_pu": 1.0462649,
+          "v_34_2_pu": 1.047286,
+          "v_34_3_pu": 1.0489216,
+          "v_822_1_pu": 1.0375953,
+          "v_822_2_pu": 1.0382744,
+          "v_822_3_pu": 1.045725
+        },
+        "evening_peak_snapshot_min1140": {
+          "minute": 1140,
+          "p_pv_kw": 0.0,
+          "p_bess_kw": 1.35375,
+          "p_der_net_kw": 1.35375,
+          "p_load_kw": 36.003945,
+          "p_source_kw": 35.082458,
+          "p_loss_total_kw": 0.432294,
+          "p_loss_xfmr_der_kw": 0.00498,
+          "p_loss_feeder_only_kw": 0.427315,
+          "power_balance_residual_kw": -3.2e-05,
+          "der_penetration_pct": 3.76,
+          "min_v_lv_pu": 1.0250072,
+          "max_v_lv_pu": 1.0493585,
+          "v_34_1_pu": 1.043253,
+          "v_34_2_pu": 1.0484424,
+          "v_34_3_pu": 1.0491719,
+          "v_822_1_pu": 1.0286235,
+          "v_822_2_pu": 1.0438322,
+          "v_822_3_pu": 1.0468336
+        },
+        "delta_feeder_loss_kwh_vs_base": -0.061129,
+        "delta_feeder_loss_pct_vs_base": -1.2074,
+        "delta_total_loss_kwh_vs_base": 0.045223,
+        "delta_total_loss_pct_vs_base": 0.8933,
+        "delta_grid_import_kwh_vs_base": -22.4314
+      },
+      {
+        "scenario": "pv_bess_far_822_xfmr_5kva",
+        "bus": "822",
+        "use_xfmr_5kva": true,
+        "with_bess_profile": true,
+        "samples": 1440,
+        "e_pv_synthetic_kwh": 22.918275,
+        "e_bess_charge_kwh": 3.819694,
+        "e_bess_discharge_kwh": 3.447247,
+        "e_bess_net_ac_kwh": -0.372448,
+        "e_der_net_injected_kwh": 22.545828,
+        "e_load_demand_kwh": 517.59778,
+        "e_grid_import_kwh": 499.947066,
+        "e_loss_total_kwh": 4.895372,
+        "e_loss_xfmr_der_kwh": 0.10735,
+        "e_loss_feeder_only_kwh": 4.788021,
+        "daily_energy_share_pct": 4.3559,
+        "max_instantaneous_penetration_pct": 22.6766,
+        "min_instantaneous_penetration_pct": 0.0,
+        "abs_min_lv_pu": 0.9822763,
+        "abs_max_lv_pu": 1.0651169,
+        "v_34_phase1_min_max_pu": [
+          1.040606,
+          1.051669
+        ],
+        "v_34_phase2_min_max_pu": [
+          1.03664,
+          1.050495
+        ],
+        "v_34_phase3_min_max_pu": [
+          1.04308,
+          1.051404
+        ],
+        "v_822_phase1_min_max_pu": [
+          1.02152,
+          1.061831
+        ],
+        "v_822_phase2_min_max_pu": [
+          0.993168,
+          1.053242
+        ],
+        "v_822_phase3_min_max_pu": [
+          1.025427,
+          1.056214
+        ],
+        "minutes_above_1p05_pu": 472,
+        "minutes_above_1p06_pu": 6,
+        "minutes_above_1p10_pu": 0,
+        "minutes_below_0p90_pu": 0,
+        "noon_snapshot": {
+          "minute": 720,
+          "p_pv_kw": 3.0,
+          "p_bess_kw": -1.0,
+          "p_der_net_kw": 2.0,
+          "p_load_kw": 31.81508,
+          "p_source_kw": 30.111976,
+          "p_loss_total_kw": 0.296897,
+          "p_loss_xfmr_der_kw": 0.010949,
+          "p_loss_feeder_only_kw": 0.285948,
+          "power_balance_residual_kw": -1e-06,
+          "der_penetration_pct": 6.2863,
+          "min_v_lv_pu": 1.0327395,
+          "max_v_lv_pu": 1.0493235,
+          "v_34_1_pu": 1.0461223,
+          "v_34_2_pu": 1.047144,
+          "v_34_3_pu": 1.0487794,
+          "v_822_1_pu": 1.0383641,
+          "v_822_2_pu": 1.0390405,
+          "v_822_3_pu": 1.046487
+        },
+        "evening_peak_snapshot_min1140": {
+          "minute": 1140,
+          "p_pv_kw": 0.0,
+          "p_bess_kw": 1.35375,
+          "p_der_net_kw": 1.35375,
+          "p_load_kw": 36.021101,
+          "p_source_kw": 35.083102,
+          "p_loss_total_kw": 0.415756,
+          "p_loss_xfmr_der_kw": 0.005044,
+          "p_loss_feeder_only_kw": 0.410712,
+          "power_balance_residual_kw": -5e-06,
+          "der_penetration_pct": 3.7582,
+          "min_v_lv_pu": 1.0252695,
+          "max_v_lv_pu": 1.0493581,
+          "v_34_1_pu": 1.0431563,
+          "v_34_2_pu": 1.0483463,
+          "v_34_3_pu": 1.0490752,
+          "v_822_1_pu": 1.0291502,
+          "v_822_2_pu": 1.0443496,
+          "v_822_3_pu": 1.0473498
+        },
+        "delta_feeder_loss_kwh_vs_base": -0.274659,
+        "delta_feeder_loss_pct_vs_base": -5.4252,
+        "delta_total_loss_kwh_vs_base": -0.167308,
+        "delta_total_loss_pct_vs_base": -3.3047,
+        "delta_grid_import_kwh_vs_base": -22.421167
+      }
+    ]
+  }
+}
