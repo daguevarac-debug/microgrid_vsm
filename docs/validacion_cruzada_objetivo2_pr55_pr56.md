@@ -6,12 +6,13 @@ Validación numérica interna, no experimental. Base PR 54: `687d24fe596c832c733
 
 Python 3.12.14, NumPy 2.5.5, SciPy 1.18.1, pytest 9.2.0; dependencias completas fijadas en [requirements-pr54.txt](../.github/requirements-pr54.txt). RK45: paso máximo 50 µs, `rtol=1e-6`, `atol=1e-8`. Horizonte 6,5 s; evento en 0,8 s; preevento 0,7–0,8 s y régimen final 5,5–6,5 s. La frecuencia se calcula de `omega/(2*pi)`; el controlador es `GFMController`, con `M=80`, `D=1500`. Los 13 casos DC/DC usan el modelo de 16 estados `MicrogridWithBESSDCDC`; los seis casos VSG usan `Microgrid` o `MicrogridWithBESSPI`, no el convertidor DC/DC.
 
-Las evidencias consolidadas están en [`outputs/validation/cross_pr55_pr56`](../outputs/validation/cross_pr55_pr56/); sus hashes se verifican con `sha256sum -c SHA256SUMS` desde esa carpeta. Los dos CSV se normalizaron de CRLF a LF sin cambiar campos ni valores para permitir `git diff --check`; los SHA-256 originales verificados fueron `6abee17630f02bd10471ed7c39495bb27565b8faf2c23aa16442246b30263564` (comparación) y `efbec06bedb5742ef393cee322e125506f29773f9e6e203dd58080e1bcabe411` (13 casos). El manifiesto registra los hashes de los archivos normalizados. Las rutas absolutas en el JSON del Objetivo 1 son metadatos de la ejecución histórica, no dependencias para reproducirla. Los valores de tiempo de ejecución y hashes de nuevos resultados pueden variar entre plataformas.
+Las evidencias consolidadas están en [`outputs/validation/cross_pr55_pr56`](../outputs/validation/cross_pr55_pr56/); sus hashes se verifican con `sha256sum -c SHA256SUMS` desde esa carpeta. Los dos CSV se normalizaron de CRLF a LF sin cambiar campos ni valores para permitir `git diff --check`; los SHA-256 originales verificados fueron `6abee17630f02bd10471ed7c39495bb27565b8faf2c23aa16442246b30263564` (comparación) y `efbec06bedb5742ef393cee322e125506f29773f9e6e203dd58080e1bcabe411` (13 casos). El manifiesto registra los hashes de los archivos normalizados. El JSON del Objetivo 1 conserva resultados y metadatos de ejecución, con rutas convertidas a relativas y el ejecutable a `python`; su SHA-256 original verificado fue `3b201622668086276a202ad2254c58407a42dd7a04fb9f41f442afdf6718a927`. Los valores de tiempo de ejecución y hashes de nuevos resultados pueden variar entre plataformas.
 
 ## Resultados y criterios
 
 | Grupo | Estado | Resultado |
 |---|---|---|
+| Suite integrada | PASS | En la rama de integración se ejecutaron 50 pruebas y 29 subpruebas: los siete archivos de la suite focalizada de PR 56 más `test_audit_post_pr54_sustained_charge.py`. Se incluyen verificaciones de artefactos JSON; no todas regeneran simulaciones. |
 | Límites y carga sostenida | PASS | 22 pruebas y 29 subpruebas en la campaña cruzada; matriz adicional de 54 combinaciones de SoC, SoH, tensión y PI. Incluye 10 V < Vmin y ambos signos. La recarga `-40 %` a 50 Hz pasó los balances y conteo de Coulomb. |
 | Regresión Objetivo 1 | PASS | LCL, BESS paso 3 y límites de SoC. |
 | DC/DC 50 Hz | PASS / REVIEW | Los 13 escenarios se regeneraron: 11 PASS y dos REVIEW con BESS deshabilitado, como antes. El caso de límite de potencia entrega como máximo 1200 W; saturación PI y anti-windup se activan en 87,38 % de las muestras totales. |
@@ -45,7 +46,7 @@ python -m venv .venv-cross
 . .venv-cross/bin/activate
 python -m pip install -r .github/requirements-pr54.txt
 mkdir -p work/cross_validation
-python -m pytest -q src/validation/test_microgrid_bess_dcdc.py src/validation/test_dc_dc_adapter.py src/validation/test_audit_post_pr54_sustained_charge.py
+python -m pytest -q src/validation/test_microgrid_bess_dcdc.py src/validation/test_dc_dc_adapter.py src/validation/test_vsg_50hz_and_bess_discharge.py scripts/tests/test_ieee_europe_lv_906_interface.py scripts/tests/test_ieee_europe_lv_906_study.py src/validation/test_microgrid_bess_pi_connection.py src/validation/test_microgrid_controller_state_mapping.py src/validation/test_audit_post_pr54_sustained_charge.py
 python scripts/cross_validation_obj2/limit_matrix.py
 python src/validation/validate_obj1_regression.py
 ```
