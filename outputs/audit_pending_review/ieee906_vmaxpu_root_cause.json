@@ -1,0 +1,88 @@
+{
+  "provenance": {
+    "source_ref_pinned": "5005c668a72d20775f4c2d060feebb2866ba1d38",
+    "origin": "https://raw.githubusercontent.com/tshort/OpenDSS/5005c668a72d20775f4c2d060feebb2866ba1d38/Distrib/IEEETestCases/LVTestCase",
+    "manifest_sha256": "2315987e23cc2438fbfea6530acc2b4e723a52faf5fbf098403330ca7f7c87b2",
+    "core_files_sha256": {
+      "Master.dss": "959fd0f0e9f033c269b3c66228db444138dfbdbc40d39d11d88656cb2b5e9853",
+      "Transformers.txt": "d951d5bd01b13eb6a1e92abc6b90d45c9c546b13c87237025e0eb0a5026dd1d1",
+      "Loads.txt": "c07b99a8b8ebd4ed5339689c7d43637443a09fac4334b1c427e9e4be484b7f6e",
+      "LoadShapes.txt": "aeb630f37dcf2b19c985c2f87a5a32e8d710fe76003659c28364d82f12e389c0",
+      "LineCode.txt": "0702d4a8a0b7f31adabe9a58e576c641614e59d1e181f96ad9589345071e4da4",
+      "Lines.txt": "adc097cf570a32d9190c977dbcca1a66ceb7d8d2517d39b0690e319c67e3311d"
+    },
+    "python_version": "3.11.2",
+    "opendssdirect_version": "0.9.4",
+    "dss_python_version": "0.15.7",
+    "note": "Diagnostic-only Vmaxpu sweep; canonical Master.dss and PR #57 QSTS outputs remain untouched."
+  },
+  "variants": {
+    "canonical_vmaxpu_1p05": {
+      "commands": [],
+      "max_abs_error": {
+        "transformer_lv_p_kw": 0.774604,
+        "transformer_lv_q_kvar": 0.237642,
+        "max_v_volt": 0.06396,
+        "min_v_volt": 0.399621
+      },
+      "max_rel_error_percent": {
+        "transformer_lv_p_kw": 9.5393,
+        "transformer_lv_q_kvar": 9.41389,
+        "max_v_volt": 0.02511,
+        "min_v_volt": 0.16273
+      }
+    },
+    "pure_pq_vmaxpu_1p10": {
+      "commands": [
+        "batchedit load..* vmaxpu=1.10"
+      ],
+      "max_abs_error": {
+        "transformer_lv_p_kw": 0.009294,
+        "transformer_lv_q_kvar": 0.003066,
+        "max_v_volt": 0.004488,
+        "min_v_volt": 0.001533
+      },
+      "max_rel_error_percent": {
+        "transformer_lv_p_kw": 0.1503,
+        "transformer_lv_q_kvar": 0.14619,
+        "max_v_volt": 0.00176,
+        "min_v_volt": 0.00064
+      }
+    },
+    "pure_pq_vmaxpu_1p20": {
+      "commands": [
+        "batchedit load..* vmaxpu=1.20"
+      ],
+      "max_abs_error": {
+        "transformer_lv_p_kw": 0.003771,
+        "transformer_lv_q_kvar": 0.00108,
+        "max_v_volt": 0.000452,
+        "min_v_volt": 0.000415
+      },
+      "max_rel_error_percent": {
+        "transformer_lv_p_kw": 0.04383,
+        "transformer_lv_q_kvar": 0.09063,
+        "max_v_volt": 0.00018,
+        "min_v_volt": 0.00016
+      }
+    },
+    "pure_pq_vmaxpu_1p20_tol1e8": {
+      "commands": [
+        "batchedit load..* vmaxpu=1.20",
+        "set tolerance=1e-8"
+      ],
+      "max_abs_error": {
+        "transformer_lv_p_kw": 0.00084,
+        "transformer_lv_q_kvar": 0.000315,
+        "max_v_volt": 0.000419,
+        "min_v_volt": 0.001562
+      },
+      "max_rel_error_percent": {
+        "transformer_lv_p_kw": 0.04389,
+        "transformer_lv_q_kvar": 0.09073,
+        "max_v_volt": 0.00017,
+        "min_v_volt": 0.00066
+      }
+    }
+  }
+}
