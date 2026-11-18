@@ -130,7 +130,7 @@ def simulation(kind, calls):
     if kind != "python":
         # Per-instance experimental override only; repository implementation
         # remains untouched, including its original Python public method.
-        model.pv.ipv_from_vpv = calls[kind]
+        model.pv.ipv_from_vpv = lambda Vpv, G, T_c: calls[kind](Vpv, G, T_c)
     t_points = np.linspace(0.0, 0.05, 11)
     solution = solve_ivp(
         model.system_dynamics, (0.0, 0.05), model.initial_state(),
