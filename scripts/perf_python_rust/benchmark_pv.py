@@ -125,15 +125,36 @@ def make_functions():
     return calls, p
 
 
-def simulation(kind, calls):
-    model = new_model()
+def new_dcdc16_model():
+    from controllers.dc_link_bess_pi import DCLinkBESSPIController
+    from microgrid_bess_dcdc import (
+        MicrogridWithBESSDCDC, default_bat26_53_dcdc_parameters,
+    )
+    from validation.compare_bess_soh_scenarios import _build_bess_for_soh, _nominal_soh
+
+    bess = _build_bess_for_soh(_nominal_soh())
+    bess.soc_initial = 0.60
+    return MicrogridWithBESSDCDC(
+        controller=GFMController(f_hz=50.0, inertia_m=80.0, damping_d=1500.0),
+        dc_link_bess_pi=DCLinkBESSPIController(
+            vdc_ref_v=340.0, kp_w_per_v=160.0, ki_w_per_v_s=400.0,
+        ),
+        bess_enabled=True, bess_model=bess,
+        dcdc_parameters=default_bat26_53_dcdc_parameters(),
+        load_frequency_hz=50.0,
+    )
+
+
+def simulation(kind, calls, scenario="gfm12"):
+    model = new_model() if scenario == "gfm12" else new_dcdc16_model()
     if kind != "python":
         # Per-instance experimental override only; repository implementation
         # remains untouched, including its original Python public method.
         model.pv.ipv_from_vpv = lambda Vpv, G, T_c: calls[kind](Vpv, G, T_c)
     t_points = np.linspace(0.0, 0.05, 11)
     solution = solve_ivp(
-        model.system_dynamics, (0.0, 0.05), model.initial_state(),
+        model.system_dynamics, (0.0, 0.05),
+        model.initial_state() if scenario == "gfm12" else model.initial_state_with_bess(),
         method="RK45", rtol=1e-6, atol=1e-8, max_step=5e-5,
         t_eval=t_points,
     )
@@ -233,20 +254,49 @@ def compare_all(target: Path):
             raise AssertionError(f"{kind}: GFM/SciPy trajectory tolerance failed")
         runs[kind] = {"median_s": statistics.median(durations), "runs_s": durations}
 
+    dcdc_reference = simulation("python", calls, scenario="dcdc16")
+    dcdc_runs, dcdc_trajectories = {}, {}
+    for kind in ("python", "numba", "rust"):
+        durations = []
+        for _ in range(3):
+            start = time.perf_counter()
+            got = simulation(kind, calls, scenario="dcdc16")
+            durations.append(time.perf_counter() - start)
+        errors = np.abs(got.y - dcdc_reference.y)
+        dcdc_trajectories[kind] = {
+            "max_abs_all_states": float(np.max(errors)),
+            "max_abs_vdc_V": float(np.max(errors[0])),
+            "max_abs_frequency_Hz": float(np.max(errors[10]) / (2 * np.pi)),
+            "max_abs_soc": float(np.max(errors[12])),
+            "nfev": got.nfev, "state_count": len(got.y),
+            "time_points": len(got.t),
+        }
+        if len(got.y) != 16 or not np.allclose(
+            got.y, dcdc_reference.y, rtol=2e-9, atol=2e-7
+        ):
+            raise AssertionError(f"{kind}: GFM+BESS+DC/DC 16-state tolerance failed")
+        dcdc_runs[kind] = {
+            "median_s": statistics.median(durations), "runs_s": durations,
+        }
+
     data = {
         "pv_scalar_equivalence": numerical,
         "pv_microbenchmark": micro,
         "interoperability_noop": noop,
         "scipy_gfm_trajectory": trajectories,
         "scipy_gfm_runtime": runs,
+        "scipy_dcdc_trajectory": dcdc_trajectories,
+        "scipy_dcdc_runtime": dcdc_runs,
         "speedups": {
             kind: {
                 "pv_kernel": micro["python"]["median_ns"] / micro[kind]["median_ns"],
                 "full_scipy": runs["python"]["median_s"] / runs[kind]["median_s"],
+                "dcdc16_scipy": dcdc_runs["python"]["median_s"] / dcdc_runs[kind]["median_s"],
             } for kind in ("numba", "rust")
         },
         "interpretation": "All speedups are within the same comparative environment. "
-        "A 0.05 s GFM-only simulation is a benchmark, not the complete 6.5 s PR57 campaign.",
+        "The 0.05 s GFM 12-state and GFM+BESS+DC/DC 16-state runs are numerical "
+        "benchmarks, not the full 6.5 s PR57 validation campaign.",
     }
     target.write_text(json.dumps(data, indent=2), encoding="utf-8")
     return data
