@@ -1,0 +1,12 @@
+[build-system]
+requires = ["maturin==1.9.6"]
+build-backend = "maturin"
+
+[project]
+name = "pv-kernel-rust"
+version = "0.1.0"
+requires-python = ">=3.12"
+description = "Isolated benchmark-only replica of the microgrid_vsm photovoltaic Newton current kernel"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
