@@ -111,17 +111,55 @@
 
 ---
 
-## 4. Recomendación Científica, Limitaciones y Reproducibilidad
+## 4. Comparación Completa de los Siete Escenarios (Campaña Integral de 24 h)
 
-- **Configuración propuesta como referencia `PQ` de trabajo:** **Proponer `Vmaxpu = 1.20` (potencia constante `PQ` pura) como referencia de trabajo para futuros análisis QSTS**, por tres razones técnicas:
-  1. Garantiza **coherencia estricta con el benchmark IEEE PES 2015** (error máximo `0,0438 %` en $P$, `0,0906 %` en $Q$ y `0,0002 %` en $V$, PR #58).
-  2. Elimina el artefacto de impedancia constante sobre cargas declaradas a `230 V` en un alimentador con cabecera a `1,05 pu` (`252 V`), evitando que la demanda varíe artificialmente con la ubicación del DER (`+0,292 kWh`).
-  3. Restaura la coherencia física entre ahorro de pérdidas totales (`0,2035 kWh/día`) y ahorro de energía importada en la subestación (`0,2034 kWh/día`) al comparar barra 822 frente a barra 34.
-- **Distinción crítica (benchmark vs. cargas físicas reales):** `Vmaxpu = 1.20` **NO constituye una caracterización experimental de consumidores residenciales reales** (cuya demanda real suele exhibir dependencia de tensión tipo ZIP/CVR), sino una **convención de modelado `PQ` puro** necesaria para mantener paridad matemática con el benchmark IEEE PES 2015. Por ello, **se conservan ambas configuraciones (`Vmaxpu = 1.05` del PR #57 y `Vmaxpu = 1.20`) como sensibilidad metodológica**, demostrando que el ranking de ubicaciones (Barra 822 $>$ Barra 34) y los signos de variación de pérdidas totales (`+` en 34, `-` en 822) son robustos frente a ambas leyes de carga. Este estudio no modifica automáticamente el dossier ni el documento principal de tesis.
+Para cerrar la matriz completa de 7 escenarios del PR #57 sin repetir simulaciones ya validadas, se ejecutaron exclusivamente los **4 escenarios fotovoltaicos sin BESS** con `Vmaxpu = 1.20` (`5 760` flujos OpenDSS nuevos: `pv_near_34_direct`, `pv_far_822_direct`, `pv_near_34_xfmr_5kva` y `pv_far_822_xfmr_5kva`) mediante [`scripts/run_ieee906_qsts_24h_pv_only_vmaxpu1p20.py`](../scripts/run_ieee906_qsts_24h_pv_only_vmaxpu1p20.py), reutilizando los 3 escenarios ya calculados en la Fase 3 (`base_no_dg`, `pv_bess_near_34_xfmr_5kva`, `pv_bess_far_822_xfmr_5kva`).
+
+- **Costo computacional de los 4 escenarios nuevos (`5 760` flujos):** **`26,660 s`** de simulación pura (`6,80 s` `pv_near_34_direct`, `6,54 s` `pv_far_822_direct`, `6,70 s` `pv_near_34_xfmr_5kva`, `6,62 s` `pv_far_822_xfmr_5kva`; `55,779 s` totales incluyendo descarga fresca de los datos IEEE fijados).
+- **Integridad y conservación de energía:** convergencia del `100 %` (`5 760 / 5 760` flujos), `0 / 55` cargas fuera del rango `PQ`, `e_loss_xfmr_der_kwh = 0,000000 kWh` en ambos escenarios de conexión directa, residuo diario de balance $\le 0{,}000514\text{ kWh}$ y residuo instantáneo máximo `0,002272 kW`.
+- **Evidencias consolidadas (sin sobrescribir archivos previos):**
+  - [`outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_vmaxpu1p20_all7_comparison.csv`](../outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_vmaxpu1p20_all7_comparison.csv)
+  - [`outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_all7_paired_1p05_vs_1p20.csv`](../outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_all7_paired_1p05_vs_1p20.csv)
+  - [`outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_all7_vmaxpu1p20_vs_pr57.json`](../outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_all7_vmaxpu1p20_vs_pr57.json)
+
+### 4.1 Tabla comparativa completa de los 7 escenarios (`Vmaxpu = 1.05` PR #57 vs. `Vmaxpu = 1.20` PQ)
+
+| Escenario | Tipo | Demanda [kWh] (`1.05` $\to$ `1.20`) | Importación [kWh] (`1.05` $\to$ `1.20`) | Pérd. red [kWh] (`1.05` $\to$ `1.20`) | Pérd. xfmr [kWh] (`1.20`) | Pérd. total [kWh] (`1.05` $\to$ `1.20`) | $\Delta$ Pérd. red vs. base (`1.05` $\to$ `1.20`) | $\Delta$ Pérd. total vs. base (`1.05` $\to$ `1.20`) | $V_{\min}$ / $V_{\max}$ [pu] (`1.20`) | Min $>1{,}05$ / $>1{,}06$ (`1.05` $\to$ `1.20`) |
+|:---|:---:|:---:|:---:|:---:|---:|:---:|:---:|:---:|:---:|:---:|
+| `base_no_dg` | Base | `517,306` $\to$ `483,914` | `522,368` $\to$ `488,459` | `5,0627` $\to$ `4,5450` | `0,0000` | `5,0627` $\to$ `4,5450` | `0,00 %` $\to$ `0,00 %` | `0,00 %` $\to$ `0,00 %` | `0,98143 / 1,06480` | `415/6` $\to$ `439/6` |
+| `pv_near_34_direct` | Solo FV | `517,371` $\to$ `483,914` | `499,460` $\to$ `465,488` | `5,0079` $\to$ `4,4928` | `0,0000` | `5,0079` $\to$ `4,4928` | `-1,08 %` $\to$ **`-1,15 %`** | `-1,08 %` $\to$ **`-1,15 %`** | `0,98160 / 1,06494` | `430/6` $\to$ `458/6` |
+| `pv_far_822_direct` | Solo FV | `517,578` $\to$ `483,914` | `499,473` $\to$ `465,302` | `4,8136` $\to$ `4,3074` | `0,0000` | `4,8136` $\to$ `4,3074` | `-4,92 %` $\to$ **`-5,23 %`** | `-4,92 %` $\to$ **`-5,23 %`** | `0,98214 / 1,06572` | `469/7` $\to$ `507/7` |
+| `pv_near_34_xfmr_5kva` | Solo FV + Xfmr | `517,369` $\to$ `483,914` | `499,605` $\to$ `465,634` | `5,0085` $\to$ `4,4934` | `0,1454` | `5,1539` $\to$ `4,6389` | `-1,07 %` $\to$ **`-1,13 %`** | `+1,80 %` $\to$ **`+2,07 %`** | `0,98160 / 1,06494` | `430/6` $\to$ `457/6` |
+| `pv_far_822_xfmr_5kva` | Solo FV + Xfmr | `517,574` $\to$ `483,914` | `499,619` $\to$ `465,452` | `4,8165` $\to$ `4,3102` | `0,1465` | `4,9631` $\to$ `4,4567` | `-4,86 %` $\to$ **`-5,17 %`** | `-1,97 %` $\to$ **`-1,94 %`** | `0,98213 / 1,06571` | `469/7` $\to$ `506/7` |
+| `pv_bess_near_34_xfmr_5kva` | FV+BESS + Xfmr | `517,375` $\to$ `483,914` | `499,937` $\to$ `465,960` | `5,0016` $\to$ `4,4867` | `0,1063` | `5,1079` $\to$ `4,5930` | `-1,21 %` $\to$ **`-1,28 %`** | `+0,89 %` $\to$ **`+1,06 %`** | `0,98158 / 1,06493` | `425/6` $\to$ `454/6` |
+| `pv_bess_far_822_xfmr_5kva` | FV+BESS + Xfmr | `517,598` $\to$ `483,914` | `499,947` $\to$ `465,757` | `4,7880` $\to$ `4,2822` | `0,1073` | `4,8954` $\to$ `4,3895` | `-5,43 %` $\to$ **`-5,78 %`** | `-3,30 %` $\to$ **`-3,42 %`** | `0,98206 / 1,06547` | `472/6` $\to$ `503/7` |
+
+*(En todos los escenarios: `minutes_above_1p10_pu = 0` y `minutes_below_0p90_pu = 0`. Inyección FV = `22,9183 kWh/día` en los 4 escenarios solo-FV; inyección neta DER = `22,5458 kWh/día` en los 2 escenarios FV+BESS.)*
+
+### 4.2 Separación de efectos (Solo FV vs. FV+BESS, Directo vs. Transformador) y robustez de conclusiones
+
+1. **Atribución estricta entre FV y BESS (bajo `Vmaxpu = 1.20`):**
+   - **Contribución exclusiva de FV (sin BESS):** en barra 822 con transformador, la generación fotovoltaica por sí sola logra el grueso del ahorro en pérdidas del alimentador (`-5,17 %`) y reduce las pérdidas totales en `-1,94 %`.
+   - **Contribución incremental del BESS (`pv_bess_*_xfmr_5kva` vs. `pv_*_xfmr_5kva`):** añadir el BESS aporta un ahorro adicional de `-0,61 pp` en pérdidas del alimentador en barra 822 (`-5,17 %` $\to$ `-5,78 %`) y reduce las pérdidas de cobre del transformador de 5 kVA un **`-26,8 %`** (`0,1465` $\to$ `0,1073 kWh`) al recortar el pico solar de `3,0` a `2,0 kW`, elevando el ahorro neto de pérdidas totales de `-1,94 %` a **`-3,42 %`** (`-1,48 pp` atribuibles al BESS). Esta mejora incremental de `1,48 pp` corresponde estrictamente a la comparación bajo los **perfiles sintéticos establecidos** (curva solar semisenoidal y despacho BESS idealizado de balance SoC diario nulo) y **no implica validación experimental del BESS ni de su envejecimiento**. En contrapartida, las pérdidas internas de ciclo del BESS (`0,3724 kWh/día`) incrementan la energía importada neta en `+0,305 kWh/día` respecto a `pv_far_822_xfmr_5kva`.
+2. **Conclusiones ROBUSTAS (invariantes frente a `Vmaxpu = 1.05` vs. `1.20`):**
+   - **Ubicación más favorable:** la **barra 822 (lejana)** supera consistentemente a la **barra 34 (cercana)** en pérdidas del alimentador, pérdidas totales y mejora de tensión mínima tanto en conexión directa como con transformador 5 kVA, con y sin BESS.
+   - **Impacto del transformador de 5 kVA (`P0 = 0`):** en barra 34, las pérdidas del transformador (`0,1454 kWh` solo FV; `0,1063 kWh` FV+BESS) superan el ahorro en el alimentador, invirtiendo el balance total a signo positivo (`+2,07 %` y `+1,06 %` con `1.20`, frente a `+1,80 %` y `+0,89 %` con `1.05`). En barra 822, el balance total permanece negativo (`-1,94 %` solo FV y `-3,42 %` FV+BESS).
+   - **Extremos de tensión:** variaciones menores a `0,0005 pu` ($\approx 0,12\text{ V}$).
+3. **Conclusiones SENSIBLES al modelo de carga:**
+   - **Magnitudes diarias absolutas:** con `Vmaxpu = 1.20`, la demanda diaria cae `-6,46 %` a `-6,51 %`, la importación cae `-6,49 %` a `-6,84 %` y las pérdidas del alimentador caen `-10,23 %` a `-10,56 %`.
+   - **Signo de la ventaja en importación de subestación (Barra 822 vs. Barra 34):** en los **tres pares** (directo, transformador solo FV, y FV+BESS con transformador), `Vmaxpu = 1.05` producía una penalización artificial en importación para la barra 822 (`+0,0129`, `+0,0143` y `+0,0102 kWh/día` más que barra 34) por rebote de carga. Con `Vmaxpu = 1.20`, la barra 822 **ahorra importación en los tres pares**: **`-0,1854 kWh/día`** (directo), **`-0,1822 kWh/día`** (solo FV + xfmr) y **`-0,2034 kWh/día`** (FV+BESS + xfmr).
+
+---
+
+## 5. Recomendación Científica, Limitaciones y Reproducibilidad
+
+- **Configuración propuesta como referencia `PQ` de trabajo:** **Proponer `Vmaxpu = 1.20` (potencia constante `PQ` pura) como referencia de trabajo para los 7 escenarios QSTS**, por coherencia con IEEE PES 2015 (PR #58), invarianza de la demanda (`483,914 kWh/día` en los 7 casos) y consistencia física entre ahorro de pérdidas e importación de red en los tres pares de ubicación.
+- **Distinción crítica (benchmark vs. cargas físicas reales):** `Vmaxpu = 1.20` **NO constituye una caracterización experimental de consumidores residenciales reales** (cuya demanda real suele exhibir dependencia de tensión tipo ZIP/CVR), sino una **convención de modelado `PQ` puro** coherente con el benchmark IEEE PES 2015. Por ello, **se conservan ambas configuraciones (`Vmaxpu = 1.05` del PR #57 y `Vmaxpu = 1.20`) como sensibilidad metodológica**. Este estudio no modifica automáticamente el dossier ni el documento principal de tesis.
 - **Comandos de reproducción (sin dependencias temporales, commit IEEE fijado `5005c668a72d20775f4c2d060feebb2866ba1d38`):**
   ```bash
   python scripts/audit_ieee906_vmaxpu_qsts_sensitivity.py --download
   python scripts/run_ieee906_qsts_24h_vmaxpu1p20.py
+  python scripts/run_ieee906_qsts_24h_pv_only_vmaxpu1p20.py
   ```
 - **Dependencias verificadas:** `Python 3.11.2`, `numpy==2.4.6`, `opendssdirect.py==0.9.4`, `dss-python==0.15.7`, `dss-python-backend==0.14.5`.
 - **Trazabilidad SHA-256 de artefactos:**
@@ -129,3 +167,6 @@
   - [`vmaxpu_qsts_representative_instants.csv`](../outputs/experiment_vmaxpu_qsts_sensitivity/vmaxpu_qsts_representative_instants.csv): `2efb68d28b3cb40b0723963d72be3f1e12bf38f22ae3f01eb2460e014ab524eb`
   - [`qsts_24h_vmaxpu1p20_vs_pr57.json`](../outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_vmaxpu1p20_vs_pr57.json): `4166146b988aa4e9f01689e1311ad2acc3f02526e1f5c524a00cb8d5ab3f4793`
   - [`qsts_24h_vmaxpu1p20_comparison.csv`](../outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_vmaxpu1p20_comparison.csv): `c1b45d9543f49778dc2264e713fb420a9fa492906ca9d2969b6ee2672e52b425`
+  - [`qsts_24h_vmaxpu1p20_all7_comparison.csv`](../outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_vmaxpu1p20_all7_comparison.csv): `ad774a11b1087e97da50d6968ec73cf893674d866aec908b15a9dc503ea3decd`
+  - [`qsts_24h_all7_paired_1p05_vs_1p20.csv`](../outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_all7_paired_1p05_vs_1p20.csv): `c89f90386f27e0d2d9d81c0ab0eab0a0c986a83e81799979458a507ea5c74d99`
+  - [`qsts_24h_all7_vmaxpu1p20_vs_pr57.json`](../outputs/experiment_vmaxpu_qsts_sensitivity/qsts_24h_all7_vmaxpu1p20_vs_pr57.json): `dcbd4a021c7e3401c32448b6a10c71ed6ba9c7bfcdc3857f8b7d38651b3d224d`
