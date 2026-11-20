@@ -1,0 +1,850 @@
+{
+  "m_vsg": 80.0,
+  "d_vsg": 1500.0,
+  "pi_kp_w_per_v": 170.0,
+  "pi_ki_w_per_v_s": 10.0,
+  "cases": [
+    {
+      "label": "bess_pi_60hz_13state_frozen_battery",
+      "freq_hz": 60.0,
+      "period_s": 0.016666666666666666,
+      "active_state_count": 13,
+      "active_states": [
+        "Vdc",
+        "i1_a",
+        "i1_b",
+        "i1_c",
+        "vc_a",
+        "vc_b",
+        "vc_c",
+        "i2_a",
+        "i2_b",
+        "i2_c",
+        "omega",
+        "theta",
+        "xi_bess_vdc"
+      ],
+      "frozen_states": {
+        "soc_bess": 0.6000131888797223,
+        "vrc_bess": -0.00018736266194398788,
+        "zdeg_bess": 0.0005816295954659586
+      },
+      "wall_s": 46.406,
+      "periodicity_residual": {
+        "max_abs_scaled_residual": 0.007692521066940561,
+        "l2_scaled_residual": 0.00935328861888055,
+        "theta_increment_error_rad": 0.0006383414920279051,
+        "vdc_relative_error": 0.00014324566277169204
+      },
+      "summary": {
+        "all_non_neutral_strictly_stable": true,
+        "non_neutral_max_mu_magnitude": 0.9990475533721422,
+        "non_neutral_max_lambda_real_s_inv": -0.057174029601512966,
+        "zeta_min_oscillatory": 0.580799342622399,
+        "vsg_analytical_pole_s_inv": -18.75,
+        "vsg_numerical_mode": {
+          "mode_id": 11,
+          "subsystem": "control_vsg_swing",
+          "dominant_states": [
+            "theta",
+            "i2_a",
+            "i1_a"
+          ],
+          "dominant_weights": [
+            0.5883,
+            0.3679,
+            0.3673
+          ],
+          "mu_real": 0.7315878274834111,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.7315878274834111,
+          "lambda_real_s_inv": -18.752280049007144,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 2.257005304873161e-08,
+          "delta_lambda_real_sensitivity": 1.8510466546217685e-06
+        },
+        "pi_integrator_mode": {
+          "mode_id": 12,
+          "subsystem": "control_dc_link_pi",
+          "dominant_states": [
+            "xi_bess_vdc",
+            "Vdc",
+            "theta"
+          ],
+          "dominant_weights": [
+            1.0,
+            0.0017,
+            0.0001
+          ],
+          "mu_real": 0.9990475533721422,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.9990475533721422,
+          "lambda_real_s_inv": -0.057174029601512966,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 1.583030373453198e-10,
+          "delta_lambda_real_sensitivity": 9.507237372363697e-09
+        },
+        "theta_symmetry_mode": {
+          "mode_id": 13,
+          "subsystem": "phase_symmetry_SO2",
+          "dominant_states": [
+            "theta",
+            "i1_a",
+            "i2_a"
+          ],
+          "dominant_weights": [
+            0.593,
+            0.3656,
+            0.3655
+          ],
+          "mu_real": 1.0000004423285869,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.0000004423285869,
+          "lambda_real_s_inv": 2.6539709342523736e-05,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 6.820245745942088e-08,
+          "delta_lambda_real_sensitivity": 4.092145497945127e-06
+        }
+      },
+      "timescale_separation": {
+        "tau_vsg_s": 0.05333333333333334,
+        "tau_pi_s": 17.490458639520792,
+        "tau_rc_analytical_s": 35.97968102586416,
+        "lambda_rc_analytical_s_inv": -0.027793464852596813,
+        "soc_drift_rate_per_s": 5.343591027550237e-06,
+        "zdeg_drift_rate_ah_per_s": 0.0002356523640117872,
+        "tau_soc_characteristic_s": 187140.0701970354,
+        "epsilon_vsg_over_rc": 0.0014823181254718302,
+        "epsilon_vsg_over_soc": 2.84991521469346e-07
+      },
+      "modes": [
+        {
+          "mode_id": 1,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i2_c",
+            "i1_c",
+            "i2_b"
+          ],
+          "dominant_weights": [
+            0.7015,
+            0.6955,
+            0.0974
+          ],
+          "mu_real": 1.1795862222107378e-07,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.1795862222107378e-07,
+          "lambda_real_s_inv": -957.175915987169,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 2.223154319705223e-08,
+          "delta_lambda_real_sensitivity": 12.529961279047484
+        },
+        {
+          "mode_id": 2,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i2_c",
+            "i1_c",
+            "i2_a"
+          ],
+          "dominant_weights": [
+            0.5575,
+            0.5527,
+            0.4218
+          ],
+          "mu_real": 1.2459070737235362e-07,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.2459070737235362e-07,
+          "lambda_real_s_inv": -953.8939087830238,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 6.793248865241469e-09,
+          "delta_lambda_real_sensitivity": 3.3640396532265413
+        },
+        {
+          "mode_id": 3,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i2_a",
+            "i1_a",
+            "i2_b"
+          ],
+          "dominant_weights": [
+            0.5328,
+            0.5282,
+            0.4628
+          ],
+          "mu_real": 1.8144950870028014e-07,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.8144950870028014e-07,
+          "lambda_real_s_inv": -931.3373046553446,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 5.908308252581003e-08,
+          "delta_lambda_real_sensitivity": 23.6374433719202
+        },
+        {
+          "mode_id": 4,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "Vdc",
+            "xi_bess_vdc",
+            "theta"
+          ],
+          "dominant_weights": [
+            0.9908,
+            0.1328,
+            0.012
+          ],
+          "mu_real": 0.01456968670259343,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.01456968670259343,
+          "lambda_real_s_inv": -253.72872971500524,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 1.5482035323893806e-09,
+          "delta_lambda_real_sensitivity": 6.3757175041700975e-06
+        },
+        {
+          "mode_id": 5,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_a",
+            "vc_a",
+            "i1_b"
+          ],
+          "dominant_weights": [
+            0.7181,
+            0.6009,
+            0.26
+          ],
+          "mu_real": -0.004743527585426406,
+          "mu_imag": -0.3225878625435604,
+          "mu_magnitude": 0.32262273651182233,
+          "lambda_real_s_inv": -67.8762982089985,
+          "lambda_imag_rad_s": -95.12999241667714,
+          "modal_frequency_hz": 15.140408529408687,
+          "zeta": 0.5808205423706351,
+          "delta_mu_sensitivity": 6.43673281341961e-10,
+          "delta_lambda_real_sensitivity": 1.1970762159307924e-07
+        },
+        {
+          "mode_id": 6,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_a",
+            "vc_a",
+            "i1_b"
+          ],
+          "dominant_weights": [
+            0.7181,
+            0.6009,
+            0.26
+          ],
+          "mu_real": -0.004743527585426406,
+          "mu_imag": 0.3225878625435604,
+          "mu_magnitude": 0.32262273651182233,
+          "lambda_real_s_inv": -67.8762982089985,
+          "lambda_imag_rad_s": 95.12999241667714,
+          "modal_frequency_hz": 15.140408529408687,
+          "zeta": 0.5808205423706351,
+          "delta_mu_sensitivity": 6.43673281341961e-10,
+          "delta_lambda_real_sensitivity": 1.1970762159307924e-07
+        },
+        {
+          "mode_id": 7,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_a",
+            "vc_a",
+            "i1_b"
+          ],
+          "dominant_weights": [
+            0.6012,
+            0.5031,
+            0.4455
+          ],
+          "mu_real": -0.004744304970905292,
+          "mu_imag": 0.3225885551015643,
+          "mu_magnitude": 0.32262344042578794,
+          "lambda_real_s_inv": -67.8761672982254,
+          "lambda_imag_rad_s": 95.13013508183889,
+          "modal_frequency_hz": 15.140431235274384,
+          "zeta": 0.5808192228681353,
+          "delta_mu_sensitivity": 3.935698972279411e-08,
+          "delta_lambda_real_sensitivity": 7.319429499830221e-06
+        },
+        {
+          "mode_id": 8,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_a",
+            "vc_a",
+            "i1_b"
+          ],
+          "dominant_weights": [
+            0.6012,
+            0.5031,
+            0.4455
+          ],
+          "mu_real": -0.004744304970905292,
+          "mu_imag": -0.3225885551015643,
+          "mu_magnitude": 0.32262344042578794,
+          "lambda_real_s_inv": -67.8761672982254,
+          "lambda_imag_rad_s": -95.13013508183889,
+          "modal_frequency_hz": 15.140431235274384,
+          "zeta": 0.5808192228681353,
+          "delta_mu_sensitivity": 3.935698972279411e-08,
+          "delta_lambda_real_sensitivity": 7.319429499830221e-06
+        },
+        {
+          "mode_id": 9,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_b",
+            "i1_c",
+            "vc_b"
+          ],
+          "dominant_weights": [
+            0.5711,
+            0.482,
+            0.478
+          ],
+          "mu_real": -0.004753828364515655,
+          "mu_imag": -0.32260060073251023,
+          "mu_magnitude": 0.32263562493484155,
+          "lambda_real_s_inv": -67.87390132295268,
+          "lambda_imag_rad_s": -95.13187299805796,
+          "modal_frequency_hz": 15.14070783323133,
+          "zeta": 0.580799342622399,
+          "delta_mu_sensitivity": 1.3134227039302004e-09,
+          "delta_lambda_real_sensitivity": 2.442549913439507e-07
+        },
+        {
+          "mode_id": 10,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_b",
+            "i1_c",
+            "vc_b"
+          ],
+          "dominant_weights": [
+            0.5711,
+            0.482,
+            0.478
+          ],
+          "mu_real": -0.004753828364515655,
+          "mu_imag": 0.32260060073251023,
+          "mu_magnitude": 0.32263562493484155,
+          "lambda_real_s_inv": -67.87390132295268,
+          "lambda_imag_rad_s": 95.13187299805796,
+          "modal_frequency_hz": 15.14070783323133,
+          "zeta": 0.580799342622399,
+          "delta_mu_sensitivity": 1.3134227039302004e-09,
+          "delta_lambda_real_sensitivity": 2.442549913439507e-07
+        },
+        {
+          "mode_id": 11,
+          "subsystem": "control_vsg_swing",
+          "dominant_states": [
+            "theta",
+            "i2_a",
+            "i1_a"
+          ],
+          "dominant_weights": [
+            0.5883,
+            0.3679,
+            0.3673
+          ],
+          "mu_real": 0.7315878274834111,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.7315878274834111,
+          "lambda_real_s_inv": -18.752280049007144,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 2.257005304873161e-08,
+          "delta_lambda_real_sensitivity": 1.8510466546217685e-06
+        },
+        {
+          "mode_id": 12,
+          "subsystem": "control_dc_link_pi",
+          "dominant_states": [
+            "xi_bess_vdc",
+            "Vdc",
+            "theta"
+          ],
+          "dominant_weights": [
+            1.0,
+            0.0017,
+            0.0001
+          ],
+          "mu_real": 0.9990475533721422,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.9990475533721422,
+          "lambda_real_s_inv": -0.057174029601512966,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 1.583030373453198e-10,
+          "delta_lambda_real_sensitivity": 9.507237372363697e-09
+        },
+        {
+          "mode_id": 13,
+          "subsystem": "phase_symmetry_SO2",
+          "dominant_states": [
+            "theta",
+            "i1_a",
+            "i2_a"
+          ],
+          "dominant_weights": [
+            0.593,
+            0.3656,
+            0.3655
+          ],
+          "mu_real": 1.0000004423285869,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.0000004423285869,
+          "lambda_real_s_inv": 2.6539709342523736e-05,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 6.820245745942088e-08,
+          "delta_lambda_real_sensitivity": 4.092145497945127e-06
+        }
+      ]
+    },
+    {
+      "label": "bess_dcdc_50hz_13state_frozen_battery",
+      "freq_hz": 50.0,
+      "period_s": 0.02,
+      "active_state_count": 13,
+      "active_states": [
+        "Vdc",
+        "i1_a",
+        "i1_b",
+        "i1_c",
+        "vc_a",
+        "vc_b",
+        "vc_c",
+        "i2_a",
+        "i2_b",
+        "i2_c",
+        "omega",
+        "theta",
+        "xi_bess_vdc"
+      ],
+      "frozen_states": {
+        "soc_bess": 0.6000115048835125,
+        "vrc_bess": -0.00016342373451881404,
+        "zdeg_bess": 0.0005073653626036494
+      },
+      "wall_s": 54.398,
+      "periodicity_residual": {
+        "max_abs_scaled_residual": 0.009026500838589779,
+        "l2_scaled_residual": 0.009489050306866946,
+        "theta_increment_error_rad": 0.0007408673127216048,
+        "vdc_relative_error": 5.309671582471526e-05
+      },
+      "summary": {
+        "all_non_neutral_strictly_stable": true,
+        "non_neutral_max_mu_magnitude": 0.9988567021857683,
+        "non_neutral_max_lambda_real_s_inv": -0.05719759388757631,
+        "zeta_min_oscillatory": 0.9129486847393613,
+        "vsg_analytical_pole_s_inv": -18.75,
+        "vsg_numerical_mode": {
+          "mode_id": 11,
+          "subsystem": "control_vsg_swing",
+          "dominant_states": [
+            "theta",
+            "i2_a",
+            "i1_a"
+          ],
+          "dominant_weights": [
+            0.5859,
+            0.3701,
+            0.3693
+          ],
+          "mu_real": 0.6872532049567053,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.6872532049567053,
+          "lambda_real_s_inv": -18.75262442483239,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 5.8705904582012636e-09,
+          "delta_lambda_real_sensitivity": 4.271053519744328e-07
+        },
+        "pi_integrator_mode": {
+          "mode_id": 12,
+          "subsystem": "control_dc_link_pi",
+          "dominant_states": [
+            "xi_bess_vdc",
+            "Vdc",
+            "theta"
+          ],
+          "dominant_weights": [
+            1.0,
+            0.0017,
+            0.0001
+          ],
+          "mu_real": 0.9988567021857683,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.9988567021857683,
+          "lambda_real_s_inv": -0.05719759388757631,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 6.557090426184686e-10,
+          "delta_lambda_real_sensitivity": 3.282297855733418e-08
+        },
+        "theta_symmetry_mode": {
+          "mode_id": 13,
+          "subsystem": "phase_symmetry_SO2",
+          "dominant_states": [
+            "theta",
+            "i1_a",
+            "i2_a"
+          ],
+          "dominant_weights": [
+            0.5916,
+            0.3673,
+            0.3672
+          ],
+          "mu_real": 1.0000002484095838,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.0000002484095838,
+          "lambda_real_s_inv": 1.2420477646907105e-05,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 4.113148797113553e-07,
+          "delta_lambda_real_sensitivity": 2.0565734647346134e-05
+        }
+      },
+      "timescale_separation": {
+        "tau_vsg_s": 0.05333333333333334,
+        "tau_pi_s": 17.483252913846897,
+        "tau_rc_analytical_s": 35.979740454169665,
+        "lambda_rc_analytical_s_inv": -0.027793418945691997,
+        "soc_drift_rate_per_s": 4.27360821943724e-06,
+        "zdeg_drift_rate_ah_per_s": 0.00018846612226567082,
+        "tau_soc_characteristic_s": 233994.3084749314,
+        "epsilon_vsg_over_rc": 0.0014823156771035734,
+        "epsilon_vsg_over_soc": 2.279257717033195e-07
+      },
+      "modes": [
+        {
+          "mode_id": 1,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i2_a",
+            "i1_a",
+            "i2_b"
+          ],
+          "dominant_weights": [
+            0.5552,
+            0.5517,
+            0.4204
+          ],
+          "mu_real": 6.512907503099014e-08,
+          "mu_imag": 0.0,
+          "mu_magnitude": 6.512907503099014e-08,
+          "lambda_real_s_inv": -827.3447383188815,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 9.369647705537788e-10,
+          "delta_lambda_real_sensitivity": 0.7141887120894808
+        },
+        {
+          "mode_id": 2,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i2_a",
+            "i1_a",
+            "i2_b"
+          ],
+          "dominant_weights": [
+            0.6132,
+            0.6094,
+            0.2614
+          ],
+          "mu_real": 7.308333994929844e-08,
+          "mu_imag": 0.0,
+          "mu_magnitude": 7.308333994929844e-08,
+          "lambda_real_s_inv": -821.5832701917957,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 7.017300147754527e-09,
+          "delta_lambda_real_sensitivity": 5.0472794149962965
+        },
+        {
+          "mode_id": 3,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i2_a",
+            "i1_a",
+            "i2_c"
+          ],
+          "dominant_weights": [
+            0.5499,
+            0.5464,
+            0.4122
+          ],
+          "mu_real": 7.574757333543242e-08,
+          "mu_imag": 0.0,
+          "mu_magnitude": 7.574757333543242e-08,
+          "lambda_real_s_inv": -819.792971412294,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 2.1104351780960226e-09,
+          "delta_lambda_real_sensitivity": 1.412845785084187
+        },
+        {
+          "mode_id": 4,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "Vdc",
+            "xi_bess_vdc",
+            "theta"
+          ],
+          "dominant_weights": [
+            0.9908,
+            0.1328,
+            0.012
+          ],
+          "mu_real": 0.006258575371667009,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.006258575371667009,
+          "lambda_real_s_inv": -253.6901348090296,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 1.2059231217775856e-09,
+          "delta_lambda_real_sensitivity": 9.634165394345473e-06
+        },
+        {
+          "mode_id": 5,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_a",
+            "vc_a",
+            "i1_b"
+          ],
+          "dominant_weights": [
+            0.6438,
+            0.5352,
+            0.3776
+          ],
+          "mu_real": 0.2864595068245799,
+          "mu_imag": -0.1566209438533091,
+          "mu_magnitude": 0.32647996738495755,
+          "lambda_real_s_inv": -55.96933438918218,
+          "lambda_imag_rad_s": -25.017122919958545,
+          "modal_frequency_hz": 3.981598774648953,
+          "zeta": 0.9129506944443291,
+          "delta_mu_sensitivity": 1.0656132837238985e-07,
+          "delta_lambda_real_sensitivity": 1.6319737262904255e-05
+        },
+        {
+          "mode_id": 6,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_a",
+            "vc_a",
+            "i1_b"
+          ],
+          "dominant_weights": [
+            0.6438,
+            0.5352,
+            0.3776
+          ],
+          "mu_real": 0.2864595068245799,
+          "mu_imag": 0.1566209438533091,
+          "mu_magnitude": 0.32647996738495755,
+          "lambda_real_s_inv": -55.96933438918218,
+          "lambda_imag_rad_s": 25.017122919958545,
+          "modal_frequency_hz": 3.981598774648953,
+          "zeta": 0.9129506944443291,
+          "delta_mu_sensitivity": 1.0656132837238985e-07,
+          "delta_lambda_real_sensitivity": 1.6319737262904255e-05
+        },
+        {
+          "mode_id": 7,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_a",
+            "i1_b",
+            "vc_a"
+          ],
+          "dominant_weights": [
+            0.5401,
+            0.5334,
+            0.449
+          ],
+          "mu_real": 0.2864602172964754,
+          "mu_imag": 0.15661966742150657,
+          "mu_magnitude": 0.32647997843170606,
+          "lambda_real_s_inv": -55.96933269738644,
+          "lambda_imag_rad_s": 25.016899200798626,
+          "modal_frequency_hz": 3.9815631686387873,
+          "zeta": 0.9129520493554864,
+          "delta_mu_sensitivity": 9.703631009827518e-09,
+          "delta_lambda_real_sensitivity": 1.4860989665521629e-06
+        },
+        {
+          "mode_id": 8,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_a",
+            "i1_b",
+            "vc_a"
+          ],
+          "dominant_weights": [
+            0.5401,
+            0.5334,
+            0.449
+          ],
+          "mu_real": 0.2864602172964754,
+          "mu_imag": -0.15661966742150657,
+          "mu_magnitude": 0.32647997843170606,
+          "lambda_real_s_inv": -55.96933269738644,
+          "lambda_imag_rad_s": -25.016899200798626,
+          "modal_frequency_hz": 3.9815631686387873,
+          "zeta": 0.9129520493554864,
+          "delta_mu_sensitivity": 9.703631009827518e-09,
+          "delta_lambda_real_sensitivity": 1.4860989665521629e-06
+        },
+        {
+          "mode_id": 9,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_b",
+            "i1_a",
+            "vc_b"
+          ],
+          "dominant_weights": [
+            0.4989,
+            0.4383,
+            0.4148
+          ],
+          "mu_real": 0.2864658691039467,
+          "mu_imag": -0.15662343169779272,
+          "mu_magnitude": 0.32648674325043076,
+          "lambda_real_s_inv": -55.968296684600446,
+          "lambda_imag_rad_s": -25.016989794985296,
+          "modal_frequency_hz": 3.981577587151411,
+          "zeta": 0.9129486847393613,
+          "delta_mu_sensitivity": 1.3552310551556701e-08,
+          "delta_lambda_real_sensitivity": 2.0754764378239088e-06
+        },
+        {
+          "mode_id": 10,
+          "subsystem": "electrical_lcl_dclink",
+          "dominant_states": [
+            "i1_b",
+            "i1_a",
+            "vc_b"
+          ],
+          "dominant_weights": [
+            0.4989,
+            0.4383,
+            0.4148
+          ],
+          "mu_real": 0.2864658691039467,
+          "mu_imag": 0.15662343169779272,
+          "mu_magnitude": 0.32648674325043076,
+          "lambda_real_s_inv": -55.968296684600446,
+          "lambda_imag_rad_s": 25.016989794985296,
+          "modal_frequency_hz": 3.981577587151411,
+          "zeta": 0.9129486847393613,
+          "delta_mu_sensitivity": 1.3552310551556701e-08,
+          "delta_lambda_real_sensitivity": 2.0754764378239088e-06
+        },
+        {
+          "mode_id": 11,
+          "subsystem": "control_vsg_swing",
+          "dominant_states": [
+            "theta",
+            "i2_a",
+            "i1_a"
+          ],
+          "dominant_weights": [
+            0.5859,
+            0.3701,
+            0.3693
+          ],
+          "mu_real": 0.6872532049567053,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.6872532049567053,
+          "lambda_real_s_inv": -18.75262442483239,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 5.8705904582012636e-09,
+          "delta_lambda_real_sensitivity": 4.271053519744328e-07
+        },
+        {
+          "mode_id": 12,
+          "subsystem": "control_dc_link_pi",
+          "dominant_states": [
+            "xi_bess_vdc",
+            "Vdc",
+            "theta"
+          ],
+          "dominant_weights": [
+            1.0,
+            0.0017,
+            0.0001
+          ],
+          "mu_real": 0.9988567021857683,
+          "mu_imag": 0.0,
+          "mu_magnitude": 0.9988567021857683,
+          "lambda_real_s_inv": -0.05719759388757631,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 6.557090426184686e-10,
+          "delta_lambda_real_sensitivity": 3.282297855733418e-08
+        },
+        {
+          "mode_id": 13,
+          "subsystem": "phase_symmetry_SO2",
+          "dominant_states": [
+            "theta",
+            "i1_a",
+            "i2_a"
+          ],
+          "dominant_weights": [
+            0.5916,
+            0.3673,
+            0.3672
+          ],
+          "mu_real": 1.0000002484095838,
+          "mu_imag": 0.0,
+          "mu_magnitude": 1.0000002484095838,
+          "lambda_real_s_inv": 1.2420477646907105e-05,
+          "lambda_imag_rad_s": 0.0,
+          "modal_frequency_hz": 0.0,
+          "zeta": null,
+          "delta_mu_sensitivity": 4.113148797113553e-07,
+          "delta_lambda_real_sensitivity": 2.0565734647346134e-05
+        }
+      ]
+    }
+  ]
+}
