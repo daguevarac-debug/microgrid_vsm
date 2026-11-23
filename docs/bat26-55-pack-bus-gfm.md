@@ -10,12 +10,12 @@ por 48 ni por 96. La ruta reutiliza `Leaf48ModulePack`, `CapacitySnapshot`,
 
 Se consultaron las decisiones de BAT26-46 (cuatro capacidades de 44,100,
 42,273, 39,038 y 35,854 Ah, mismo SoC inicial y el hallazgo previo de que el
-BESS solo cargaba en el GFM), así como los PR #49 y #50. El #49 aporta el pack
+BESS solo cargaba en el GFM), así como los PR #49 y #50 (ya integrados en `main` junto con el PR #52). El #49 aporta el pack
 48×(2s2p) y la convención de capacidad; el #50 documenta los puertos y advierte
 que eficiencias y límites del adaptador son hipótesis, no ratings certificados.
 El criterio Roma que acompaña BAT26-46 pide 3–4 niveles y diferencias
 reproducibles; el ensayo aquí añade la comprobación de descarga que faltaba.
-No se fusionó ningún PR.
+El PR #51 permanece en `DRAFT` sobre `main` sin fusionarse.
 
 ## Interfaz y ecuaciones preservadas
 
@@ -177,5 +177,5 @@ operación del bus/inversor. La ventana de 0,30 s confirma descarga numérica,
 pero no autonomía, operación estable sostenida, cumplimiento de criterios de
 frecuencia de largo plazo ni soporte de una red real.
 
-El informe debe leerse junto con las revisiones de PR #49/#50 y el historial
-sintético de BAT26-46. No cierra pendientes experimentales ni cambia main.
+El informe debe leerse junto con las revisiones de PR #49/#50 (ya integrados en `main`) y el historial
+sintético de BAT26-46. No cierra pendientes experimentales ni cambia `main` mientras el PR #51 siga en `DRAFT`.
