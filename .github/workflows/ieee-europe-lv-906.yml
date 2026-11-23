@@ -14,11 +14,14 @@ on:
       - "scripts/tests/test_ieee_europe_lv_906_study.py"
   pull_request:
     branches:
-      - feat/blast-aging-adapter
+      - main
     paths:
       - ".github/workflows/ieee-europe-lv-906.yml"
       - "scripts/ieee_europe_lv_906_study.py"
       - "scripts/ieee_europe_lv_906_reference.py"
+      - "scripts/ieee_europe_lv_906_reference_sensitivity.py"
+      - "scripts/ieee_europe_lv_906_source_audit.py"
+      - "scripts/ieee_europe_lv_906_daily_pv.py"
       - "scripts/tests/test_ieee_europe_lv_906_study.py"
   workflow_dispatch:
 

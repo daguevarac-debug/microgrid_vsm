@@ -1,6 +1,6 @@
 # IEEE European Low Voltage 906-bus feeder — reproducible feasibility study
 
-**Status:** implemented and cloud execution PASS for initial 24-hour OpenDSS flows; independent IEEE reference comparison pending. Branch `feat/ieee-europe-lv-906-benchmark`; target `feat/blast-aging-adapter`. No changes to the protected plant/controller equations or IEEE 33 evidence.
+**Status:** internal OpenDSS execution and 79,200-sample official source parity **PASS** (GitHub Actions run `43308795596`); external reproduction of IEEE 2015 reference tables **REVIEW** (~9.5393% max active-power discrepancy, see `docs/ieee_europe_lv_906_reference_audit.md`); physical VSG–grid connection **NOT implemented**. Branch `feat/ieee-europe-lv-906-benchmark`; target `main`. No changes to the protected plant/controller equations or IEEE 33 evidence.
 
 ## Research decision and boundary
 
