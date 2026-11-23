@@ -831,7 +831,9 @@ debajo de los límites de simulación se rechaza, sin recorte silencioso.
 Sin instantánea sigue vigente la ley lineal original. Con instantánea, `zdeg`
 permanece como contador diagnóstico de Ah y no modifica la capacidad ni el SoH.
 No se actualiza automáticamente el SoC entre ventanas: la convención de esa
-transición aún requiere decisión y validación. Tampoco se implementa BLAST-Lite.
+transición aún requiere decisión y validación. El adaptador externo BLAST-Lite
+está implementado en un proceso separado (`bess.blast_lite_adapter`), pero el
+envejecimiento lento no forma parte del solver ODE rápido.
 La ley existente de resistencia `R0(SoH)` permanece activa según
 `r0_soh_sensitivity`; para una comparación que mantenga R0 constante debe
 configurarse explícitamente en cero. La corriente de bus usada por el modelo
