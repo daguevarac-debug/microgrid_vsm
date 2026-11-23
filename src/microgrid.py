@@ -254,41 +254,71 @@ class Microgrid:
         temperature_profile=None,
         load_profile=None,
         controller: InverterControllerBase | None = None,
+        *,
+        pv_params: PVArrayParams | None = None,
+        p_load_nominal_w: float | None = None,
+        load_power_factor: float | None = None,
+        load_step_fraction: float | None = None,
+        t_step: float | None = None,
+        vdc_ref: float | None = None,
+        grid_f_hz: float | None = None,
+        grid_v_ln_rms: float | None = None,
     ):
-        mod = PVModuleParams(
-            voc_stc=MICROGRID_PV_VOC_STC_V_DEFAULT,
-            isc_stc=MICROGRID_PV_ISC_STC_A_DEFAULT,
-            vmp_stc=MICROGRID_PV_VMP_STC_V_DEFAULT,
-            imp_stc=MICROGRID_PV_IMP_STC_A_DEFAULT,
-            ns_cells=MICROGRID_PV_NS_CELLS_DEFAULT,
-            alpha_isc=MICROGRID_PV_ALPHA_ISC_A_PER_C_DEFAULT,
-            beta_voc=MICROGRID_PV_BETA_VOC_V_PER_C_DEFAULT,
-            n=MICROGRID_PV_DIODE_IDEALITY_DEFAULT,
-            rs=MICROGRID_PV_RS_OHM_DEFAULT,
-            rsh=MICROGRID_PV_RSH_OHM_DEFAULT,
-        )
-        arr = PVArrayParams(
-            module=mod,
-            modules_in_series=MICROGRID_PV_ARRAY_SERIES_DEFAULT,
-            strings_in_parallel=MICROGRID_PV_ARRAY_PARALLEL_DEFAULT,
-        )
+        if pv_params is None:
+            mod = PVModuleParams(
+                voc_stc=MICROGRID_PV_VOC_STC_V_DEFAULT,
+                isc_stc=MICROGRID_PV_ISC_STC_A_DEFAULT,
+                vmp_stc=MICROGRID_PV_VMP_STC_V_DEFAULT,
+                imp_stc=MICROGRID_PV_IMP_STC_A_DEFAULT,
+                ns_cells=MICROGRID_PV_NS_CELLS_DEFAULT,
+                alpha_isc=MICROGRID_PV_ALPHA_ISC_A_PER_C_DEFAULT,
+                beta_voc=MICROGRID_PV_BETA_VOC_V_PER_C_DEFAULT,
+                n=MICROGRID_PV_DIODE_IDEALITY_DEFAULT,
+                rs=MICROGRID_PV_RS_OHM_DEFAULT,
+                rsh=MICROGRID_PV_RSH_OHM_DEFAULT,
+            )
+            arr = PVArrayParams(
+                module=mod,
+                modules_in_series=MICROGRID_PV_ARRAY_SERIES_DEFAULT,
+                strings_in_parallel=MICROGRID_PV_ARRAY_PARALLEL_DEFAULT,
+            )
+        else:
+            if not isinstance(pv_params, PVArrayParams):
+                raise ValueError(
+                    f"pv_params must be PVArrayParams when provided, got {type(pv_params).__name__}."
+                )
+            arr = pv_params
         self.pv = PVArraySingleDiode(arr)
 
         self.dcp = DCLinkParams(Cdc=DCLINK_CAP_F_DEFAULT, Vmin=DCLINK_VMIN_DEFAULT)
         self.lcl = LCLFilter()
         self.eta = _eta_float("Microgrid.eta", MICROGRID_ETA_DEFAULT)
         self.v_uvlo = _positive_float("Microgrid.v_uvlo", MICROGRID_UVLO_V_DEFAULT)
-        self.t_step = _positive_float("Microgrid.t_step", MICROGRID_LOAD_STEP_TIME_S_DEFAULT)
+        self.t_step = _positive_float(
+            "Microgrid.t_step",
+            MICROGRID_LOAD_STEP_TIME_S_DEFAULT if t_step is None else t_step,
+        )
         self.r_load_1 = _positive_float("Microgrid.r_load_1", MICROGRID_LOAD_R1_OHM_DEFAULT)
         self.r_load_2 = _positive_float("Microgrid.r_load_2", MICROGRID_LOAD_R2_OHM_DEFAULT)
         self.p_load_nominal_w = _positive_float(
-            "Microgrid.p_load_nominal_w", MICROGRID_LOAD_P_NOM_W_DEFAULT
+            "Microgrid.p_load_nominal_w",
+            MICROGRID_LOAD_P_NOM_W_DEFAULT if p_load_nominal_w is None else p_load_nominal_w,
         )
         self.load_power_factor = _eta_float(
-            "Microgrid.load_power_factor", MICROGRID_LOAD_POWER_FACTOR_DEFAULT
+            "Microgrid.load_power_factor",
+            MICROGRID_LOAD_POWER_FACTOR_DEFAULT if load_power_factor is None else load_power_factor,
         )
         self.load_step_fraction = _fraction_float(
-            "Microgrid.load_step_fraction", MICROGRID_LOAD_STEP_MODERATE_FRACTION_DEFAULT
+            "Microgrid.load_step_fraction",
+            MICROGRID_LOAD_STEP_MODERATE_FRACTION_DEFAULT if load_step_fraction is None else load_step_fraction,
+        )
+        self.grid_f_hz = _positive_float(
+            "Microgrid.grid_f_hz",
+            GRID_FREQ_HZ_DEFAULT if grid_f_hz is None else grid_f_hz,
+        )
+        self.grid_v_ln_rms = _positive_float(
+            "Microgrid.grid_v_ln_rms",
+            GRID_V_LN_RMS_DEFAULT if grid_v_ln_rms is None else grid_v_ln_rms,
         )
         self.p_load_1_w = self.p_load_nominal_w
         self.p_load_2_w = self.p_load_nominal_w * (1.0 + self.load_step_fraction)
@@ -301,13 +331,16 @@ class Microgrid:
         _validate_profile_callable("Microgrid.load_profile", self.load_profile)
 
         self.P_ref_nominal = (
-            MICROGRID_PV_VMP_STC_V_DEFAULT
-            * MICROGRID_PV_IMP_STC_A_DEFAULT
-            * MICROGRID_PV_ARRAY_SERIES_DEFAULT
-            * MICROGRID_PV_ARRAY_PARALLEL_DEFAULT
-            * MICROGRID_ETA_DEFAULT
+            arr.module.vmp_stc
+            * arr.module.imp_stc
+            * arr.modules_in_series
+            * arr.strings_in_parallel
+            * self.eta
         )
-        self.vdc_ref = SIM_VDC0_V_DEFAULT
+        self.vdc_ref = _positive_float(
+            "Microgrid.vdc_ref",
+            SIM_VDC0_V_DEFAULT if vdc_ref is None else vdc_ref,
+        )
 
         g0 = _evaluate_profile("Microgrid.irradiance_profile", self.irradiance_profile, 0.0)
         t0 = _evaluate_profile("Microgrid.temperature_profile", self.temperature_profile, 0.0)
@@ -323,9 +356,11 @@ class Microgrid:
         self.controller = controller or GridFollowingController(p_ref=controller_p_ref, vdc_ref=self.vdc_ref)
         self.plant = HardwarePlant(self.pv, self.dcp, self.lcl, self.eta, self.v_uvlo)
 
+        # vdc0 is the initial DC-link state x[0] at t=0; vdc_ref is the controller's
+        # steady-state voltage target. Both must stay above vdc_min_required.
         self.vdc_min_required = validate_dc_bus_capability(
             vdc0=SIM_VDC0_V_DEFAULT,
-            vdc_ref=getattr(self.controller, "vdc_ref", SIM_VDC0_V_DEFAULT),
+            vdc_ref=getattr(self.controller, "vdc_ref", self.vdc_ref),
             v_ln_rms=getattr(self.controller, "modulator", GridFormingInverter()).v_ln_rms,
             m_max=getattr(self.controller, "m_base", INVERTER_MODULATION_INDEX_MAX_DEFAULT),
             strict=False,
@@ -382,8 +417,8 @@ class Microgrid:
         return BalancedRLLoad.from_active_power(
             p_3ph_w=p_load_t,
             power_factor=self.load_power_factor,
-            v_ln_rms=GRID_V_LN_RMS_DEFAULT,
-            f_hz=GRID_FREQ_HZ_DEFAULT,
+            v_ln_rms=self.grid_v_ln_rms,
+            f_hz=self.grid_f_hz,
         )
 
     def _compute_step_control(
@@ -527,12 +562,14 @@ class MicrogridWithBESS(Microgrid):
         capacity_snapshot: CapacitySnapshot | None = None,
         aging_mode: str | None = None,
         blast_profile_kind: str | None = None,
+        **microgrid_kwargs,
     ):
         super().__init__(
             irradiance_profile=irradiance_profile,
             temperature_profile=temperature_profile,
             load_profile=load_profile,
             controller=controller,
+            **microgrid_kwargs,
         )
         self.kp_bess = _positive_float("MicrogridWithBESS.kp_bess", kp_bess)
         self.i_bess_max = _positive_float("MicrogridWithBESS.i_bess_max", i_bess_max)
