@@ -26,6 +26,7 @@ import numpy as np
 
 from bess.dc_dc_adapter import DCDCParameters, DCDCResult, convert_power
 from controllers.dc_link_bess_pi import DCLinkBESSPIOutput
+from controllers.dc_link_ovp import DCLinkOVPController, DCLinkOVPParameters
 from microgrid import _finite_float
 from microgrid_bess_pi import MicrogridWithBESSPI
 
@@ -84,6 +85,7 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
         self,
         *,
         dcdc_parameters: DCDCParameters | None = None,
+        ovp_controller: DCLinkOVPController | None = None,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
@@ -99,7 +101,15 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
                 "dcdc_parameters must be DCDCParameters, got "
                 f"{type(dcdc_parameters).__name__}."
             )
+        if ovp_controller is None:
+            ovp_controller = DCLinkOVPController(DCLinkOVPParameters(enabled=False))
+        if not isinstance(ovp_controller, DCLinkOVPController):
+            raise ValueError(
+                "ovp_controller must be DCLinkOVPController, got "
+                f"{type(ovp_controller).__name__}."
+            )
         self.dcdc_parameters = dcdc_parameters
+        self.ovp_controller = ovp_controller
 
     def _evaluate_dcdc_coupling(
         self,
@@ -278,10 +288,12 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
             i2,
             load_t,
         )
+        ovp_out = self.ovp_controller.compute(Vdc)
+        ipv_eff = 0.0 if ovp_out.pv_isolated_abstraction else Ipv
         dVdc = self.plant.dc_link_derivative(
-            Ipv,
+            ipv_eff,
             control.idc_inv,
-            i_bess=i_bus,
+            i_bess=i_bus - ovp_out.i_dump_a,
         )
         d_bess = self.bess.rhs(
             t=t,
@@ -357,7 +369,7 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
             else 0.0
         )
 
-        _, load_t, control = self._compute_step_control(
+        ipv_raw, load_t, control = self._compute_step_control(
             t,
             Vdc,
             i1,
@@ -379,6 +391,8 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
             load_t,
         )
         p_load = float(np.dot(v_pcc, i2))
+        ovp_out = self.ovp_controller.compute(Vdc)
+        ipv_eff = 0.0 if ovp_out.pv_isolated_abstraction else float(ipv_raw)
 
         return {
             "Vdc": float(Vdc),
@@ -422,4 +436,16 @@ class MicrogridWithBESSDCDC(MicrogridWithBESSPI):
             "soc_bess": float(soc_bess),
             "vt_bess": float(dcdc.unit_voltage_v),
             "soh_bess": float(soh_bess),
+            "ipv_raw_a": float(ipv_raw),
+            "ipv_eff_a": ipv_eff,
+            "p_pv_raw_w": float(Vdc * ipv_raw),
+            "p_pv_eff_w": float(Vdc * ipv_eff),
+            "ovp_enabled": bool(ovp_out.enabled),
+            "ovp_warn": bool(ovp_out.ovp_warn),
+            "ovp_chopper_active": bool(ovp_out.chopper_active),
+            "ovp_duty_cycle": float(ovp_out.duty_cycle),
+            "i_ovp_dump_a": float(ovp_out.i_dump_a),
+            "p_ovp_dump_w": float(ovp_out.p_dump_w),
+            "ovp_hard_threshold_reached": bool(ovp_out.hard_threshold_reached),
+            "ovp_pv_isolated_abstraction": bool(ovp_out.pv_isolated_abstraction),
         }
