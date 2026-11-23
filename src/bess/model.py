@@ -60,6 +60,7 @@ from pathlib import Path
 
 import numpy as np
 
+from bess.aging_capacity import CapacitySnapshot
 from bess.capacity import derive_q_init_case_ah, derive_soh_init_case
 from bess.lookup_table import OCVR1C1LookupTable, DEFAULT_TRAN_LOOKUP_TABLE
 from bess.validators import _ensure_finite, _ensure_fraction, _ensure_positive
@@ -377,13 +378,27 @@ class SecondLifeBattery1RC:
             )
         return self.r0_nominal_ohm * factor
 
-    def rhs(self, t: float, x, i_bess: float, soh: float) -> list[float]:
+    def validate_capacity_snapshot(self, snapshot: CapacitySnapshot) -> None:
+        """Reject incompatible snapshots instead of silently clipping capacity."""
+        if not isinstance(snapshot, CapacitySnapshot):
+            raise ValueError("capacity_snapshot must be a CapacitySnapshot")
+        if not (np.isclose(snapshot.q_nom_ref_ah, self.q_nom_ref_ah, rtol=0, atol=1e-12)
+                and np.isclose(snapshot.q_init_case_ah, self.q_init_case_ah, rtol=0, atol=1e-12)):
+            raise ValueError("capacity_snapshot reference and initial capacities must match the BESS")
+        if snapshot.soh < self.soh_min or snapshot.q_eff_ah < self.q_eff_min_ah:
+            raise ValueError("capacity_snapshot is below the BESS simulation limit")
+
+    def rhs(
+        self, t: float, x, i_bess: float, soh: float, *,
+        capacity_snapshot: CapacitySnapshot | None = None,
+    ) -> list[float]:
         """Continuous-time Thevenin 1RC ODE right-hand side for solve_ivp.
 
         State:
         - Compatible mode A (Step-2): x = [SoC, V_rc], uses external `soh`.
         - Compatible mode B (Step-3): x = [SoC, V_rc, z_deg], computes SoH(z_deg)
-          algebraically and ignores external `soh` as dynamic driver.
+          algebraically and ignores external `soh` as dynamic driver, unless
+          `capacity_snapshot` fixes capacity for the integration window.
 
         Equations implemented:
         - dSoC/dt = -i_bess / (3600 * Q_eff)  (coulomb-counting synthesis)
@@ -412,8 +427,14 @@ class SecondLifeBattery1RC:
             z_deg = _ensure_finite("x[2] (z_deg)", x[2])
             if z_deg < 0.0:
                 raise ValueError(f"x[2] (z_deg) must be >= 0, got {z_deg}.")
-            q_eff = self.effective_capacity_from_z_deg(z_deg)
+            if capacity_snapshot is None:
+                q_eff = self.effective_capacity_from_z_deg(z_deg)
+            else:
+                self.validate_capacity_snapshot(capacity_snapshot)
+                q_eff = capacity_snapshot.q_eff_ah
         else:
+            if capacity_snapshot is not None:
+                raise ValueError("capacity_snapshot requires the three-state BESS layout")
             q_eff = self.effective_capacity_ah(soh=soh)
         r1_eval = self.r1(soc)
         c1_eval = self.c1(soc)

@@ -1,0 +1,16 @@
+scenario=steady_operation
+status=PASS
+gfm_controller_active=True
+scenario=load_step_20
+status=PASS
+gfm_controller_active=True
+scenario=load_step_40
+status=REVIEW
+gfm_controller_active=True
+scenario=bess_vs_no_bess
+status=PASS
+both_gfm_active=True
+bess_pi_active=True
+overall_status=REVIEW
+all_controllers_gfm_active=True
+output_path=C:\Users\hp\AppData\Local\Temp\bat26_33_1f9abb01e07e4927aa0ca13a9938c014\outputs\validation\gfm_integrated_system\gfm_integrated_system_summary.json

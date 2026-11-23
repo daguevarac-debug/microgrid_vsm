@@ -1,0 +1,33 @@
+  [Case A: Constant Discharge] SoC alcanz� soc_min en t=9918.0 s (t_max solicitado: 43200.0 s)
+
+--- Case A: Constant Discharge ---
+soc_ini=0.600000, soc_fin=0.100215
+vrc_ini=0.000000, vrc_fin=0.026389
+zdeg_ini=0.000000, zdeg_fin=22.040000
+soh_ini=0.668182, soh_fin=0.668149, soh_min=0.668149
+r0_ini=0.001292, r0_fin=0.001292
+qeff_ini=44.100000, qeff_fin=44.097850
+vt_min=3.301901, vt_max=3.779995
+soc_mae=2.335340e-16, soc_rmse=2.751944e-16
+zdeg_mae=1.154302e-12, zdeg_rmse=1.506367e-12
+vt_identity_mae=0.000000e+00, vt_identity_rmse=0.000000e+00
+status=PASS
+
+--- Case B: Pulse Discharge-Rest-Charge ---
+soc_ini=0.600000, soc_fin=0.418600
+vrc_ini=0.000000, vrc_fin=-0.020448
+zdeg_ini=0.000000, zdeg_fin=32.000000
+soh_ini=0.668182, soh_fin=0.668135, soh_min=0.668135
+r0_ini=0.001292, r0_fin=0.001292
+qeff_ini=44.100000, qeff_fin=44.096878
+vt_min=3.442169, vt_max=3.777412
+soc_mae=3.277091e-04, soc_rmse=4.118470e-04
+zdeg_mae=7.777324e-03, zdeg_rmse=1.036224e-02
+vt_identity_mae=0.000000e+00, vt_identity_rmse=0.000000e+00
+status=PASS
+
+Validation plots saved to: C:\Users\hp\AppData\Local\Temp\bat26_33_1f9abb01e07e4927aa0ca13a9938c014\outputs\validation\bess_step3
+Summary table: C:\Users\hp\AppData\Local\Temp\bat26_33_1f9abb01e07e4927aa0ca13a9938c014\outputs\validation\bess_step3\summary_cases.csv
+Metrics table: C:\Users\hp\AppData\Local\Temp\bat26_33_1f9abb01e07e4927aa0ca13a9938c014\outputs\validation\bess_step3\summary_metrics.csv
+
+Overall status: PASS

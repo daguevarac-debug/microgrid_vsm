@@ -1,0 +1,14 @@
+test_disabled_bess_forces_zero_reference_and_freezes_integrator (test_dc_link_bess_pi.TestDCLinkBESSPIController.test_disabled_bess_forces_zero_reference_and_freezes_integrator) ... ok
+test_high_saturation_freezes_integrator_when_error_pushes_higher (test_dc_link_bess_pi.TestDCLinkBESSPIController.test_high_saturation_freezes_integrator_when_error_pushes_higher) ... ok
+test_integral_state_contributes_to_power_reference (test_dc_link_bess_pi.TestDCLinkBESSPIController.test_integral_state_contributes_to_power_reference) ... ok
+test_integrator_can_unwind_from_saturation (test_dc_link_bess_pi.TestDCLinkBESSPIController.test_integrator_can_unwind_from_saturation) ... ok
+test_invalid_limits_and_negative_gains_are_rejected (test_dc_link_bess_pi.TestDCLinkBESSPIController.test_invalid_limits_and_negative_gains_are_rejected) ... ok
+test_low_saturation_freezes_integrator_when_error_pushes_lower (test_dc_link_bess_pi.TestDCLinkBESSPIController.test_low_saturation_freezes_integrator_when_error_pushes_lower) ... ok
+test_overvoltage_generates_negative_charge_power_reference (test_dc_link_bess_pi.TestDCLinkBESSPIController.test_overvoltage_generates_negative_charge_power_reference) ... ok
+test_undervoltage_generates_positive_discharge_power_reference (test_dc_link_bess_pi.TestDCLinkBESSPIController.test_undervoltage_generates_positive_discharge_power_reference) ... ok
+test_zero_error_and_zero_integral_give_zero_power_reference (test_dc_link_bess_pi.TestDCLinkBESSPIController.test_zero_error_and_zero_integral_give_zero_power_reference) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.001s
+
+OK

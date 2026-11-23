@@ -1,0 +1,150 @@
+{
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "executable": "C:\\Users\\hp\\AppData\\Local\\microgrid_blast_probe_312\\Scripts\\python.exe",
+  "blast_version": "1.1.0",
+  "numpy": "1.26.4",
+  "class_path": "C:\\Users\\hp\\AppData\\Local\\microgrid_blast_probe_312\\Lib\\site-packages\\blast\\models\\lmo_gr_NissanLeaf66Ah_2ndLife_2020.py",
+  "class_sha256": "258a76cf85db321cc6f525e166eb7c24f032ec7991cf7887a794f65b915b4844",
+  "base_path": "C:\\Users\\hp\\AppData\\Local\\microgrid_blast_probe_312\\Lib\\site-packages\\blast\\models\\degradation_model.py",
+  "base_sha256": "1333d29393d2290669b8fb54170efefd68fdf0676e5994b71832adb6f8c0fd6f",
+  "initial": {
+    "cap": 66,
+    "cap_2ndLife": 46,
+    "q": 1.0,
+    "qNew": 0.7,
+    "qNew_times_66": 46.199999999999996
+  },
+  "profiles": {
+    "rest": "30 days, SoC 0.5, 25 C, 121 equally spaced samples",
+    "cycle": "7200 s, SoC 1 to 0 to 1, 1 h each leg, 25 C, 60 s spacing; C-rate relative to initial available capacity"
+  },
+  "rest_continuous": {
+    "final": {
+      "q": 0.9812071334181066,
+      "qNew": 0.6868449933926746,
+      "qLoss_t": 0.018792866581893424,
+      "qLoss_EFC": 0.0,
+      "efc": 0.0,
+      "time_days": 30.0,
+      "qNew_times_66": 45.331769563916524,
+      "cap2_times_q": 45.1355281372329,
+      "k_cal": 0.00387800860446317
+    }
+  },
+  "rest_two_windows": {
+    "middle": {
+      "q": 0.9863756713094344,
+      "qNew": 0.690462969916604,
+      "qLoss_t": 0.013624328690565592,
+      "qLoss_EFC": 0.0,
+      "efc": 0.0,
+      "time_days": 15.0,
+      "qNew_times_66": 45.570556014495864,
+      "cap2_times_q": 45.373280880233985,
+      "k_cal": 0.00387800860446317
+    },
+    "final": {
+      "q": 0.980053982797012,
+      "qNew": 0.6860377879579084,
+      "qLoss_t": 0.019946017202988026,
+      "qLoss_EFC": 0.0,
+      "efc": 0.0,
+      "time_days": 30.0,
+      "qNew_times_66": 45.27849400522195,
+      "cap2_times_q": 45.08248320866255,
+      "k_cal": 0.00387800860446317
+    }
+  },
+  "cycle_continuous": {
+    "final": {
+      "q": 0.9986848301702781,
+      "qNew": 0.6990793811191947,
+      "qLoss_t": 0.0012393698297219389,
+      "qLoss_EFC": 7.58e-05,
+      "efc": 1.0,
+      "time_days": 0.08333333333333333,
+      "qNew_times_66": 46.139239153866846,
+      "cap2_times_q": 45.939502187832794,
+      "k_cal": 0.003925916134660709
+    }
+  },
+  "cycle_two_windows": {
+    "middle": {
+      "q": 0.9990656342355037,
+      "qNew": 0.6993459439648525,
+      "qLoss_t": 0.0008985101796854636,
+      "qLoss_EFC": 3.5855584810900086e-05,
+      "efc": 0.5,
+      "time_days": 0.041666666666666664,
+      "qNew_times_66": 46.15683230168027,
+      "cap2_times_q": 45.95701917483317,
+      "k_cal": 0.003925916134660709
+    },
+    "final": {
+      "q": 0.9986100376629432,
+      "qNew": 0.6990270263640602,
+      "qLoss_t": 0.0013154189030595187,
+      "qLoss_EFC": 7.45434339972858e-05,
+      "efc": 0.9995328171177518,
+      "time_days": 0.08333333333333333,
+      "qNew_times_66": 46.135783740027975,
+      "cap2_times_q": 45.93606173249539,
+      "k_cal": 0.003925916134660709
+    }
+  },
+  "cycle_temperature_ramp_continuous": {
+    "final": {
+      "q": 0.998646587993927,
+      "qNew": 0.6990526115957488,
+      "qLoss_t": 0.0012776120060730392,
+      "qLoss_EFC": 7.58e-05,
+      "efc": 1.0,
+      "time_days": 0.08333333333333333,
+      "qNew_times_66": 46.137472365319425,
+      "cap2_times_q": 45.937743047720645,
+      "k_cal": 0.004047054775896642
+    }
+  },
+  "cycle_temperature_ramp_two_windows": {
+    "middle": {
+      "q": 0.9992460965823359,
+      "qNew": 0.699472267607635,
+      "qLoss_t": 0.0007180478328532222,
+      "qLoss_EFC": 3.5855584810900086e-05,
+      "efc": 0.5,
+      "time_days": 0.041666666666666664,
+      "qNew_times_66": 46.165169662103914,
+      "cap2_times_q": 45.96532044278745,
+      "k_cal": 0.003137410834280643
+    },
+    "final": {
+      "q": 0.9983146429512062,
+      "qNew": 0.6988202500658443,
+      "qLoss_t": 0.0016108066265668347,
+      "qLoss_EFC": 7.455042222690639e-05,
+      "efc": 0.9996230482911679,
+      "time_days": 0.08333333333333333,
+      "qNew_times_66": 46.12213650434572,
+      "cap2_times_q": 45.92247357575548,
+      "k_cal": 0.00495669871751264
+    }
+  },
+  "hypothetical_snapshots_at_cycle_end": {
+    "44.1": {
+      "q_eff_ah": 44.04200101050927,
+      "soh": 0.6673030456137767
+    },
+    "43.5": {
+      "q_eff_ah": 43.442790112407096,
+      "soh": 0.6582240926122287
+    }
+  },
+  "boundary_illustration": {
+    "soc_before": 0.5,
+    "capacity_before_ah": 43.49916710474606,
+    "capacity_after_ah": 43.22038064134823,
+    "hold_soc_stored_ah_before": 21.74958355237303,
+    "hold_soc_stored_ah_after": 21.610190320674114,
+    "hold_charge_soc_after": 0.5032251736248143
+  }
+}

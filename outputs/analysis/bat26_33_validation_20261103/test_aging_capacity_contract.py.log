@@ -1,0 +1,16 @@
+test_initial_state_is_case_capacity_not_blast_70pct_again (test_aging_capacity_contract.TestCapacitySnapshotContract.test_initial_state_is_case_capacity_not_blast_70pct_again) ... ok
+test_new_window_uses_a_new_snapshot_without_mutating_previous (test_aging_capacity_contract.TestCapacitySnapshotContract.test_new_window_uses_a_new_snapshot_without_mutating_previous) ... ok
+test_nominal_new_case_gives_full_capacity (test_aging_capacity_contract.TestCapacitySnapshotContract.test_nominal_new_case_gives_full_capacity) ... ok
+test_original_blast_initial_reference_is_a_distinct_case (test_aging_capacity_contract.TestCapacitySnapshotContract.test_original_blast_initial_reference_is_a_distinct_case) ... ok
+test_rejects_bool_strings_and_none_in_all_fields (test_aging_capacity_contract.TestCapacitySnapshotContract.test_rejects_bool_strings_and_none_in_all_fields) ... ok
+test_rejects_nans_and_infinities (test_aging_capacity_contract.TestCapacitySnapshotContract.test_rejects_nans_and_infinities) ... ok
+test_rejects_zero_negative_or_excessive_values (test_aging_capacity_contract.TestCapacitySnapshotContract.test_rejects_zero_negative_or_excessive_values) ... ok
+test_relative_retention_applied_to_case_initial_capacity (test_aging_capacity_contract.TestCapacitySnapshotContract.test_relative_retention_applied_to_case_initial_capacity) ... ok
+test_reported_fields_match_exact_contract (test_aging_capacity_contract.TestCapacitySnapshotContract.test_reported_fields_match_exact_contract) ... ok
+test_retention_is_monotone_in_q_effective_and_soh (test_aging_capacity_contract.TestCapacitySnapshotContract.test_retention_is_monotone_in_q_effective_and_soh) ... ok
+test_snapshot_is_frozen_even_for_computed_fields (test_aging_capacity_contract.TestCapacitySnapshotContract.test_snapshot_is_frozen_even_for_computed_fields) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.001s
+
+OK

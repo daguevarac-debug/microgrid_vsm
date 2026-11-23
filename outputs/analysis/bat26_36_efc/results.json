@@ -1,0 +1,324 @@
+{
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "executable": "C:\\Users\\hp\\AppData\\Local\\microgrid_blast_probe_312\\Scripts\\python.exe",
+  "blast_version": "1.1.0",
+  "class_path": "C:\\Users\\hp\\AppData\\Local\\microgrid_blast_probe_312\\Lib\\site-packages\\blast\\models\\lmo_gr_NissanLeaf66Ah_2ndLife_2020.py",
+  "base_path": "C:\\Users\\hp\\AppData\\Local\\microgrid_blast_probe_312\\Lib\\site-packages\\blast\\models\\degradation_model.py",
+  "cases": {
+    "reposo": {
+      "windows": {
+        "throughput_ah": 0.0,
+        "efc_initial": 0.0,
+        "efc_variable": 0.0,
+        "efc_blast": 0.0,
+        "final_soc": 0.5,
+        "blast_q_start_windows": [
+          1.0
+        ],
+        "blast_q_end_windows": [
+          0.9991124542429077
+        ],
+        "blast_delta_efc_windows": [
+          0.0
+        ],
+        "blast_q_loss_cyclic": 0.0
+      },
+      "refined": {
+        "throughput_ah": 0.0,
+        "efc_initial": 0.0,
+        "efc_variable": 0.0,
+        "efc_blast": 0.0,
+        "final_soc": 0.5,
+        "blast_q_start_windows": [
+          1.0,
+          0.9995335179722845,
+          0.9993170703114245,
+          0.9991777147158892
+        ],
+        "blast_q_end_windows": [
+          0.9995335179722845,
+          0.9993170703114245,
+          0.9991777147158892,
+          0.9990652635997203
+        ],
+        "blast_delta_efc_windows": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "blast_q_loss_cyclic": 0.0
+      }
+    },
+    "descarga_80pct": {
+      "windows": {
+        "throughput_ah": 35.28,
+        "efc_initial": 0.4,
+        "efc_variable": 0.4,
+        "efc_blast": 0.4,
+        "final_soc": 0.09999999999999998,
+        "blast_q_start_windows": [
+          1.0
+        ],
+        "blast_q_end_windows": [
+          0.9990772693886554
+        ],
+        "blast_delta_efc_windows": [
+          0.4
+        ],
+        "blast_q_loss_cyclic": 2.8176950969301396e-05
+      },
+      "refined": {
+        "throughput_ah": 35.28,
+        "efc_initial": 0.4,
+        "efc_variable": 0.4,
+        "efc_blast": 0.3997797741581646,
+        "final_soc": 0.09999999999999992,
+        "blast_q_start_windows": [
+          1.0,
+          0.9994443555549042,
+          0.9992358780354669,
+          0.9991175079912746
+        ],
+        "blast_q_end_windows": [
+          0.9994443555549042,
+          0.9992358780354669,
+          0.9991175079912746,
+          0.9990350869684278
+        ],
+        "blast_delta_efc_windows": [
+          0.10000000000000003,
+          0.09994443555549043,
+          0.09992358780354671,
+          0.09991175079912745
+        ],
+        "blast_q_loss_cyclic": 2.771172907058324e-05
+      }
+    },
+    "carga_80pct": {
+      "windows": {
+        "throughput_ah": 35.28,
+        "efc_initial": 0.4,
+        "efc_variable": 0.4,
+        "efc_blast": 0.4,
+        "final_soc": 0.9,
+        "blast_q_start_windows": [
+          1.0
+        ],
+        "blast_q_end_windows": [
+          0.9990772693886554
+        ],
+        "blast_delta_efc_windows": [
+          0.4
+        ],
+        "blast_q_loss_cyclic": 2.8176950969301396e-05
+      },
+      "refined": {
+        "throughput_ah": 35.28,
+        "efc_initial": 0.4,
+        "efc_variable": 0.4,
+        "efc_blast": 0.39981332294288663,
+        "final_soc": 0.8999999999999999,
+        "blast_q_start_windows": [
+          1.0,
+          0.9995971831257614,
+          0.9993578421912196,
+          0.9991782041118856
+        ],
+        "blast_q_end_windows": [
+          0.9995971831257614,
+          0.9993578421912196,
+          0.9991782041118856,
+          0.9990060303562351
+        ],
+        "blast_delta_efc_windows": [
+          0.10000000000000002,
+          0.09995971831257612,
+          0.09993578421912191,
+          0.09991782041118857
+        ],
+        "blast_q_loss_cyclic": 2.7714192421629916e-05
+      }
+    },
+    "ciclo_completo": {
+      "windows": {
+        "throughput_ah": 88.2,
+        "efc_initial": 1.0,
+        "efc_variable": 1.0,
+        "efc_blast": 0.9995328171177518,
+        "final_soc": 1.0,
+        "blast_q_start_windows": [
+          1.0,
+          0.9990656342355037
+        ],
+        "blast_q_end_windows": [
+          0.9990656342355037,
+          0.9986100376629432
+        ],
+        "blast_delta_efc_windows": [
+          0.5,
+          0.49953281711775177
+        ],
+        "blast_q_loss_cyclic": 7.45434339972858e-05
+      },
+      "refined": {
+        "throughput_ah": 88.20000000000002,
+        "efc_initial": 1.0,
+        "efc_variable": 1.0,
+        "efc_blast": 0.9991655602493958,
+        "final_soc": 1.0,
+        "blast_q_start_windows": [
+          1.0,
+          0.9994196302723073,
+          0.9992128014352681,
+          0.9990987705595582,
+          0.999021789864003,
+          0.9989501462564517,
+          0.9988631366829951,
+          0.998758206924583
+        ],
+        "blast_q_end_windows": [
+          0.9994196302723073,
+          0.9992128014352681,
+          0.9990987705595582,
+          0.999021789864003,
+          0.9989501462564517,
+          0.9988631366829951,
+          0.998758206924583,
+          0.9986326410652586
+        ],
+        "blast_delta_efc_windows": [
+          0.125,
+          0.12492745378403841,
+          0.12490160017940849,
+          0.1248873463199448,
+          0.12487772373300043,
+          0.12486876828205651,
+          0.12485789208537434,
+          0.12484477586557285
+        ],
+        "blast_q_loss_cyclic": 7.483586422955342e-05
+      }
+    },
+    "ciclo_parcial": {
+      "windows": {
+        "throughput_ah": 35.28,
+        "efc_initial": 0.4,
+        "efc_variable": 0.4,
+        "efc_blast": 0.3998194753723178,
+        "final_soc": 0.7,
+        "blast_q_start_windows": [
+          1.0,
+          0.999097376861589
+        ],
+        "blast_q_end_windows": [
+          0.999097376861589,
+          0.9986703623563002
+        ],
+        "blast_delta_efc_windows": [
+          0.2,
+          0.1998194753723178
+        ],
+        "blast_q_loss_cyclic": 2.771030765174401e-05
+      },
+      "refined": {
+        "throughput_ah": 35.28,
+        "efc_initial": 0.39999999999999997,
+        "efc_variable": 0.39999999999999997,
+        "efc_blast": 0.39968107937576164,
+        "final_soc": 0.7,
+        "blast_q_start_windows": [
+          1.0,
+          0.9994908615364587,
+          0.999278738629402,
+          0.9991506750177881,
+          0.9990550645774223,
+          0.9989698053427783,
+          0.9988828273282996,
+          0.9987936150830874
+        ],
+        "blast_q_end_windows": [
+          0.9994908615364587,
+          0.999278738629402,
+          0.9991506750177881,
+          0.9990550645774223,
+          0.9989698053427783,
+          0.9988828273282996,
+          0.9987936150830874,
+          0.9987017188380678
+        ],
+        "blast_delta_efc_windows": [
+          0.04999999999999999,
+          0.04997454307682292,
+          0.04996393693147008,
+          0.04995753375088938,
+          0.049952753228871105,
+          0.04994849026713888,
+          0.04994414136641495,
+          0.049939680754154336
+        ],
+        "blast_q_loss_cyclic": 2.7819659768649567e-05
+      }
+    },
+    "capacidad_variable": {
+      "windows": {
+        "throughput_ah": 33.516,
+        "efc_initial": 0.38,
+        "efc_variable": 0.4,
+        "efc_blast": 0.39979905813605987,
+        "final_soc": 0.8999999999999999,
+        "blast_q_start_windows": [
+          1.0,
+          0.9989952906802996
+        ],
+        "blast_q_end_windows": [
+          0.9989952906802996,
+          0.9985209096564018
+        ],
+        "blast_delta_efc_windows": [
+          0.2,
+          0.19979905813605986
+        ],
+        "blast_q_loss_cyclic": 2.7708838142524856e-05
+      },
+      "refined": {
+        "throughput_ah": 33.516000000000005,
+        "efc_initial": 0.37999999999999995,
+        "efc_variable": 0.39999999999999997,
+        "efc_blast": 0.39964500321524377,
+        "final_soc": 0.9,
+        "blast_q_start_windows": [
+          1.0,
+          0.9994327575691389,
+          0.9991966538508351,
+          0.9990542795885383,
+          0.998948096788415,
+          0.9988534628719375,
+          0.998756920336814,
+          0.9986578932991985
+        ],
+        "blast_q_end_windows": [
+          0.9994327575691389,
+          0.9991966538508351,
+          0.9990542795885383,
+          0.998948096788415,
+          0.9988534628719375,
+          0.998756920336814,
+          0.9986578932991985,
+          0.9985558794725305
+        ],
+        "blast_delta_efc_windows": [
+          0.04999999999999999,
+          0.04997163787845693,
+          0.04995983269254173,
+          0.04995271397942691,
+          0.04994740483942073,
+          0.04994267314359685,
+          0.0499378460168407,
+          0.049932894664959926
+        ],
+        "blast_q_loss_cyclic": 2.781696230217532e-05
+      }
+    }
+  }
+}
