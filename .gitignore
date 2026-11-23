@@ -29,3 +29,7 @@ outputs/validation/braco_fig5b_sl_*/aligned_curves.csv
 !outputs/validation/figures_final/
 !outputs/validation/figures_final/.gitkeep
 !outputs/validation/figures_final/**/*.png
+
+# Downloaded IEEE European LV benchmark and generated study outputs
+data/ieee_europe_lv_906/
+outputs/analysis/ieee_europe_lv_906/
