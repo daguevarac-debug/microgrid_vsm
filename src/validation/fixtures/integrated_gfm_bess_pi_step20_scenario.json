@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "name": "integrated_gfm_bess_pi_step20",
+  "pv": {
+    "modules_in_series": 10,
+    "strings_in_parallel": 1
+  },
+  "environment": {
+    "irradiance": {
+      "type": "constant",
+      "value": 800.0
+    },
+    "temperature_c": {
+      "type": "constant",
+      "value": 25.0
+    }
+  },
+  "load": {
+    "p_nominal_w": 3000.0,
+    "power_factor": 0.95,
+    "step_fraction": 0.2,
+    "t_step_s": 0.8
+  },
+  "vsg": {
+    "M": 80.0,
+    "D": 1500.0,
+    "f_hz": 60.0,
+    "v_ln_rms": 110.0,
+    "vdc_ref": 340.0
+  },
+  "bess": {
+    "enabled": true,
+    "mode": "with_pi",
+    "characterization_source": "excel",
+    "q_nom_ref_ah": 66.0,
+    "q_init_case_ah": 44.1,
+    "r0_nominal_ohm": 0.00097,
+    "soc_initial": 0.6,
+    "soc_min": 0.1,
+    "soc_max": 0.9,
+    "pi": {
+      "kp_w_per_v": 170.0,
+      "ki_w_per_v_s": 10.0
+    }
+  },
+  "simulation": {
+    "vdc0_v": 340.0,
+    "t_start_s": 0.0,
+    "t_end_s": 6.5
+  }
+}
