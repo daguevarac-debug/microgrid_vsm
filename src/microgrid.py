@@ -12,6 +12,8 @@ from pathlib import Path
 import numpy as np
 
 from bess.aging_capacity import CapacitySnapshot
+from bess.dc_dc_adapter import DCDCParameters, convert_power
+from bess.leaf_48module_pack import Leaf48ModulePack
 from bess.model import SecondLifeBattery1RC
 from config import (
     BESS_COUPLED_I_MAX_DEFAULT,
@@ -254,41 +256,71 @@ class Microgrid:
         temperature_profile=None,
         load_profile=None,
         controller: InverterControllerBase | None = None,
+        *,
+        pv_params: PVArrayParams | None = None,
+        p_load_nominal_w: float | None = None,
+        load_power_factor: float | None = None,
+        load_step_fraction: float | None = None,
+        t_step: float | None = None,
+        vdc_ref: float | None = None,
+        grid_f_hz: float | None = None,
+        grid_v_ln_rms: float | None = None,
     ):
-        mod = PVModuleParams(
-            voc_stc=MICROGRID_PV_VOC_STC_V_DEFAULT,
-            isc_stc=MICROGRID_PV_ISC_STC_A_DEFAULT,
-            vmp_stc=MICROGRID_PV_VMP_STC_V_DEFAULT,
-            imp_stc=MICROGRID_PV_IMP_STC_A_DEFAULT,
-            ns_cells=MICROGRID_PV_NS_CELLS_DEFAULT,
-            alpha_isc=MICROGRID_PV_ALPHA_ISC_A_PER_C_DEFAULT,
-            beta_voc=MICROGRID_PV_BETA_VOC_V_PER_C_DEFAULT,
-            n=MICROGRID_PV_DIODE_IDEALITY_DEFAULT,
-            rs=MICROGRID_PV_RS_OHM_DEFAULT,
-            rsh=MICROGRID_PV_RSH_OHM_DEFAULT,
-        )
-        arr = PVArrayParams(
-            module=mod,
-            modules_in_series=MICROGRID_PV_ARRAY_SERIES_DEFAULT,
-            strings_in_parallel=MICROGRID_PV_ARRAY_PARALLEL_DEFAULT,
-        )
+        if pv_params is None:
+            mod = PVModuleParams(
+                voc_stc=MICROGRID_PV_VOC_STC_V_DEFAULT,
+                isc_stc=MICROGRID_PV_ISC_STC_A_DEFAULT,
+                vmp_stc=MICROGRID_PV_VMP_STC_V_DEFAULT,
+                imp_stc=MICROGRID_PV_IMP_STC_A_DEFAULT,
+                ns_cells=MICROGRID_PV_NS_CELLS_DEFAULT,
+                alpha_isc=MICROGRID_PV_ALPHA_ISC_A_PER_C_DEFAULT,
+                beta_voc=MICROGRID_PV_BETA_VOC_V_PER_C_DEFAULT,
+                n=MICROGRID_PV_DIODE_IDEALITY_DEFAULT,
+                rs=MICROGRID_PV_RS_OHM_DEFAULT,
+                rsh=MICROGRID_PV_RSH_OHM_DEFAULT,
+            )
+            arr = PVArrayParams(
+                module=mod,
+                modules_in_series=MICROGRID_PV_ARRAY_SERIES_DEFAULT,
+                strings_in_parallel=MICROGRID_PV_ARRAY_PARALLEL_DEFAULT,
+            )
+        else:
+            if not isinstance(pv_params, PVArrayParams):
+                raise ValueError(
+                    f"pv_params must be PVArrayParams when provided, got {type(pv_params).__name__}."
+                )
+            arr = pv_params
         self.pv = PVArraySingleDiode(arr)
 
         self.dcp = DCLinkParams(Cdc=DCLINK_CAP_F_DEFAULT, Vmin=DCLINK_VMIN_DEFAULT)
         self.lcl = LCLFilter()
         self.eta = _eta_float("Microgrid.eta", MICROGRID_ETA_DEFAULT)
         self.v_uvlo = _positive_float("Microgrid.v_uvlo", MICROGRID_UVLO_V_DEFAULT)
-        self.t_step = _positive_float("Microgrid.t_step", MICROGRID_LOAD_STEP_TIME_S_DEFAULT)
+        self.t_step = _positive_float(
+            "Microgrid.t_step",
+            MICROGRID_LOAD_STEP_TIME_S_DEFAULT if t_step is None else t_step,
+        )
         self.r_load_1 = _positive_float("Microgrid.r_load_1", MICROGRID_LOAD_R1_OHM_DEFAULT)
         self.r_load_2 = _positive_float("Microgrid.r_load_2", MICROGRID_LOAD_R2_OHM_DEFAULT)
         self.p_load_nominal_w = _positive_float(
-            "Microgrid.p_load_nominal_w", MICROGRID_LOAD_P_NOM_W_DEFAULT
+            "Microgrid.p_load_nominal_w",
+            MICROGRID_LOAD_P_NOM_W_DEFAULT if p_load_nominal_w is None else p_load_nominal_w,
         )
         self.load_power_factor = _eta_float(
-            "Microgrid.load_power_factor", MICROGRID_LOAD_POWER_FACTOR_DEFAULT
+            "Microgrid.load_power_factor",
+            MICROGRID_LOAD_POWER_FACTOR_DEFAULT if load_power_factor is None else load_power_factor,
         )
         self.load_step_fraction = _fraction_float(
-            "Microgrid.load_step_fraction", MICROGRID_LOAD_STEP_MODERATE_FRACTION_DEFAULT
+            "Microgrid.load_step_fraction",
+            MICROGRID_LOAD_STEP_MODERATE_FRACTION_DEFAULT if load_step_fraction is None else load_step_fraction,
+        )
+        self.grid_f_hz = _positive_float(
+            "Microgrid.grid_f_hz",
+            GRID_FREQ_HZ_DEFAULT if grid_f_hz is None else grid_f_hz,
+        )
+        self.grid_v_ln_rms = _positive_float(
+            "Microgrid.grid_v_ln_rms",
+            GRID_V_LN_RMS_DEFAULT if grid_v_ln_rms is None else grid_v_ln_rms,
         )
         self.p_load_1_w = self.p_load_nominal_w
         self.p_load_2_w = self.p_load_nominal_w * (1.0 + self.load_step_fraction)
@@ -301,13 +333,16 @@ class Microgrid:
         _validate_profile_callable("Microgrid.load_profile", self.load_profile)
 
         self.P_ref_nominal = (
-            MICROGRID_PV_VMP_STC_V_DEFAULT
-            * MICROGRID_PV_IMP_STC_A_DEFAULT
-            * MICROGRID_PV_ARRAY_SERIES_DEFAULT
-            * MICROGRID_PV_ARRAY_PARALLEL_DEFAULT
-            * MICROGRID_ETA_DEFAULT
+            arr.module.vmp_stc
+            * arr.module.imp_stc
+            * arr.modules_in_series
+            * arr.strings_in_parallel
+            * self.eta
         )
-        self.vdc_ref = SIM_VDC0_V_DEFAULT
+        self.vdc_ref = _positive_float(
+            "Microgrid.vdc_ref",
+            SIM_VDC0_V_DEFAULT if vdc_ref is None else vdc_ref,
+        )
 
         g0 = _evaluate_profile("Microgrid.irradiance_profile", self.irradiance_profile, 0.0)
         t0 = _evaluate_profile("Microgrid.temperature_profile", self.temperature_profile, 0.0)
@@ -323,9 +358,11 @@ class Microgrid:
         self.controller = controller or GridFollowingController(p_ref=controller_p_ref, vdc_ref=self.vdc_ref)
         self.plant = HardwarePlant(self.pv, self.dcp, self.lcl, self.eta, self.v_uvlo)
 
+        # vdc0 is the initial DC-link state x[0] at t=0; vdc_ref is the controller's
+        # steady-state voltage target. Both must stay above vdc_min_required.
         self.vdc_min_required = validate_dc_bus_capability(
             vdc0=SIM_VDC0_V_DEFAULT,
-            vdc_ref=getattr(self.controller, "vdc_ref", SIM_VDC0_V_DEFAULT),
+            vdc_ref=getattr(self.controller, "vdc_ref", self.vdc_ref),
             v_ln_rms=getattr(self.controller, "modulator", GridFormingInverter()).v_ln_rms,
             m_max=getattr(self.controller, "m_base", INVERTER_MODULATION_INDEX_MAX_DEFAULT),
             strict=False,
@@ -382,8 +419,8 @@ class Microgrid:
         return BalancedRLLoad.from_active_power(
             p_3ph_w=p_load_t,
             power_factor=self.load_power_factor,
-            v_ln_rms=GRID_V_LN_RMS_DEFAULT,
-            f_hz=GRID_FREQ_HZ_DEFAULT,
+            v_ln_rms=self.grid_v_ln_rms,
+            f_hz=self.grid_f_hz,
         )
 
     def _compute_step_control(
@@ -527,12 +564,16 @@ class MicrogridWithBESS(Microgrid):
         capacity_snapshot: CapacitySnapshot | None = None,
         aging_mode: str | None = None,
         blast_profile_kind: str | None = None,
+        leaf_pack: Leaf48ModulePack | None = None,
+        dcdc_parameters: DCDCParameters | None = None,
+        **microgrid_kwargs,
     ):
         super().__init__(
             irradiance_profile=irradiance_profile,
             temperature_profile=temperature_profile,
             load_profile=load_profile,
             controller=controller,
+            **microgrid_kwargs,
         )
         self.kp_bess = _positive_float("MicrogridWithBESS.kp_bess", kp_bess)
         self.i_bess_max = _positive_float("MicrogridWithBESS.i_bess_max", i_bess_max)
@@ -579,6 +620,31 @@ class MicrogridWithBESS(Microgrid):
             self.bess.validate_capacity_snapshot(capacity_snapshot)
         self._capacity_snapshot = capacity_snapshot
 
+        if (leaf_pack is None) != (dcdc_parameters is None):
+            raise ValueError("leaf_pack and dcdc_parameters must be provided together")
+        if leaf_pack is not None and not isinstance(leaf_pack, Leaf48ModulePack):
+            raise ValueError("leaf_pack must be Leaf48ModulePack")
+        if dcdc_parameters is not None and not isinstance(dcdc_parameters, DCDCParameters):
+            raise ValueError("dcdc_parameters must be DCDCParameters")
+        if dcdc_parameters is not None and (dcdc_parameters.n_series, dcdc_parameters.n_parallel) != (96, 1):
+            raise ValueError("Leaf48ModulePack coupling requires 96 series 2p units and one string")
+        if leaf_pack is not None:
+            expected_unit_v = (
+                leaf_pack.module_v_min / leaf_pack.series_2p_units_per_module,
+                leaf_pack.module_v_max / leaf_pack.series_2p_units_per_module,
+            )
+            if (not np.isclose(dcdc_parameters.unit_voltage_min_v, expected_unit_v[0])
+                    or not np.isclose(dcdc_parameters.unit_voltage_max_v, expected_unit_v[1])):
+                raise ValueError("DCDC unit-voltage limits must match the Leaf 2p envelope")
+            if (not np.isclose(self.bess.q_nom_ref_ah, leaf_pack.q_nom_ref_ah)
+                    or not np.isclose(self.bess.q_init_case_ah, leaf_pack.q_init_case_ah)):
+                raise ValueError("Leaf48ModulePack capacities must match the ECM capacity case")
+            if (not np.isclose(self.bess.soc_min, leaf_pack.soc_min, rtol=0, atol=1e-12)
+                    or not np.isclose(self.bess.soc_max, leaf_pack.soc_max, rtol=0, atol=1e-12)):
+                raise ValueError("Leaf48ModulePack SoC limits must match the ECM limits")
+        self.leaf_pack = leaf_pack
+        self.dcdc_parameters = dcdc_parameters
+
         self._last_i_bess = 0.0
         self._last_soc_bess = float(self.bess.soc_initial)
         self._last_soh_bess = float(self._bess_soh(0.0))
@@ -590,6 +656,66 @@ class MicrogridWithBESS(Microgrid):
                 soh=self._bess_soh(0.0),
             )
         )
+
+    def _bess_port_exchange(self, Vdc: float, soc_bess: float, vrc_bess: float,
+                            soh_bess: float) -> dict[str, float | str]:
+        """Resolve legacy shared-current or opt-in pack/DC-bus port currents."""
+        if self.dcdc_parameters is None:
+            current = self._compute_i_bess(Vdc, soc_bess, soh_bess)
+            power = float(Vdc) * current
+            return {
+                "i_pack": current, "i_bus": current, "p_bus": power,
+                "p_bus_limit": self._available_p_bess_support_w(soc_bess, soh_bess),
+                "i_bus_limit": self._available_i_bess_max(soh_bess),
+                "v_pack": self.bess.terminal_voltage(soc_bess, vrc_bess, current, soh_bess),
+                "p_pack": self.bess.terminal_voltage(soc_bess, vrc_bess, current, soh_bess) * current,
+                "p_loss": 0.0, "saturated": 0.0, "protection_status": "ok",
+            }
+
+        params = self.dcdc_parameters
+        unit_i_available = min(params.unit_discharge_max_a, self.i_bess_max * soh_bess)
+        unit_ch_available = min(params.unit_charge_max_a, self.i_bess_max * soh_bess)
+        ocv = self.bess.ocv(soc_bess)
+        r0 = self.bess.r0(soh_bess)
+        raw_current = self.kp_bess * (self.vdc_ref - Vdc)
+        i_request = self._compute_i_bess(Vdc, soc_bess, soh_bess)
+        # The legacy request is a bus current, not a pack current. Efficiency
+        # is applied only by convert_power when mapping between ports.
+        p_request = max(float(Vdc), 0.0) * i_request
+        p_request_unclipped = p_request
+        p_bus_available = self._available_p_bess_max_w(soh_bess)
+        p_request = float(np.clip(p_request, -p_bus_available, p_bus_available))
+        supervision_saturated = (i_request != raw_current or p_request != p_request_unclipped)
+        soc_blocked = ((soc_bess <= self.bess.soc_min and raw_current > 0.0)
+                       or (soc_bess >= self.bess.soc_max and raw_current < 0.0))
+        converted = convert_power(
+            parameters=params, bus_power_request_w=p_request,
+            bus_voltage_v=max(float(Vdc), 0.0), ocv_v=ocv, vrc_v=vrc_bess,
+            r0_ohm=r0, soc=soc_bess, soc_min=self.bess.soc_min,
+            soc_max=self.bess.soc_max,
+            unit_discharge_available_a=unit_i_available,
+            unit_charge_available_a=unit_ch_available,
+        )
+        vpack = converted.unit_voltage_v * params.n_series
+        ppack = converted.bank_power_w
+        pbus_limit = min(converted.bus_discharge_limit_w,
+                         self._available_p_bess_max_w(soh_bess))
+        ibus_limit = min(params.bus_current_max_a,
+                         pbus_limit / max(float(Vdc), 1e-12))
+        return {
+            "i_pack": float(converted.unit_current_a),
+            "i_bus": float(converted.bus_current_a),
+            "p_bus": float(converted.bus_power_w),
+            "p_bus_limit": float(pbus_limit),
+            "i_bus_limit": float(ibus_limit),
+            "v_pack": float(vpack), "p_pack": float(ppack),
+            "p_loss": float(converted.loss_power_w),
+            "saturated": float(supervision_saturated or converted.saturated),
+            "supervision_saturated": float(supervision_saturated),
+            "adapter_saturated": float(converted.saturated),
+            "soc_blocked": float(soc_blocked),
+            "protection_status": converted.protection_status,
+        }
 
     def _bess_soh(self, z_deg: float) -> float:
         if self._capacity_snapshot is None:
@@ -664,20 +790,24 @@ class MicrogridWithBESS(Microgrid):
         theta = x[11]
         soc_bess = x[12]
         vrc_bess = x[13]
+        # RK45 internal stages can undershoot zero while throughput starts at rest.
+        # This tolerance is 1e-9 Ah; accepted states remain the solver's output.
         zdeg_bess = x[14]
+        if -1e-9 <= zdeg_bess < 0.0:
+            zdeg_bess = 0.0
 
         soh_bess = self._bess_soh(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
-        i_bess = self._compute_i_bess(
-            Vdc=Vdc,
-            soc_bess=soc_bess,
-            soh_bess=soh_bess,
-        )
-        p_bess_dc_actual = float(Vdc) * float(i_bess)
+        ports = self._bess_port_exchange(Vdc, soc_bess, vrc_bess, soh_bess)
+        i_pack, i_bus = ports["i_pack"], ports["i_bus"]
+        p_bess_dc_actual = ports["p_bus"]
         p_bess_dc_max_available = self._available_p_bess_support_w(
             soc_bess=soc_bess,
             soh_bess=soh_bess,
         )
+        if self.dcdc_parameters is not None:
+            p_bess_dc_max_available = ports["p_bus_limit"]
+            i_bess_max_available = ports["i_bus_limit"]
         Ipv, load_t, control = self._compute_step_control(
             t,
             Vdc,
@@ -695,11 +825,11 @@ class MicrogridWithBESS(Microgrid):
         di1dt, dvcdt, di2dt, v_pcc = self.plant.lcl_derivatives_with_rl_load(
             control.v_inv, i1, vc, i2, load_t
         )
-        dVdc = self.plant.dc_link_derivative(Ipv, control.idc_inv, i_bess=i_bess)
+        dVdc = self.plant.dc_link_derivative(Ipv, control.idc_inv, i_bess=i_bus)
         d_bess = self.bess.rhs(
             t=t,
             x=[soc_bess, vrc_bess, zdeg_bess],
-            i_bess=i_bess,
+            i_bess=i_pack,
             soh=soh_bess,
             capacity_snapshot=self._capacity_snapshot,
         )
@@ -707,7 +837,7 @@ class MicrogridWithBESS(Microgrid):
         vt_bess = self.bess.terminal_voltage(
             soc=soc_bess,
             v_rc=vrc_bess,
-            i_bess=i_bess,
+            i_bess=i_pack,
             soh=soh_bess,
         )
 
@@ -716,7 +846,7 @@ class MicrogridWithBESS(Microgrid):
         self._last_p_pcc = control.p_pcc
         self._last_p_cmd = control.p_cmd
         self._last_m_ctrl = control.m_ctrl
-        self._last_i_bess = i_bess
+        self._last_i_bess = i_bus
         self._last_soc_bess = soc_bess
         self._last_soh_bess = soh_bess
         self._last_vt_bess = vt_bess
@@ -739,7 +869,7 @@ class MicrogridWithBESS(Microgrid):
             d_bess[2],
         ]
 
-    def integrated_signals(self, t: float, x) -> dict[str, float]:
+    def integrated_signals(self, t: float, x) -> dict[str, float | str]:
         """Return key integrated diagnostics for thesis traceability."""
         Vdc = x[0]
         i1 = np.array([x[1], x[2], x[3]])
@@ -753,16 +883,16 @@ class MicrogridWithBESS(Microgrid):
 
         soh_bess = self._bess_soh(zdeg_bess)
         i_bess_max_available = self._available_i_bess_max(soh_bess)
-        i_bess = self._compute_i_bess(
-            Vdc=Vdc,
-            soc_bess=soc_bess,
-            soh_bess=soh_bess,
-        )
-        p_bess_dc_actual = float(Vdc) * float(i_bess)
+        ports = self._bess_port_exchange(Vdc, soc_bess, vrc_bess, soh_bess)
+        i_pack, i_bus = ports["i_pack"], ports["i_bus"]
+        p_bess_dc_actual = ports["p_bus"]
         p_bess_dc_max_available = self._available_p_bess_support_w(
             soc_bess=soc_bess,
             soh_bess=soh_bess,
         )
+        if self.dcdc_parameters is not None:
+            p_bess_dc_max_available = ports["p_bus_limit"]
+            i_bess_max_available = ports["i_bus_limit"]
         _, load_t, control = self._compute_step_control(
             t,
             Vdc,
@@ -779,11 +909,11 @@ class MicrogridWithBESS(Microgrid):
         )
         _, _, _, v_pcc = self.plant.lcl_derivatives_with_rl_load(control.v_inv, i1, vc, i2, load_t)
         control.p_pcc = float(np.dot(v_pcc, i2))
-        p_bess_dc = float(Vdc) * float(i_bess)
+        p_bess_dc = float(Vdc) * float(i_bus)
         vt_bess = self.bess.terminal_voltage(
             soc=soc_bess,
             v_rc=vrc_bess,
-            i_bess=i_bess,
+            i_bess=i_pack,
             soh=soh_bess,
         )
         p_load = float(np.dot(v_pcc, i2))
@@ -793,7 +923,19 @@ class MicrogridWithBESS(Microgrid):
             "p_bridge": float(control.p_bridge),
             "p_pcc": float(control.p_pcc),
             "p_load": p_load,
-            "i_bess": float(i_bess),
+            "i_bess": float(i_bus),
+            "i_pack": float(i_pack),
+            "i_bus": float(i_bus),
+            "p_pack": float(ports["p_pack"]),
+            "p_bus": float(ports["p_bus"]),
+            "v_pack": float(ports["v_pack"]),
+            "p_dcdc_loss": float(ports["p_loss"]),
+            "dcdc_saturated": float(ports["saturated"]),
+            "dcdc_protection_status": ports["protection_status"],
+            **({"dcdc_supervision_saturated": float(ports["supervision_saturated"]),
+                "dcdc_adapter_saturated": float(ports["adapter_saturated"]),
+                "dcdc_soc_blocked": float(ports["soc_blocked"])}
+               if self.dcdc_parameters is not None else {}),
             "p_bess_dc": p_bess_dc,
             "p_bess_dc_max": float(self.p_bess_max_w),
             "i_bess_max_available": float(i_bess_max_available),
